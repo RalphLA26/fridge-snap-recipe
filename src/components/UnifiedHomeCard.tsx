@@ -1,10 +1,9 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Camera, Search, Check, X, Plus, ArrowRight, Refrigerator, Utensils, PlusCircle } from "lucide-react";
+import { Camera, Search, Check, X, Plus, ArrowRight, Refrigerator } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 interface UnifiedHomeCardProps {
   ingredients: string[];
@@ -22,7 +21,6 @@ const UnifiedHomeCard = ({
   onFindRecipes
 }: UnifiedHomeCardProps) => {
   const [newIngredient, setNewIngredient] = useState("");
-  const [activeTab, setActiveTab] = useState("fridge");
 
   const handleAddIngredient = () => {
     const ingredient = newIngredient.trim();
@@ -129,221 +127,100 @@ const UnifiedHomeCard = ({
         </div>
       </div>
 
-      {/* Tabs Section */}
+      {/* Ingredients Management Section */}
       <div className="p-4">
-        <Tabs 
-          defaultValue="fridge" 
-          value={activeTab} 
-          onValueChange={setActiveTab}
-          className="w-full"
-        >
-          <TabsList className="grid grid-cols-2 mb-4 bg-gray-50 rounded-xl p-1">
-            <TabsTrigger 
-              value="fridge" 
-              className="data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-lg py-2 transition-all duration-200"
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-gray-800 flex items-center">
+            <span className="bg-fridge-100 rounded-full p-1.5 mr-2.5">
+              <Refrigerator className="h-4 w-4 text-fridge-600" />
+            </span>
+            My Fridge
+            {ingredients.length > 0 && (
+              <span className="ml-2 text-sm bg-fridge-100 text-fridge-800 py-0.5 px-2 rounded-full">
+                {ingredients.length}
+              </span>
+            )}
+          </h2>
+        </div>
+        
+        <div className="space-y-4">
+          <div className="flex items-center space-x-2">
+            <input
+              type="text"
+              value={newIngredient}
+              onChange={(e) => setNewIngredient(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleAddIngredient()}
+              className="flex h-11 w-full rounded-lg border border-input bg-background px-4 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fridge-400 focus-visible:ring-offset-2 transition-all duration-200"
+              placeholder="Add items in your fridge..."
+            />
+            <Button 
+              onClick={handleAddIngredient}
+              size="icon"
+              className="h-11 w-11 rounded-full bg-fridge-600 hover:bg-fridge-700 text-white cursor-pointer shadow-md hover:shadow-lg transition-all duration-200"
+              type="button"
             >
-              <Refrigerator className="h-4 w-4 mr-2" />
-              Fridge
-            </TabsTrigger>
-            <TabsTrigger 
-              value="ingredients" 
-              className="data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-lg py-2 transition-all duration-200"
-            >
-              <Utensils className="h-4 w-4 mr-2" />
-              Ingredients
-            </TabsTrigger>
-          </TabsList>
+              <Plus className="h-5 w-5" />
+            </Button>
+          </div>
           
-          <TabsContent value="fridge" className="mt-0 space-y-4">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-800 flex items-center">
-                <span className="bg-fridge-100 rounded-full p-1.5 mr-2.5">
-                  <Refrigerator className="h-4 w-4 text-fridge-600" />
-                </span>
-                My Fridge
-                {ingredients.length > 0 && (
-                  <span className="ml-2 text-sm bg-fridge-100 text-fridge-800 py-0.5 px-2 rounded-full">
-                    {ingredients.length}
-                  </span>
-                )}
-              </h2>
-            </div>
-            
-            <div className="space-y-4">
-              <div className="flex items-center space-x-2">
-                <input
-                  type="text"
-                  value={newIngredient}
-                  onChange={(e) => setNewIngredient(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleAddIngredient()}
-                  className="flex h-11 w-full rounded-lg border border-input bg-background px-4 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fridge-400 focus-visible:ring-offset-2 transition-all duration-200"
-                  placeholder="Add items in your fridge..."
-                />
-                <Button 
-                  onClick={handleAddIngredient}
-                  size="icon"
-                  className="h-11 w-11 rounded-full bg-fridge-600 hover:bg-fridge-700 text-white cursor-pointer shadow-md hover:shadow-lg transition-all duration-200"
-                  type="button"
-                >
-                  <Plus className="h-5 w-5" />
-                </Button>
-              </div>
-              
-              <div>
-                {ingredients.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground bg-gray-50 rounded-lg border border-gray-100">
-                    <div className="flex flex-col items-center">
-                      <div className="bg-gray-100 rounded-full p-3 mb-3">
-                        <Refrigerator className="h-6 w-6 text-gray-400" />
-                      </div>
-                      <p className="text-sm">Your fridge is empty. Add ingredients or take a photo.</p>
-                    </div>
+          <div>
+            {ingredients.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground bg-gray-50 rounded-lg border border-gray-100">
+                <div className="flex flex-col items-center">
+                  <div className="bg-gray-100 rounded-full p-3 mb-3">
+                    <Refrigerator className="h-6 w-6 text-gray-400" />
                   </div>
-                ) : (
-                  <>
-                    <motion.ul 
-                      className="space-y-2 max-h-[240px] overflow-y-auto pr-1 mb-4 scrollbar-hidden"
-                      variants={container}
-                      initial="hidden"
-                      animate="show"
+                  <p className="text-sm">Your fridge is empty. Add ingredients or take a photo.</p>
+                </div>
+              </div>
+            ) : (
+              <>
+                <motion.ul 
+                  className="space-y-2 max-h-[240px] overflow-y-auto pr-1 mb-4 scrollbar-hidden"
+                  variants={container}
+                  initial="hidden"
+                  animate="show"
+                >
+                  {ingredients.map((ingredient) => (
+                    <motion.li 
+                      key={ingredient}
+                      variants={item}
+                      className="flex items-center justify-between py-2.5 px-4 bg-gray-50 rounded-lg border border-gray-100 hover:bg-gray-100 transition-colors"
                     >
-                      {ingredients.map((ingredient) => (
-                        <motion.li 
-                          key={ingredient}
-                          variants={item}
-                          className="flex items-center justify-between py-2.5 px-4 bg-gray-50 rounded-lg border border-gray-100 hover:bg-gray-100 transition-colors"
-                        >
-                          <div className="flex items-center">
-                            <div className="bg-fridge-100 rounded-full p-1 mr-2">
-                              <Check className="h-3 w-3 text-fridge-600" />
-                            </div>
-                            <span className="font-medium text-sm">{ingredient}</span>
-                          </div>
-                          <Button
-                            onClick={() => onRemoveIngredient(ingredient)}
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7 rounded-full hover:bg-white cursor-pointer transition-all duration-200"
-                            type="button"
-                          >
-                            <X className="h-4 w-4 text-gray-500" />
-                          </Button>
-                        </motion.li>
-                      ))}
-                    </motion.ul>
-                    
-                    <div className="text-center">
-                      <Button 
-                        onClick={onFindRecipes}
-                        className="bg-fridge-600 hover:bg-fridge-700 text-white shadow-md hover:shadow-lg transition-all duration-200 px-5 py-2.5 cursor-pointer text-sm"
+                      <div className="flex items-center">
+                        <div className="bg-fridge-100 rounded-full p-1 mr-2">
+                          <Check className="h-3 w-3 text-fridge-600" />
+                        </div>
+                        <span className="font-medium text-sm">{ingredient}</span>
+                      </div>
+                      <Button
+                        onClick={() => onRemoveIngredient(ingredient)}
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 rounded-full hover:bg-white cursor-pointer transition-all duration-200"
                         type="button"
                       >
-                        <Search className="mr-2 h-4 w-4" />
-                        Find Recipes with {ingredients.length} Ingredient{ingredients.length !== 1 ? 's' : ''}
-                        <ArrowRight className="ml-2 h-4 w-4" />
+                        <X className="h-4 w-4 text-gray-500" />
                       </Button>
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="ingredients" className="mt-0 space-y-4">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-800 flex items-center">
-                <span className="bg-fridge-100 rounded-full p-1.5 mr-2.5">
-                  <Utensils className="h-4 w-4 text-fridge-600" />
-                </span>
-                My Ingredients
-                {ingredients.length > 0 && (
-                  <span className="ml-2 text-sm bg-fridge-100 text-fridge-800 py-0.5 px-2 rounded-full">
-                    {ingredients.length}
-                  </span>
-                )}
-              </h2>
-            </div>
-            
-            <div className="space-y-4">
-              <div className="flex items-center space-x-2">
-                <input
-                  type="text"
-                  value={newIngredient}
-                  onChange={(e) => setNewIngredient(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleAddIngredient()}
-                  className="flex h-11 w-full rounded-lg border border-input bg-background px-4 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fridge-400 focus-visible:ring-offset-2 transition-all duration-200"
-                  placeholder="Add new ingredients..."
-                />
-                <Button 
-                  onClick={handleAddIngredient}
-                  size="icon"
-                  className="h-11 w-11 rounded-full bg-fridge-600 hover:bg-fridge-700 text-white cursor-pointer shadow-md hover:shadow-lg transition-all duration-200"
-                  type="button"
-                >
-                  <Plus className="h-5 w-5" />
-                </Button>
-              </div>
-              
-              <div>
-                {ingredients.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground bg-gray-50 rounded-lg border border-gray-100">
-                    <div className="flex flex-col items-center">
-                      <div className="bg-gray-100 rounded-full p-3 mb-3">
-                        <Utensils className="h-6 w-6 text-gray-400" />
-                      </div>
-                      <p className="text-sm">No ingredients added yet. Add ingredients to get started.</p>
-                    </div>
-                  </div>
-                ) : (
-                  <>
-                    <motion.ul 
-                      className="space-y-2 max-h-[240px] overflow-y-auto pr-1 mb-4 scrollbar-hidden"
-                      variants={container}
-                      initial="hidden"
-                      animate="show"
-                    >
-                      {ingredients.map((ingredient) => (
-                        <motion.li 
-                          key={ingredient}
-                          variants={item}
-                          className="flex items-center justify-between py-2.5 px-4 bg-gray-50 rounded-lg border border-gray-100 hover:bg-gray-100 transition-colors"
-                        >
-                          <div className="flex items-center">
-                            <div className="bg-fridge-100 rounded-full p-1 mr-2">
-                              <Check className="h-3 w-3 text-fridge-600" />
-                            </div>
-                            <span className="font-medium text-sm">{ingredient}</span>
-                          </div>
-                          <Button
-                            onClick={() => onRemoveIngredient(ingredient)}
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7 rounded-full hover:bg-white cursor-pointer transition-all duration-200"
-                            type="button"
-                          >
-                            <X className="h-4 w-4 text-gray-500" />
-                          </Button>
-                        </motion.li>
-                      ))}
-                    </motion.ul>
-                    
-                    <div className="text-center">
-                      <Button 
-                        onClick={onFindRecipes}
-                        className="bg-fridge-600 hover:bg-fridge-700 text-white shadow-md hover:shadow-lg transition-all duration-200 px-5 py-2.5 cursor-pointer text-sm"
-                        type="button"
-                      >
-                        <Search className="mr-2 h-4 w-4" />
-                        Find Recipes with {ingredients.length} Ingredient{ingredients.length !== 1 ? 's' : ''}
-                        <ArrowRight className="ml-2 h-4 w-4" />
-                      </Button>
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-          </TabsContent>
-        </Tabs>
+                    </motion.li>
+                  ))}
+                </motion.ul>
+                
+                <div className="text-center">
+                  <Button 
+                    onClick={onFindRecipes}
+                    className="bg-fridge-600 hover:bg-fridge-700 text-white shadow-md hover:shadow-lg transition-all duration-200 px-5 py-2.5 cursor-pointer text-sm"
+                    type="button"
+                  >
+                    <Search className="mr-2 h-4 w-4" />
+                    Find Recipes with {ingredients.length} Ingredient{ingredients.length !== 1 ? 's' : ''}
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
       </div>
     </motion.div>
   );
