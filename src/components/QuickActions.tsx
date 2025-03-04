@@ -23,12 +23,12 @@ const QuickActions = ({
     >
       <Button
         onClick={onCameraClick}
-        className="h-auto p-4 flex flex-col items-center text-center gap-3 bg-white hover:bg-gray-50 text-gray-800 rounded-xl shadow-md border border-gray-100 group cursor-pointer"
+        className="h-auto p-6 flex flex-col items-center text-center gap-3 bg-white hover:bg-gray-50 text-gray-800 rounded-xl shadow-md border border-gray-100 group cursor-pointer transition-all duration-200"
         variant="outline"
         type="button"
       >
-        <div className="w-12 h-12 bg-fridge-50 rounded-full flex items-center justify-center mb-1 group-hover:bg-fridge-100 transition-colors">
-          <Camera className="w-6 h-6 text-fridge-600" />
+        <div className="w-14 h-14 bg-fridge-50 rounded-full flex items-center justify-center mb-1 group-hover:bg-fridge-100 transition-colors">
+          <Camera className="w-7 h-7 text-fridge-600" />
         </div>
         <div>
           <h3 className="font-semibold text-lg mb-1">Scan Ingredients</h3>
@@ -39,11 +39,11 @@ const QuickActions = ({
       <Button
         onClick={onFindRecipes}
         disabled={ingredientsCount === 0}
-        className="h-auto p-4 flex flex-col items-center text-center gap-3 bg-gradient-to-br from-fridge-500 to-fridge-600 hover:from-fridge-600 hover:to-fridge-700 text-white rounded-xl shadow-md border border-fridge-400 group cursor-pointer disabled:opacity-70"
+        className="h-auto p-6 flex flex-col items-center text-center gap-3 bg-gradient-to-br from-fridge-500 to-fridge-600 hover:from-fridge-600 hover:to-fridge-700 text-white rounded-xl shadow-md border border-fridge-400 group cursor-pointer disabled:opacity-70 transition-all duration-200"
         type="button"
       >
-        <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mb-1 group-hover:bg-white/30 transition-colors">
-          <Search className="w-6 h-6 text-white" />
+        <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center mb-1 group-hover:bg-white/30 transition-colors">
+          <Search className="w-7 h-7 text-white" />
         </div>
         <div>
           <h3 className="font-semibold text-lg mb-1">Find Recipes</h3>
