@@ -1,10 +1,9 @@
 
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, ShoppingBag, Truck, Store, Share2, Check, Clipboard, Tag } from "lucide-react";
+import { ArrowLeft, ShoppingBag, Truck, Share2, Check, Tag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ShoppingList from "@/components/ShoppingList";
-import { useState } from "react";
 import { useUser } from "@/contexts/UserContext";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -112,7 +111,7 @@ const ShoppingListView = () => {
             <ShoppingBag className="h-5 w-5 mr-2 text-fridge-600" />
             Shopping List
             {totalItems > 0 && (
-              <span className="ml-2 text-sm bg-fridge-100 text-fridge-800 px-2 py-0.5 rounded-full">
+              <span className="ml-2 text-sm bg-fridge-100 text-fridge-800 px-2.5 py-0.5 rounded-full font-normal">
                 {checkedItems}/{totalItems}
               </span>
             )}
@@ -131,10 +130,10 @@ const ShoppingListView = () => {
         </div>
       </header>
       
-      <main className="container max-w-xl mx-auto p-4 space-y-6">
+      <main className="container max-w-xl mx-auto p-4 space-y-6 pb-16">
         <div className="flex justify-center">
           <div className="relative w-full max-w-md mx-auto">
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="bg-gradient-to-b from-white to-fridge-50 rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
               <div className="space-y-4">
                 {/* Shopping list first */}
                 <div className="px-5 pt-5">
@@ -143,7 +142,7 @@ const ShoppingListView = () => {
                 
                 {/* Delivery options section */}
                 {user?.shoppingList.length > 0 && (
-                  <div className="p-5 bg-fridge-50 border-t border-fridge-100">
+                  <div className="p-5 bg-fridge-50/50 border-t border-fridge-100">
                     <h3 className="font-medium text-fridge-800 mb-2 flex items-center">
                       <Truck className="h-4 w-4 mr-2" />
                       Delivery Options
@@ -176,7 +175,7 @@ const ShoppingListView = () => {
                     </div>
                     
                     <div className="flex items-center mt-4 text-xs text-gray-500 bg-white p-2 rounded-lg border border-gray-200">
-                      <Tag className="h-3 w-3 mr-1 text-fridge-400" />
+                      <Tag className="h-3 w-3 mr-1 text-fridge-400 flex-shrink-0" />
                       Only unchecked items will be included in your delivery
                     </div>
                   </div>
@@ -190,7 +189,7 @@ const ShoppingListView = () => {
           <motion.div 
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-yellow-50 border border-yellow-100 rounded-lg p-4 text-sm text-yellow-800 flex items-start"
+            className="bg-yellow-50 border border-yellow-100 rounded-lg p-4 text-sm text-yellow-800 flex items-start max-w-md mx-auto"
           >
             <Check className="h-5 w-5 text-yellow-500 mr-2 flex-shrink-0 mt-0.5" />
             <div>
@@ -209,7 +208,7 @@ const DeliveryButton = ({ onClick, name, icon }: { onClick: () => void, name: st
   return (
     <Button 
       onClick={onClick}
-      className="h-16 flex flex-col gap-1 bg-white border border-gray-200 text-gray-800 hover:bg-fridge-50 hover:border-fridge-200 transition-all shadow-sm hover:shadow rounded-xl"
+      className="h-16 flex flex-col gap-1 bg-white border border-gray-200 text-gray-800 hover:bg-fridge-50 hover:border-fridge-200 hover:text-fridge-800 transition-all shadow-sm hover:shadow rounded-xl"
       variant="outline"
     >
       <span className="text-2xl mb-1">{icon}</span>

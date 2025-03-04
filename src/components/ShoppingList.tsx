@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ShoppingItem, useUser } from "@/contexts/UserContext";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 type SortOption = "added" | "alphabetical" | "checked";
 
@@ -75,23 +76,6 @@ const ShoppingList = ({ hideDeliveryButton = false }: ShoppingListProps) => {
     );
   };
 
-  // Animation variants
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.05,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 },
-    exit: { opacity: 0, x: -20 },
-  };
-
   const sortedItems = user?.shoppingList ? sortItems(user.shoppingList) : [];
   const filteredItems = filterItems(sortedItems);
   const hasItems = sortedItems.length > 0;
@@ -101,7 +85,7 @@ const ShoppingList = ({ hideDeliveryButton = false }: ShoppingListProps) => {
   return (
     <div className="space-y-4">
       {/* Input area with improved styling */}
-      <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-100">
+      <div className="bg-white rounded-xl shadow-sm p-4 border border-fridge-100">
         <div className="flex flex-col gap-3">
           <div className="flex flex-col md:flex-row items-start md:items-center gap-2">
             <div className="flex-1 w-full">
@@ -110,7 +94,7 @@ const ShoppingList = ({ hideDeliveryButton = false }: ShoppingListProps) => {
                 value={newItem}
                 onChange={(e) => setNewItem(e.target.value)}
                 onKeyDown={handleKeyPress}
-                className="border-gray-200 focus:border-fridge-400"
+                className="border-fridge-100 focus:border-fridge-400"
                 placeholder="Add item to shopping list..."
               />
             </div>
@@ -120,7 +104,7 @@ const ShoppingList = ({ hideDeliveryButton = false }: ShoppingListProps) => {
                 value={newQuantity}
                 onChange={(e) => setNewQuantity(e.target.value)}
                 onKeyDown={handleKeyPress}
-                className="border-gray-200 focus:border-fridge-400"
+                className="border-fridge-100 focus:border-fridge-400"
                 placeholder="Qty"
               />
             </div>
@@ -140,7 +124,7 @@ const ShoppingList = ({ hideDeliveryButton = false }: ShoppingListProps) => {
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-lg font-medium flex items-center">
             <ShoppingBag className="h-5 w-5 mr-2 text-fridge-600" />
-            Shopping List 
+            Your Items 
             {hasItems && (
               <span className="ml-2 text-sm text-gray-500 font-normal">
                 ({itemsLeft} left, {completedItems} completed)
@@ -150,19 +134,19 @@ const ShoppingList = ({ hideDeliveryButton = false }: ShoppingListProps) => {
           <div className="flex items-center space-x-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="text-gray-600 hover:bg-gray-50">
+                <Button variant="outline" size="sm" className="text-gray-600 hover:bg-gray-50 border-fridge-100">
                   <ListFilter className="h-4 w-4 mr-1" />
                   <span className="hidden sm:inline">Sort</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="bg-white">
-                <DropdownMenuItem onClick={() => setSortOption("added")} className="hover:bg-gray-50">
+                <DropdownMenuItem onClick={() => setSortOption("added")} className="hover:bg-fridge-50">
                   Most Recently Added
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setSortOption("alphabetical")} className="hover:bg-gray-50">
+                <DropdownMenuItem onClick={() => setSortOption("alphabetical")} className="hover:bg-fridge-50">
                   Alphabetical
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setSortOption("checked")} className="hover:bg-gray-50">
+                <DropdownMenuItem onClick={() => setSortOption("checked")} className="hover:bg-fridge-50">
                   Unchecked First
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -176,7 +160,7 @@ const ShoppingList = ({ hideDeliveryButton = false }: ShoppingListProps) => {
                   clearShoppingList();
                   toast.success("Shopping list cleared");
                 }}
-                className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                className="text-red-500 hover:text-red-700 hover:bg-red-50 border-fridge-100"
               >
                 <Trash2 className="h-4 w-4 mr-1" />
                 <span className="hidden sm:inline">Clear All</span>
@@ -196,24 +180,24 @@ const ShoppingList = ({ hideDeliveryButton = false }: ShoppingListProps) => {
               placeholder="Search items..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 bg-gray-50 border-gray-200"
+              className="pl-10 bg-gray-50 border-fridge-100"
             />
           </div>
         )}
         
         {!hasItems ? (
-          <div className="text-center py-12 bg-gray-50 rounded-lg border border-gray-100">
-            <ShoppingBag className="h-12 w-12 mx-auto text-gray-300 mb-3" />
-            <p className="text-gray-500 mb-1">Your shopping list is empty</p>
-            <p className="text-sm text-gray-400">Add items to your shopping list</p>
+          <div className="text-center py-12 bg-fridge-50/50 rounded-lg border border-fridge-100">
+            <ShoppingBag className="h-12 w-12 mx-auto text-fridge-300 mb-3" />
+            <p className="text-gray-600 mb-1">Your shopping list is empty</p>
+            <p className="text-sm text-gray-500">Add items to your shopping list</p>
           </div>
         ) : filteredItems.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground bg-gray-50 rounded-lg border border-gray-100">
+          <div className="text-center py-8 text-muted-foreground bg-fridge-50/50 rounded-lg border border-fridge-100">
             <p>No items match your search</p>
           </div>
         ) : (
           <motion.ul 
-            className="space-y-2"
+            className="space-y-2.5"
             variants={containerVariants}
             initial="hidden"
             animate="visible"
@@ -224,16 +208,22 @@ const ShoppingList = ({ hideDeliveryButton = false }: ShoppingListProps) => {
                   key={item.id}
                   variants={itemVariants}
                   exit="exit"
-                  className={`flex items-center justify-between py-3 px-4 bg-white rounded-lg shadow-sm border transform transition-all duration-200 hover:shadow-md ${
-                    item.isChecked ? "border-green-200 bg-green-50" : "border-gray-100"
-                  }`}
+                  className={cn(
+                    "flex items-center justify-between py-3 px-4 rounded-xl shadow-sm border transform transition-all duration-200 hover:shadow",
+                    item.isChecked 
+                      ? "border-green-200 bg-gradient-to-r from-green-50 to-green-50/60" 
+                      : "border-fridge-100 bg-white"
+                  )}
                 >
                   <div className="flex items-center flex-1">
                     <button
                       onClick={() => toggleShoppingItem(item.id)}
-                      className={`flex items-center justify-center h-6 w-6 rounded-full mr-3 transition-colors ${
-                        item.isChecked ? "bg-green-500 text-white" : "border-2 border-gray-300 hover:border-fridge-400"
-                      }`}
+                      className={cn(
+                        "flex items-center justify-center h-6 w-6 rounded-full mr-3 transition-colors",
+                        item.isChecked 
+                          ? "bg-green-500 text-white" 
+                          : "border-2 border-fridge-300 hover:border-fridge-400"
+                      )}
                     >
                       {item.isChecked && <Check className="h-4 w-4" />}
                     </button>
@@ -242,7 +232,7 @@ const ShoppingList = ({ hideDeliveryButton = false }: ShoppingListProps) => {
                     </span>
                   </div>
                   <div className="flex items-center">
-                    <span className="text-sm bg-gray-100 px-2 py-1 rounded-full text-gray-600 mr-3">{item.quantity}</span>
+                    <span className="text-sm bg-fridge-50 px-2.5 py-1 rounded-full text-fridge-600 mr-3 font-medium">{item.quantity}</span>
                     <Button
                       onClick={() => removeFromShoppingList(item.id)}
                       variant="ghost"
@@ -259,6 +249,55 @@ const ShoppingList = ({ hideDeliveryButton = false }: ShoppingListProps) => {
         )}
       </div>
     </div>
+  );
+};
+
+// Animation variants
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.05,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0 },
+  exit: { opacity: 0, x: -20 },
+};
+
+const sortItems = (items: ShoppingItem[]) => {
+  if (!items.length) return [];
+  
+  const itemsCopy = [...items];
+  
+  switch (sortOption) {
+    case "alphabetical":
+      return itemsCopy.sort((a, b) => a.name.localeCompare(b.name));
+    case "checked":
+      return itemsCopy.sort((a, b) => {
+        // Sort by checked status (unchecked first)
+        if (a.isChecked !== b.isChecked) {
+          return a.isChecked ? 1 : -1;
+        }
+        // Then by name
+        return a.name.localeCompare(b.name);
+      });
+    case "added":
+    default:
+      // Items are already in the order they were added
+      return itemsCopy;
+  }
+};
+
+// Filter items based on search query
+const filterItems = (items: ShoppingItem[]) => {
+  if (!searchQuery.trim()) return items;
+  return items.filter(item => 
+    item.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 };
 
