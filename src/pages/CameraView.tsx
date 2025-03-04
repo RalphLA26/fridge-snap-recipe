@@ -16,6 +16,8 @@ const CameraView = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   
   const handleCapture = async (imageSrc: string) => {
+    // Debug log when image is captured
+    console.log("Image captured in CameraView");
     setCapturedImage(imageSrc);
     setIsAnalyzing(true);
     

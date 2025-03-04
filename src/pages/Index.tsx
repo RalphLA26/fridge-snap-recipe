@@ -34,6 +34,8 @@ const Index = () => {
   };
   
   const handleCameraClick = () => {
+    // Debug when button is clicked
+    console.log("Camera button clicked, navigating to /camera");
     navigate("/camera");
   };
   
