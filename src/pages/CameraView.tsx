@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowLeft, Check, X, CameraIcon, Lightbulb } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import Camera from "@/components/Camera";
+import Camera from "@/components/camera";
 import { toast } from "sonner";
 import { detectIngredientsFromImage } from "@/lib/imageRecognition";
 
