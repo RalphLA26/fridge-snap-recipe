@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import { UserProvider } from "./contexts/UserContext";
+import { useEffect } from "react";
 import Index from "./pages/Index";
 import CameraView from "./pages/CameraView";
 import RecipesView from "./pages/RecipesView";
@@ -14,11 +15,22 @@ import ProfileView from "./pages/ProfileView";
 import ShoppingListView from "./pages/ShoppingListView";
 import NotFound from "./pages/NotFound";
 
+// Create a QueryClient for React Query
 const queryClient = new QueryClient();
 
 // AnimatePresence wrapper for route transitions
 const AnimatedRoutes = () => {
   const location = useLocation();
+  
+  // Apply mobile-specific adjustments
+  useEffect(() => {
+    // Add safe area insets for mobile devices
+    document.body.classList.add('mobile-safe-area');
+    
+    return () => {
+      document.body.classList.remove('mobile-safe-area');
+    };
+  }, []);
   
   return (
     <AnimatePresence mode="wait">
@@ -42,7 +54,9 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <AnimatedRoutes />
+          <div className="app-container">
+            <AnimatedRoutes />
+          </div>
         </BrowserRouter>
       </TooltipProvider>
     </UserProvider>
