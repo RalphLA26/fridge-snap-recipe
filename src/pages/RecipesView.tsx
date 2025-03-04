@@ -1,14 +1,11 @@
 
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 import RecipeCard from "@/components/RecipeCard";
 import { findRecipesByIngredients } from "@/lib/recipeData";
 
 const RecipesView = () => {
-  const navigate = useNavigate();
   const [ingredients, setIngredients] = useState<string[]>([]);
   const [recipes, setRecipes] = useState<any[]>([]);
   
@@ -52,23 +49,14 @@ const RecipesView = () => {
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <header className="p-4 bg-white border-b border-gray-200 sticky top-0 z-10">
+      <header className="p-4 bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
         <div className="container max-w-xl mx-auto flex items-center justify-between">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={() => navigate("/")}
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <h1 className="text-lg font-medium">Suggested Recipes</h1>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={() => navigate("/")}
-          >
-            <Plus className="h-5 w-5" />
-          </Button>
+          <h1 className="text-xl font-semibold">Recipes</h1>
+          <div className="flex space-x-2">
+            <span className="text-sm text-gray-500 bg-gray-100 py-1 px-3 rounded-full">
+              {ingredients.length} ingredients
+            </span>
+          </div>
         </div>
       </header>
       
