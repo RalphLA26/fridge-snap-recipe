@@ -36,9 +36,11 @@ const Index = () => {
   
   const handleCameraClick = () => {
     console.log("Camera button clicked");
+    navigate("/camera");
   };
   
   const handleFindRecipes = () => {
+    console.log("Find Recipes button clicked");
     navigate("/recipes");
   };
   
@@ -64,7 +66,8 @@ const Index = () => {
               variant="ghost" 
               size="icon" 
               onClick={() => navigate("/recipes")}
-              className="relative bg-gray-50 hover:bg-gray-100 rounded-full h-10 w-10 flex items-center justify-center shadow-sm transition-all duration-200"
+              className="relative bg-gray-50 hover:bg-gray-100 rounded-full h-10 w-10 flex items-center justify-center shadow-sm transition-all duration-200 cursor-pointer"
+              type="button"
             >
               <BookOpen className="h-5 w-5 text-fridge-700" />
             </Button>
@@ -72,7 +75,8 @@ const Index = () => {
               variant="ghost" 
               size="icon" 
               onClick={() => navigate("/shopping-list")}
-              className="relative bg-gray-50 hover:bg-gray-100 rounded-full h-10 w-10 flex items-center justify-center shadow-sm transition-all duration-200"
+              className="relative bg-gray-50 hover:bg-gray-100 rounded-full h-10 w-10 flex items-center justify-center shadow-sm transition-all duration-200 cursor-pointer"
+              type="button"
             >
               <ShoppingBag className="h-5 w-5 text-fridge-700" />
               {user?.shoppingList.length ? (
@@ -85,7 +89,8 @@ const Index = () => {
               variant="ghost" 
               size="icon" 
               onClick={() => navigate("/profile")}
-              className="bg-gray-50 hover:bg-gray-100 rounded-full h-10 w-10 flex items-center justify-center shadow-sm transition-all duration-200"
+              className="bg-gray-50 hover:bg-gray-100 rounded-full h-10 w-10 flex items-center justify-center shadow-sm transition-all duration-200 cursor-pointer"
+              type="button"
             >
               <User className="h-5 w-5 text-fridge-700" />
             </Button>
@@ -132,17 +137,19 @@ const Index = () => {
               
               <div className="grid gap-3 sm:grid-cols-2">
                 <Button 
-                  className="w-full bg-white text-fridge-700 hover:bg-gray-100 shadow-md border border-white/30 h-12"
-                  onClick={() => navigate("/camera")}
+                  className="w-full bg-white text-fridge-700 hover:bg-gray-100 shadow-md border border-white/30 h-12 cursor-pointer"
+                  onClick={handleCameraClick}
+                  type="button"
                 >
                   <Camera className="mr-2 h-5 w-5" />
                   Scan Your Fridge
                 </Button>
                 
                 <Button 
-                  className="bg-fridge-600 text-white hover:bg-fridge-700 shadow-md border border-fridge-500/30 h-12"
+                  className="bg-fridge-600 text-white hover:bg-fridge-700 shadow-md border border-fridge-500/30 h-12 cursor-pointer"
                   onClick={handleFindRecipes}
                   disabled={ingredients.length === 0}
+                  type="button"
                 >
                   <Search className="mr-2 h-5 w-5" />
                   Find Recipes
@@ -183,7 +190,8 @@ const Index = () => {
               <div className="mt-6 text-center">
                 <Button 
                   onClick={handleFindRecipes}
-                  className="bg-fridge-600 hover:bg-fridge-700 text-white shadow-sm transition-all duration-200"
+                  className="bg-fridge-600 hover:bg-fridge-700 text-white shadow-sm transition-all duration-200 cursor-pointer"
+                  type="button"
                 >
                   <Search className="mr-2 h-4 w-4" />
                   Find Recipes with {ingredients.length} Ingredient{ingredients.length !== 1 ? 's' : ''}
