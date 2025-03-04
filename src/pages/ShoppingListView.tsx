@@ -1,10 +1,10 @@
+
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowLeft, ShoppingBag, Truck, Store, Share2, Check, Clipboard, Tag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ShoppingList from "@/components/ShoppingList";
 import { useState } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useUser } from "@/contexts/UserContext";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -12,7 +12,6 @@ import { cn } from "@/lib/utils";
 const ShoppingListView = () => {
   const navigate = useNavigate();
   const { user } = useUser();
-  const [currentTab, setCurrentTab] = useState("store");
   
   const handleDeliveryApp = (app: string) => {
     // Get unchecked items for the delivery
@@ -135,94 +134,59 @@ const ShoppingListView = () => {
       <main className="container max-w-xl mx-auto p-4 space-y-6">
         <div className="flex justify-center">
           <div className="relative w-full max-w-md mx-auto">
-            <Tabs 
-              defaultValue="store" 
-              className="w-full"
-              onValueChange={(value) => setCurrentTab(value)}
-            >
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                <TabsList className="w-full grid grid-cols-2 bg-gray-50 p-1 gap-1">
-                  <TabsTrigger 
-                    value="store" 
-                    className={cn(
-                      "py-3 rounded-xl transition-all",
-                      "data-[state=active]:bg-white data-[state=active]:text-fridge-700 data-[state=active]:shadow-sm",
-                      "data-[state=inactive]:bg-gray-50 data-[state=inactive]:text-gray-600"
-                    )}
-                  >
-                    <Store className="h-4 w-4 mr-2" />
-                    Shop In-Store
-                  </TabsTrigger>
-                  <TabsTrigger 
-                    value="delivery" 
-                    className={cn(
-                      "py-3 rounded-xl transition-all",
-                      "data-[state=active]:bg-white data-[state=active]:text-fridge-700 data-[state=active]:shadow-sm",
-                      "data-[state=inactive]:bg-gray-50 data-[state=inactive]:text-gray-600"
-                    )}
-                  >
-                    <Truck className="h-4 w-4 mr-2" />
-                    Get Delivery
-                  </TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="store" className="m-0 p-5">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+              <div className="space-y-4">
+                {/* Shopping list first */}
+                <div className="px-5 pt-5">
                   <ShoppingList hideDeliveryButton={true} />
-                </TabsContent>
+                </div>
                 
-                <TabsContent value="delivery" className="m-0 p-0">
-                  <div className="space-y-4">
-                    {/* Shopping list first */}
-                    <div className="px-5 pt-5">
-                      <ShoppingList hideDeliveryButton={true} />
+                {/* Delivery options section */}
+                {user?.shoppingList.length > 0 && (
+                  <div className="p-5 bg-fridge-50 border-t border-fridge-100">
+                    <h3 className="font-medium text-fridge-800 mb-2 flex items-center">
+                      <Truck className="h-4 w-4 mr-2" />
+                      Delivery Options
+                    </h3>
+                    <p className="text-sm text-gray-600 mb-4">
+                      Send your unchecked items to a delivery service
+                    </p>
+                    
+                    <div className="grid grid-cols-2 gap-3">
+                      <DeliveryButton
+                        onClick={() => handleDeliveryApp("instacart")}
+                        name="Instacart"
+                        icon="🛒"
+                      />
+                      <DeliveryButton
+                        onClick={() => handleDeliveryApp("doordash")}
+                        name="DoorDash"
+                        icon="🚚"
+                      />
+                      <DeliveryButton
+                        onClick={() => handleDeliveryApp("ubereats")}
+                        name="Uber Eats"
+                        icon="🥡"
+                      />
+                      <DeliveryButton
+                        onClick={() => handleDeliveryApp("walmart")}
+                        name="Walmart"
+                        icon="🏪"
+                      />
                     </div>
                     
-                    {/* Delivery options second */}
-                    <div className="p-5 bg-fridge-50 border-t border-fridge-100">
-                      <h3 className="font-medium text-fridge-800 mb-2 flex items-center">
-                        <Truck className="h-4 w-4 mr-2" />
-                        Delivery Options
-                      </h3>
-                      <p className="text-sm text-gray-600 mb-4">
-                        Send your unchecked items to a delivery service
-                      </p>
-                      
-                      <div className="grid grid-cols-2 gap-3">
-                        <DeliveryButton
-                          onClick={() => handleDeliveryApp("instacart")}
-                          name="Instacart"
-                          icon="🛒"
-                        />
-                        <DeliveryButton
-                          onClick={() => handleDeliveryApp("doordash")}
-                          name="DoorDash"
-                          icon="🚚"
-                        />
-                        <DeliveryButton
-                          onClick={() => handleDeliveryApp("ubereats")}
-                          name="Uber Eats"
-                          icon="🥡"
-                        />
-                        <DeliveryButton
-                          onClick={() => handleDeliveryApp("walmart")}
-                          name="Walmart"
-                          icon="🏪"
-                        />
-                      </div>
-                      
-                      <div className="flex items-center mt-4 text-xs text-gray-500 bg-white p-2 rounded-lg border border-gray-200">
-                        <Tag className="h-3 w-3 mr-1 text-fridge-400" />
-                        Only unchecked items will be included in your delivery
-                      </div>
+                    <div className="flex items-center mt-4 text-xs text-gray-500 bg-white p-2 rounded-lg border border-gray-200">
+                      <Tag className="h-3 w-3 mr-1 text-fridge-400" />
+                      Only unchecked items will be included in your delivery
                     </div>
                   </div>
-                </TabsContent>
+                )}
               </div>
-            </Tabs>
+            </div>
           </div>
         </div>
         
-        {currentTab === "delivery" && user?.shoppingList.filter(item => !item.isChecked).length === 0 && user?.shoppingList.length > 0 && (
+        {user?.shoppingList.filter(item => !item.isChecked).length === 0 && user?.shoppingList.length > 0 && (
           <motion.div 
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
