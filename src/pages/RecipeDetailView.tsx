@@ -2,19 +2,21 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Share2, Heart } from "lucide-react";
+import { ArrowLeft, Share2, Heart, ShoppingBag, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import RecipeDetail from "@/components/RecipeDetail";
 import { findRecipeById } from "@/lib/recipeData";
+import { useUser } from "@/contexts/UserContext";
 import { toast } from "sonner";
 
 const RecipeDetailView = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user, addToFavorites, removeFromFavorites, isFavorite, addToShoppingList } = useUser();
   const [recipe, setRecipe] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [ingredients, setIngredients] = useState<string[]>([]);
-  const [favorite, setFavorite] = useState(false);
+  const [showAddToListModal, setShowAddToListModal] = useState(false);
   
   useEffect(() => {
     // Simulate loading time for a smoother experience
@@ -27,13 +29,6 @@ const RecipeDetailView = () => {
         const savedIngredients = localStorage.getItem("fridgeIngredients");
         if (savedIngredients) {
           setIngredients(JSON.parse(savedIngredients));
-        }
-        
-        // Check if recipe is in favorites
-        const favorites = localStorage.getItem("favoriteRecipes");
-        if (favorites) {
-          const parsedFavorites = JSON.parse(favorites);
-          setFavorite(parsedFavorites.includes(id));
         }
       }
       setIsLoading(false);
@@ -48,24 +43,45 @@ const RecipeDetailView = () => {
   };
   
   const handleToggleFavorite = () => {
-    if (!id) return;
+    if (!id || !recipe) return;
     
-    // Get current favorites
-    const favorites = localStorage.getItem("favoriteRecipes");
-    const parsedFavorites = favorites ? JSON.parse(favorites) : [];
-    
-    // Update favorites
-    if (favorite) {
-      const updatedFavorites = parsedFavorites.filter((recipeId: string) => recipeId !== id);
-      localStorage.setItem("favoriteRecipes", JSON.stringify(updatedFavorites));
-      setFavorite(false);
+    if (isFavorite(id)) {
+      removeFromFavorites(id);
       toast.info("Removed from favorites");
     } else {
-      const updatedFavorites = [...parsedFavorites, id];
-      localStorage.setItem("favoriteRecipes", JSON.stringify(updatedFavorites));
-      setFavorite(true);
+      addToFavorites(id);
       toast.success("Added to favorites");
     }
+  };
+  
+  const handleAddIngredientsToList = () => {
+    if (!recipe) return;
+    
+    // Get missing ingredients
+    const missingIngredients = recipe.ingredients.filter((ingredient: string) => 
+      !ingredients.some(userIngredient => 
+        ingredient.toLowerCase().includes(userIngredient.toLowerCase())
+      )
+    );
+    
+    if (missingIngredients.length === 0) {
+      toast.info("You already have all the ingredients!");
+      return;
+    }
+    
+    // Add each missing ingredient to shopping list
+    missingIngredients.forEach((ingredient: string) => {
+      addToShoppingList({
+        name: ingredient,
+        quantity: "1",
+        isChecked: false
+      });
+    });
+    
+    toast.success(`Added ${missingIngredients.length} ingredients to your shopping list`);
+    
+    // Optional: Navigate to shopping list
+    // navigate("/shopping-list");
   };
   
   if (isLoading) {
@@ -87,6 +103,8 @@ const RecipeDetailView = () => {
       </div>
     );
   }
+  
+  const favorite = isFavorite(id || "");
   
   return (
     <motion.div 
@@ -128,6 +146,16 @@ const RecipeDetailView = () => {
       
       <main className="container max-w-xl mx-auto p-4">
         <RecipeDetail recipe={recipe} availableIngredients={ingredients} />
+        
+        <div className="mt-6">
+          <Button 
+            className="w-full py-6 flex items-center justify-center bg-fridge-600 hover:bg-fridge-700 text-white shadow-md"
+            onClick={handleAddIngredientsToList}
+          >
+            <ShoppingBag className="h-5 w-5 mr-2" />
+            Add Missing Ingredients to Shopping List
+          </Button>
+        </div>
       </main>
     </motion.div>
   );

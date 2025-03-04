@@ -1,8 +1,9 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Clock, Utensils, ChevronRight } from "lucide-react";
+import { Clock, Utensils, ChevronRight, Heart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useUser } from "@/contexts/UserContext";
 
 interface RecipeCardProps {
   id: string;
@@ -15,9 +16,11 @@ interface RecipeCardProps {
 
 const RecipeCard = ({ id, title, image, cookTime, matchingIngredients, totalIngredients }: RecipeCardProps) => {
   const navigate = useNavigate();
+  const { isFavorite } = useUser();
   const [imageLoaded, setImageLoaded] = useState(false);
   
   const matchPercentage = Math.round((matchingIngredients / totalIngredients) * 100);
+  const favorite = isFavorite(id);
   
   return (
     <motion.div
@@ -50,6 +53,13 @@ const RecipeCard = ({ id, title, image, cookTime, matchingIngredients, totalIngr
         <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1 text-xs font-medium shadow-sm border border-gray-100">
           <span className="text-fridge-700">{matchPercentage}% match</span>
         </div>
+        
+        {/* Favorite icon */}
+        {favorite && (
+          <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm rounded-full w-8 h-8 flex items-center justify-center shadow-sm border border-gray-100">
+            <Heart className="h-4 w-4 text-red-500 fill-current" />
+          </div>
+        )}
       </div>
       
       <div className="p-4">

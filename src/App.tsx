@@ -5,10 +5,13 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
+import { UserProvider } from "./contexts/UserContext";
 import Index from "./pages/Index";
 import CameraView from "./pages/CameraView";
 import RecipesView from "./pages/RecipesView";
 import RecipeDetailView from "./pages/RecipeDetailView";
+import ProfileView from "./pages/ProfileView";
+import ShoppingListView from "./pages/ShoppingListView";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -24,6 +27,8 @@ const AnimatedRoutes = () => {
         <Route path="/camera" element={<CameraView />} />
         <Route path="/recipes" element={<RecipesView />} />
         <Route path="/recipe/:id" element={<RecipeDetailView />} />
+        <Route path="/profile" element={<ProfileView />} />
+        <Route path="/shopping-list" element={<ShoppingListView />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AnimatePresence>
@@ -32,13 +37,15 @@ const AnimatedRoutes = () => {
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AnimatedRoutes />
-      </BrowserRouter>
-    </TooltipProvider>
+    <UserProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AnimatedRoutes />
+        </BrowserRouter>
+      </TooltipProvider>
+    </UserProvider>
   </QueryClientProvider>
 );
 

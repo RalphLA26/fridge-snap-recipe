@@ -3,11 +3,13 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Camera, Search } from "lucide-react";
+import { Camera, Search, User, ShoppingBag } from "lucide-react";
 import IngredientList from "@/components/IngredientList";
+import { useUser } from "@/contexts/UserContext";
 
 const Index = () => {
   const navigate = useNavigate();
+  const { user } = useUser();
   const [ingredients, setIngredients] = useState<string[]>([]);
   
   // Load saved ingredients from localStorage on initial render
@@ -50,6 +52,28 @@ const Index = () => {
       <header className="p-4 bg-white border-b border-gray-200 sticky top-0 z-10">
         <div className="container max-w-xl mx-auto flex items-center justify-between">
           <h1 className="text-2xl font-semibold text-fridge-800">FridgeSnap</h1>
+          <div className="flex space-x-2">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={() => navigate("/shopping-list")}
+              className="relative"
+            >
+              <ShoppingBag className="h-5 w-5" />
+              {user?.shoppingList.length ? (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-4 h-4 flex items-center justify-center rounded-full">
+                  {user.shoppingList.length}
+                </span>
+              ) : null}
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={() => navigate("/profile")}
+            >
+              <User className="h-5 w-5" />
+            </Button>
+          </div>
         </div>
       </header>
       
