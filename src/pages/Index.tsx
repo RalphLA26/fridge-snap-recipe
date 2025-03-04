@@ -18,6 +18,7 @@ const Index = () => {
     if (savedIngredients) {
       setIngredients(JSON.parse(savedIngredients));
     }
+    console.log("Index component mounted");
   }, []);
   
   // Save ingredients to localStorage whenever the ingredients state changes
@@ -34,8 +35,7 @@ const Index = () => {
   };
   
   const handleCameraClick = () => {
-    console.log("Camera button clicked, navigating to /camera");
-    navigate("/camera");
+    console.log("Camera button clicked");
   };
   
   const handleFindRecipes = () => {
@@ -123,15 +123,13 @@ const Index = () => {
               </p>
               
               <div className="grid gap-3 sm:grid-cols-2">
-                <Link to="/camera">
-                  <Button 
-                    className="w-full bg-white text-fridge-700 hover:bg-gray-100 shadow-md border border-white/30 h-12"
-                    onClick={handleCameraClick}
-                  >
-                    <Camera className="mr-2 h-5 w-5" />
-                    Scan Your Fridge
-                  </Button>
-                </Link>
+                <Button 
+                  className="w-full bg-white text-fridge-700 hover:bg-gray-100 shadow-md border border-white/30 h-12"
+                  onClick={() => navigate("/camera")}
+                >
+                  <Camera className="mr-2 h-5 w-5" />
+                  Scan Your Fridge
+                </Button>
                 
                 <Button 
                   className="bg-fridge-600 text-white hover:bg-fridge-700 shadow-md border border-fridge-500/30 h-12"

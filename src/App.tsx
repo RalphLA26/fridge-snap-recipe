@@ -26,11 +26,12 @@ const AnimatedRoutes = () => {
   useEffect(() => {
     // Add safe area insets for mobile devices
     document.body.classList.add('mobile-safe-area');
+    console.log("Routes mounted, current path:", location.pathname);
     
     return () => {
       document.body.classList.remove('mobile-safe-area');
     };
-  }, []);
+  }, [location]);
   
   return (
     <AnimatePresence mode="wait">
@@ -57,12 +58,12 @@ const App = () => {
     <QueryClientProvider client={queryClient}>
       <UserProvider>
         <TooltipProvider>
-          <Toaster />
-          <Sonner />
           <BrowserRouter>
             <div className="app-container">
               <AnimatedRoutes />
             </div>
+            <Toaster />
+            <Sonner />
           </BrowserRouter>
         </TooltipProvider>
       </UserProvider>
