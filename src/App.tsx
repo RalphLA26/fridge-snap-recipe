@@ -7,7 +7,6 @@ import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-route
 import { AnimatePresence } from "framer-motion";
 import { UserProvider } from "./contexts/UserContext";
 import { useEffect } from "react";
-import TabBar from "./components/TabBar";
 import Index from "./pages/Index";
 import CameraView from "./pages/CameraView";
 import RecipesView from "./pages/RecipesView";
@@ -60,9 +59,8 @@ const App = () => {
       <UserProvider>
         <TooltipProvider>
           <BrowserRouter>
-            <div className="app-container pb-16"> {/* Added padding at bottom for TabBar */}
+            <div className="app-container"> {/* Removed padding bottom */}
               <AnimatedRoutes />
-              <TabBar />
             </div>
             <Toaster />
             <Sonner />

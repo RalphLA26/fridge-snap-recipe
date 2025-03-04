@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Camera, Search, User, ShoppingBag, PlusCircle } from "lucide-react";
+import { Camera, Search, User, ShoppingBag, PlusCircle, BookOpen } from "lucide-react";
 import IngredientList from "@/components/IngredientList";
 import { useUser } from "@/contexts/UserContext";
 
@@ -60,6 +60,14 @@ const Index = () => {
             FridgeSnap
           </h1>
           <div className="flex space-x-3">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={() => navigate("/recipes")}
+              className="relative bg-gray-50 hover:bg-gray-100 rounded-full h-10 w-10 flex items-center justify-center shadow-sm transition-all duration-200"
+            >
+              <BookOpen className="h-5 w-5 text-fridge-700" />
+            </Button>
             <Button 
               variant="ghost" 
               size="icon" 
