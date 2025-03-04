@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Clock, Utensils, ChevronRight, Heart, Star, Circle, CircleCheck } from "lucide-react";
@@ -22,8 +21,15 @@ const RecipeCard = ({ id, title, image, cookTime, matchingIngredients, totalIngr
   
   const matchPercentage = Math.round((matchingIngredients / totalIngredients) * 100);
   const favorite = isFavorite(id);
-  // Add a safety check when getting the rating
-  const rating = getRecipeRating ? getRecipeRating(id) || 0 : 0;
+  
+  // Add a safety check to prevent accessing properties of undefined
+  let rating = 0;
+  try {
+    rating = getRecipeRating ? getRecipeRating(id) || 0 : 0;
+  } catch (error) {
+    console.error("Error getting recipe rating:", error);
+    rating = 0;
+  }
   
   return (
     <motion.div
