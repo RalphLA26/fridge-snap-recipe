@@ -1,19 +1,19 @@
 
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, ShoppingBag, Truck, Store, Share2 } from "lucide-react";
+import { ArrowLeft, ShoppingBag, Truck, Store, Share2, Check, Clipboard, Tag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ShoppingList from "@/components/ShoppingList";
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useUser } from "@/contexts/UserContext";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 const ShoppingListView = () => {
   const navigate = useNavigate();
   const { user } = useUser();
-  const [showDeliveryDialog, setShowDeliveryDialog] = useState(false);
+  const [currentTab, setCurrentTab] = useState("store");
   
   const handleDeliveryApp = (app: string) => {
     // Get unchecked items for the delivery
@@ -54,7 +54,6 @@ const ShoppingListView = () => {
     window.open(url, "_blank");
     
     toast.success(`Opening ${appName} with your shopping list`);
-    setShowDeliveryDialog(false);
   };
   
   const handleShareList = () => {
@@ -90,6 +89,9 @@ const ShoppingListView = () => {
     });
   };
   
+  const totalItems = user?.shoppingList.length || 0;
+  const checkedItems = user?.shoppingList.filter(item => item.isChecked).length || 0;
+  
   return (
     <motion.div 
       className="min-h-screen bg-gray-50"
@@ -104,92 +106,150 @@ const ShoppingListView = () => {
             variant="ghost" 
             size="icon" 
             onClick={() => navigate(-1)}
-            className="hover:bg-gray-100"
+            className="hover:bg-gray-100 rounded-full"
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <h1 className="text-lg font-medium flex items-center">
             <ShoppingBag className="h-5 w-5 mr-2 text-fridge-600" />
             Shopping List
+            {totalItems > 0 && (
+              <span className="ml-2 text-sm bg-fridge-100 text-fridge-800 px-2 py-0.5 rounded-full">
+                {checkedItems}/{totalItems}
+              </span>
+            )}
           </h1>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleShareList}
-            className="hover:bg-gray-100"
-          >
-            <Share2 className="h-5 w-5 text-gray-600" />
-          </Button>
+          <div className="flex">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleShareList}
+              className="hover:bg-gray-100 rounded-full"
+              title="Share list"
+            >
+              <Share2 className="h-5 w-5 text-gray-600" />
+            </Button>
+          </div>
         </div>
       </header>
       
       <main className="container max-w-xl mx-auto p-4 space-y-6">
-        <Tabs defaultValue="store" className="w-full">
-          <div className="bg-white rounded-t-xl shadow-sm p-2 border border-gray-100 flex justify-center">
-            <TabsList className="grid grid-cols-2 w-full max-w-md">
-              <TabsTrigger value="store" className="data-[state=active]:bg-fridge-50 data-[state=active]:text-fridge-700">
-                <Store className="h-4 w-4 mr-2" />
-                Shop In-Store
-              </TabsTrigger>
-              <TabsTrigger value="delivery" className="data-[state=active]:bg-fridge-50 data-[state=active]:text-fridge-700">
-                <Truck className="h-4 w-4 mr-2" />
-                Get Delivery
-              </TabsTrigger>
-            </TabsList>
-          </div>
-          
-          <TabsContent value="store" className="bg-white rounded-b-xl shadow-sm p-5 border border-gray-100 border-t-0 mt-0">
-            <ShoppingList hideDeliveryButton={true} />
-          </TabsContent>
-          
-          <TabsContent value="delivery" className="bg-white rounded-b-xl shadow-sm p-5 border border-gray-100 border-t-0 mt-0">
-            <div className="space-y-4">
-              <div className="text-center p-3 bg-fridge-50 rounded-lg border border-fridge-100">
-                <h3 className="font-medium text-fridge-800 mb-1">Get your groceries delivered</h3>
-                <p className="text-sm text-gray-600 mb-3">Select a delivery service to get your shopping list items delivered to your door.</p>
+        <div className="flex justify-center">
+          <div className="relative w-full max-w-md mx-auto">
+            <Tabs 
+              defaultValue="store" 
+              className="w-full"
+              onValueChange={(value) => setCurrentTab(value)}
+            >
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <TabsList className="w-full grid grid-cols-2 bg-gray-50 p-1 gap-1">
+                  <TabsTrigger 
+                    value="store" 
+                    className={cn(
+                      "py-3 rounded-xl transition-all",
+                      "data-[state=active]:bg-white data-[state=active]:text-fridge-700 data-[state=active]:shadow-sm",
+                      "data-[state=inactive]:bg-gray-50 data-[state=inactive]:text-gray-600"
+                    )}
+                  >
+                    <Store className="h-4 w-4 mr-2" />
+                    Shop In-Store
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="delivery" 
+                    className={cn(
+                      "py-3 rounded-xl transition-all",
+                      "data-[state=active]:bg-white data-[state=active]:text-fridge-700 data-[state=active]:shadow-sm",
+                      "data-[state=inactive]:bg-gray-50 data-[state=inactive]:text-gray-600"
+                    )}
+                  >
+                    <Truck className="h-4 w-4 mr-2" />
+                    Get Delivery
+                  </TabsTrigger>
+                </TabsList>
                 
-                <div className="grid grid-cols-2 gap-3 max-w-md mx-auto">
-                  <Button 
-                    onClick={() => handleDeliveryApp("instacart")}
-                    className="h-16 flex flex-col gap-1 bg-white border border-gray-200 text-gray-800 hover:bg-fridge-50"
-                    variant="outline"
-                  >
-                    <span className="text-sm font-medium">Instacart</span>
-                  </Button>
-                  <Button 
-                    onClick={() => handleDeliveryApp("doordash")}
-                    className="h-16 flex flex-col gap-1 bg-white border border-gray-200 text-gray-800 hover:bg-fridge-50"
-                    variant="outline"
-                  >
-                    <span className="text-sm font-medium">DoorDash</span>
-                  </Button>
-                  <Button 
-                    onClick={() => handleDeliveryApp("ubereats")}
-                    className="h-16 flex flex-col gap-1 bg-white border border-gray-200 text-gray-800 hover:bg-fridge-50"
-                    variant="outline"
-                  >
-                    <span className="text-sm font-medium">Uber Eats</span>
-                  </Button>
-                  <Button 
-                    onClick={() => handleDeliveryApp("walmart")}
-                    className="h-16 flex flex-col gap-1 bg-white border border-gray-200 text-gray-800 hover:bg-fridge-50"
-                    variant="outline"
-                  >
-                    <span className="text-sm font-medium">Walmart</span>
-                  </Button>
-                </div>
+                <TabsContent value="store" className="m-0 p-5">
+                  <ShoppingList hideDeliveryButton={true} />
+                </TabsContent>
                 
-                <p className="text-xs text-gray-500 mt-3">
-                  Note: Only unchecked items will be included in your delivery order.
-                </p>
+                <TabsContent value="delivery" className="m-0 p-0">
+                  <div className="space-y-4">
+                    <div className="p-5 bg-fridge-50 border-b border-fridge-100">
+                      <h3 className="font-medium text-fridge-800 mb-2 flex items-center">
+                        <Truck className="h-4 w-4 mr-2" />
+                        Delivery Options
+                      </h3>
+                      <p className="text-sm text-gray-600 mb-4">
+                        Send your unchecked items to a delivery service
+                      </p>
+                      
+                      <div className="grid grid-cols-2 gap-3">
+                        <DeliveryButton
+                          onClick={() => handleDeliveryApp("instacart")}
+                          name="Instacart"
+                          icon="🛒"
+                        />
+                        <DeliveryButton
+                          onClick={() => handleDeliveryApp("doordash")}
+                          name="DoorDash"
+                          icon="🚚"
+                        />
+                        <DeliveryButton
+                          onClick={() => handleDeliveryApp("ubereats")}
+                          name="Uber Eats"
+                          icon="🥡"
+                        />
+                        <DeliveryButton
+                          onClick={() => handleDeliveryApp("walmart")}
+                          name="Walmart"
+                          icon="🏪"
+                        />
+                      </div>
+                      
+                      <div className="flex items-center mt-4 text-xs text-gray-500 bg-white p-2 rounded-lg border border-gray-200">
+                        <Tag className="h-3 w-3 mr-1 text-fridge-400" />
+                        Only unchecked items will be included in your delivery
+                      </div>
+                    </div>
+                    
+                    <div className="px-5 pb-5">
+                      <ShoppingList hideDeliveryButton={true} />
+                    </div>
+                  </div>
+                </TabsContent>
               </div>
-              
-              <ShoppingList hideDeliveryButton={true} />
+            </Tabs>
+          </div>
+        </div>
+        
+        {currentTab === "delivery" && user?.shoppingList.filter(item => !item.isChecked).length === 0 && user?.shoppingList.length > 0 && (
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-yellow-50 border border-yellow-100 rounded-lg p-4 text-sm text-yellow-800 flex items-start"
+          >
+            <Check className="h-5 w-5 text-yellow-500 mr-2 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="font-medium">All items are checked</p>
+              <p className="text-yellow-600 text-xs mt-1">Uncheck items you want to order for delivery</p>
             </div>
-          </TabsContent>
-        </Tabs>
+          </motion.div>
+        )}
       </main>
     </motion.div>
+  );
+};
+
+// Delivery button component for cleaner UI
+const DeliveryButton = ({ onClick, name, icon }: { onClick: () => void, name: string, icon: string }) => {
+  return (
+    <Button 
+      onClick={onClick}
+      className="h-16 flex flex-col gap-1 bg-white border border-gray-200 text-gray-800 hover:bg-fridge-50 hover:border-fridge-200 transition-all shadow-sm hover:shadow rounded-xl"
+      variant="outline"
+    >
+      <span className="text-2xl mb-1">{icon}</span>
+      <span className="text-sm font-medium">{name}</span>
+    </Button>
   );
 };
 
