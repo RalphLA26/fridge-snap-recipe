@@ -4,7 +4,9 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useUser } from "@/contexts/UserContext";
 import Header from "@/components/Header";
-import UnifiedHomeCard from "@/components/UnifiedHomeCard";
+import HomeBanner from "@/components/HomeBanner";
+import IngredientManager from "@/components/IngredientManager";
+import QuickActions from "@/components/QuickActions";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -53,12 +55,19 @@ const Index = () => {
     >
       <Header />
       
-      <main className="flex-1 container max-w-xl mx-auto px-4 py-6">
-        <UnifiedHomeCard 
+      <main className="flex-1 container max-w-xl mx-auto px-4 py-6 space-y-8">
+        <HomeBanner />
+        
+        <QuickActions 
+          ingredientsCount={ingredients.length}
+          onCameraClick={handleCameraClick}
+          onFindRecipes={handleFindRecipes}
+        />
+        
+        <IngredientManager
           ingredients={ingredients}
           onAddIngredient={handleAddIngredient}
           onRemoveIngredient={handleRemoveIngredient}
-          onCameraClick={handleCameraClick}
           onFindRecipes={handleFindRecipes}
         />
       </main>
