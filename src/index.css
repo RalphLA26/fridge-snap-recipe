@@ -87,6 +87,10 @@
   }
   body {
     @apply bg-background text-foreground;
+    -webkit-tap-highlight-color: transparent;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-medium tracking-tight;
   }
 }
 
@@ -118,6 +122,16 @@
   }
 }
 
+/* Improved card styles */
+.card-hover {
+  @apply transition-all duration-200 hover:shadow-md hover:translate-y-[-2px];
+}
+
+/* Improved focus states */
+.focus-ring {
+  @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-fridge-500 focus-visible:ring-offset-2;
+}
+
 /* Touch-friendly targets */
 @media (max-width: 768px) {
   button, 
@@ -144,4 +158,28 @@ textarea {
 /* Improve tap highlight */
 a, button {
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+}
+
+/* Consistent shadows */
+.shadow-subtle {
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.shadow-card {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Pill badges */
+.pill-badge {
+  @apply inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-medium;
+}
+
+/* Content transitions */
+.content-transition {
+  @apply transition-all duration-300 ease-in-out;
+}
+
+/* Improved input styles */
+.input-focus {
+  @apply focus:border-fridge-500 focus:ring-1 focus:ring-fridge-500;
 }
