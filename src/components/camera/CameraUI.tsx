@@ -6,7 +6,8 @@ import {
   XCircle, 
   FlipHorizontal, 
   Barcode, 
-  Lightbulb 
+  Lightbulb,
+  Refrigerator 
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -70,15 +71,15 @@ export const CameraViewfinder: React.FC<{
             </div>
           </div>
           <div className="absolute bottom-40 text-white text-center text-sm px-4 bg-black/30 py-2 rounded-full">
-            Center your fridge contents in the frame
+            Position food items clearly in the frame
           </div>
         </div>
       )}
       
       {/* Helper tooltip */}
       <div className="absolute top-32 left-1/2 transform -translate-x-1/2 bg-black/70 text-white text-sm py-2 px-4 rounded-full flex items-center">
-        <Lightbulb className="h-4 w-4 mr-2 text-yellow-400" />
-        <span>{mode === "photo" ? "Open your fridge door fully" : "Hold phone steady"}</span>
+        <Refrigerator className="h-4 w-4 mr-2 text-fridge-400" />
+        <span>{mode === "photo" ? "Capture all visible items for best results" : "Hold phone steady"}</span>
       </div>
     </div>
   </div>
@@ -276,3 +277,4 @@ const CameraUI: React.FC<CameraUIProps> = ({
 };
 
 export default CameraUI;
+
