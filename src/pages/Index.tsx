@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Camera, Search, User, ShoppingBag, PlusCircle } from "lucide-react";
@@ -34,9 +34,8 @@ const Index = () => {
   };
   
   const handleCameraClick = () => {
-    console.log("Camera button clicked, attempting to navigate to /camera");
-    // Force a direct navigation to ensure it works
-    window.location.href = "/camera";
+    console.log("Camera button clicked, navigating to /camera");
+    navigate("/camera");
   };
   
   const handleFindRecipes = () => {
@@ -124,13 +123,15 @@ const Index = () => {
               </p>
               
               <div className="grid gap-3 sm:grid-cols-2">
-                <Button 
-                  className="bg-white text-fridge-700 hover:bg-gray-100 shadow-md border border-white/30 h-12"
-                  onClick={handleCameraClick}
-                >
-                  <Camera className="mr-2 h-5 w-5" />
-                  Scan Your Fridge
-                </Button>
+                <Link to="/camera">
+                  <Button 
+                    className="w-full bg-white text-fridge-700 hover:bg-gray-100 shadow-md border border-white/30 h-12"
+                    onClick={handleCameraClick}
+                  >
+                    <Camera className="mr-2 h-5 w-5" />
+                    Scan Your Fridge
+                  </Button>
+                </Link>
                 
                 <Button 
                   className="bg-fridge-600 text-white hover:bg-fridge-700 shadow-md border border-fridge-500/30 h-12"
