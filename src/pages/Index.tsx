@@ -34,9 +34,9 @@ const Index = () => {
   };
   
   const handleCameraClick = () => {
-    // Debug when button is clicked
-    console.log("Camera button clicked, navigating to /camera");
-    navigate("/camera");
+    console.log("Camera button clicked, attempting to navigate to /camera");
+    // Force a direct navigation to ensure it works
+    window.location.href = "/camera";
   };
   
   const handleFindRecipes = () => {
