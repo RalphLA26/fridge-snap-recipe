@@ -1,7 +1,6 @@
-
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { PlusCircle, Search, Check, X, Plus } from "lucide-react";
+import { PlusCircle, Search, Check, X, Plus, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
