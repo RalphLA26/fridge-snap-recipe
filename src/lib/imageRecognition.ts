@@ -27,31 +27,51 @@ const foodItemsDatabase = [
   { name: "lettuce", characteristics: ["green", "leafy", "vegetable"] },
   { name: "spinach", characteristics: ["green", "leafy", "vegetable"] },
   { name: "butter", characteristics: ["yellow", "dairy", "fat"] },
-  { name: "oil", characteristics: ["yellow", "liquid", "fat"] }
+  { name: "oil", characteristics: ["yellow", "liquid", "fat"] },
+  { name: "avocado", characteristics: ["green", "oval", "creamy", "fruit"] },
+  { name: "lemon", characteristics: ["yellow", "citrus", "round", "fruit"] },
+  { name: "lime", characteristics: ["green", "citrus", "round", "fruit"] },
+  { name: "salmon", characteristics: ["pink", "fish", "protein"] },
+  { name: "tuna", characteristics: ["red", "fish", "protein"] },
+  { name: "bacon", characteristics: ["red", "white", "strips", "meat"] },
+  { name: "ham", characteristics: ["pink", "meat", "slice"] },
+  { name: "mushroom", characteristics: ["brown", "beige", "fungus"] },
+  { name: "tofu", characteristics: ["white", "block", "protein"] },
+  { name: "blueberries", characteristics: ["blue", "small", "round", "fruit"] },
+  { name: "strawberries", characteristics: ["red", "fruit", "seeds"] },
+  { name: "grapes", characteristics: ["green", "purple", "cluster", "fruit"] }
 ];
 
 // Simulated image analysis that would normally be done by a real ML model
 const analyzeImage = (imageData: string): string[] => {
-  // Simulate feature extraction and matching
-  // In a real app, this would use an actual computer vision API
+  // In a production app, we would analyze the actual image data
+  // For this demo, we'll return 4-7 random items
   
-  // Random selection of items to simulate detection
-  // We'll use the frame brightness to add some variability
-  const frameBrightness = Math.random();
+  // Use the hash of the image data to seed our "random" selection
+  // This makes the same image produce the same results (for demo consistency)
+  const imageHash = imageData.length % 100;
   
-  // Select 3-6 random items based on simulated image brightness
-  const detectedCount = Math.floor(frameBrightness * 3) + 3;
-  const shuffledItems = [...foodItemsDatabase].sort(() => 0.5 - Math.random());
+  // Select 4-7 random items based on the "hash"
+  const minItems = 4;
+  const maxItems = 7;
+  const detectedCount = minItems + (imageHash % (maxItems - minItems + 1));
   
-  return shuffledItems.slice(0, detectedCount).map(item => item.name);
+  // Get unique items by shuffling the database and taking the first N
+  const shuffledItems = [...foodItemsDatabase]
+    .sort(() => (imageHash * 0.3) - 0.5) // Deterministic shuffle based on hash
+    .slice(0, detectedCount);
+  
+  return shuffledItems.map(item => item.name);
 };
 
 export const detectIngredientsFromImage = async (imageData: string): Promise<string[]> => {
   return new Promise((resolve) => {
-    // Simulate API delay
+    // Simulate API delay (1.5-2.5 seconds)
+    const processingTime = 1500 + Math.random() * 1000;
+    
     setTimeout(() => {
       const detectedIngredients = analyzeImage(imageData);
       resolve(detectedIngredients);
-    }, 2000);
+    }, processingTime);
   });
 };

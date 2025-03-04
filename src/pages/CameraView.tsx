@@ -1,7 +1,8 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Check, X } from "lucide-react";
+import { ArrowLeft, Check, X, CameraIcon, Lightbulb } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Camera from "@/components/Camera";
 import { toast } from "sonner";
@@ -82,6 +83,12 @@ const CameraView = () => {
     }
   };
   
+  const handleRetake = () => {
+    setCapturedImage(null);
+    setDetectedIngredients([]);
+    setSelectedIngredients([]);
+  };
+  
   return (
     <motion.div 
       className="min-h-screen bg-gray-50"
@@ -94,66 +101,115 @@ const CameraView = () => {
         <Camera onCapture={handleCapture} onClose={() => navigate("/")} />
       ) : (
         <>
-          <header className="p-4 bg-white border-b border-gray-200 sticky top-0 z-10">
+          <header className="p-4 bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
             <div className="container max-w-xl mx-auto flex items-center justify-between">
               <Button 
                 variant="ghost" 
                 size="icon" 
                 onClick={handleBack}
+                className="hover:bg-gray-100 rounded-full"
               >
                 <ArrowLeft className="h-5 w-5" />
               </Button>
-              <h1 className="text-lg font-medium">Detected Items</h1>
-              <div className="w-10"></div> {/* Spacer for alignment */}
+              <h1 className="text-lg font-medium text-fridge-700">Detected Items</h1>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={handleRetake}
+                className="hover:bg-gray-100 rounded-full text-fridge-600"
+              >
+                <CameraIcon className="h-5 w-5" />
+              </Button>
             </div>
           </header>
           
-          <main className="container max-w-xl mx-auto p-4">
-            <div className="mb-6 relative overflow-hidden rounded-lg">
+          <main className="container max-w-xl mx-auto p-4 pb-24">
+            <div className="mb-6 relative overflow-hidden rounded-lg shadow-md">
               <img 
                 src={capturedImage} 
                 alt="Captured fridge" 
-                className="w-full h-auto"
+                className="w-full h-auto border border-gray-200"
               />
+              {isAnalyzing && (
+                <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                  <div className="bg-white p-4 rounded-lg shadow-lg flex flex-col items-center">
+                    <div className="animate-spin h-8 w-8 border-4 border-fridge-600 border-t-transparent rounded-full mb-2"></div>
+                    <p className="text-sm font-medium">Analyzing your fridge...</p>
+                  </div>
+                </div>
+              )}
             </div>
             
-            <div className="mb-4">
-              <h2 className="text-lg font-medium mb-3">
-                Found {detectedIngredients.length} items in your fridge
-              </h2>
-              <p className="text-sm text-gray-500 mb-4">
-                Select the ingredients you want to use in your recipes:
-              </p>
-              
-              <div className="grid grid-cols-2 gap-3 mb-6">
-                {detectedIngredients.map((ingredient) => (
-                  <button
-                    key={ingredient}
-                    className={`p-3 rounded-lg text-left flex items-center justify-between ${
-                      selectedIngredients.includes(ingredient)
-                        ? "bg-fridge-100 border border-fridge-300"
-                        : "bg-white border border-gray-200"
-                    }`}
-                    onClick={() => handleIngredientToggle(ingredient)}
+            {detectedIngredients.length > 0 ? (
+              <>
+                <div className="mb-6 bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="bg-fridge-100 p-2 rounded-full">
+                      <Lightbulb className="h-5 w-5 text-fridge-600" />
+                    </div>
+                    <h2 className="text-lg font-medium text-gray-800">
+                      Found {detectedIngredients.length} items
+                    </h2>
+                  </div>
+                  
+                  <p className="text-sm text-gray-500 mb-5 pl-10">
+                    Select the ingredients you want to use in your recipes:
+                  </p>
+                  
+                  <div className="grid grid-cols-2 gap-3 mb-2">
+                    {detectedIngredients.map((ingredient) => (
+                      <motion.button
+                        key={ingredient}
+                        className={`p-3 rounded-lg text-left flex items-center justify-between transition-all ${
+                          selectedIngredients.includes(ingredient)
+                            ? "bg-fridge-50 border border-fridge-200 shadow-sm"
+                            : "bg-white border border-gray-200"
+                        }`}
+                        onClick={() => handleIngredientToggle(ingredient)}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        <span className="capitalize">{ingredient}</span>
+                        {selectedIngredients.includes(ingredient) ? (
+                          <Check className="h-4 w-4 text-fridge-600" />
+                        ) : (
+                          <X className="h-4 w-4 text-gray-400" />
+                        )}
+                      </motion.button>
+                    ))}
+                  </div>
+                </div>
+                
+                <motion.div 
+                  className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200"
+                  initial={{ y: 100 }}
+                  animate={{ y: 0 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                >
+                  <div className="container max-w-xl mx-auto">
+                    <Button 
+                      className="w-full bg-fridge-600 hover:bg-fridge-700 text-white py-6"
+                      onClick={handleSave}
+                      disabled={selectedIngredients.length === 0}
+                    >
+                      Find Recipes with {selectedIngredients.length} Ingredient{selectedIngredients.length !== 1 ? 's' : ''}
+                    </Button>
+                  </div>
+                </motion.div>
+              </>
+            ) : (
+              !isAnalyzing && (
+                <div className="text-center p-8 bg-white rounded-xl shadow-sm border border-gray-100">
+                  <p className="text-gray-500 mb-4">No ingredients detected. Try taking another photo with better lighting.</p>
+                  <Button 
+                    onClick={handleRetake} 
+                    className="bg-fridge-600 hover:bg-fridge-700 text-white"
                   >
-                    <span>{ingredient}</span>
-                    {selectedIngredients.includes(ingredient) ? (
-                      <Check className="h-4 w-4 text-fridge-600" />
-                    ) : (
-                      <X className="h-4 w-4 text-gray-400" />
-                    )}
-                  </button>
-                ))}
-              </div>
-            </div>
-            
-            <Button 
-              className="w-full bg-fridge-600 hover:bg-fridge-700 text-white" 
-              onClick={handleSave}
-              disabled={selectedIngredients.length === 0}
-            >
-              Find Recipes with {selectedIngredients.length} Ingredients
-            </Button>
+                    <CameraIcon className="h-4 w-4 mr-2" />
+                    Take Another Photo
+                  </Button>
+                </div>
+              )
+            )}
           </main>
         </>
       )}

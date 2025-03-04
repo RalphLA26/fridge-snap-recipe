@@ -1,7 +1,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Camera as CameraIcon, XCircle, FlipHorizontal, Barcode, Zap } from "lucide-react";
+import { Camera as CameraIcon, XCircle, FlipHorizontal, Barcode, Lightbulb } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { scanBarcode, lookupProduct } from "@/lib/barcodeScanner";
@@ -19,6 +19,8 @@ const CameraComponent = ({ onCapture, onClose }: CameraProps) => {
   const [countdown, setCountdown] = useState<number | null>(null);
   const [flash, setFlash] = useState(false);
   const [mode, setMode] = useState<"photo" | "barcode">("photo");
+  const [torchActive, setTorchActive] = useState(false);
+  const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
 
   // Initialize camera
   useEffect(() => {
@@ -39,6 +41,7 @@ const CameraComponent = ({ onCapture, onClose }: CameraProps) => {
           if (videoRef.current) {
             videoRef.current.srcObject = stream;
             setCameraActive(true);
+            setCameraStream(stream);
           }
         } else {
           toast.error("Camera not supported on this device or browser");
@@ -59,8 +62,29 @@ const CameraComponent = ({ onCapture, onClose }: CameraProps) => {
     };
   }, [facingMode]);
 
+  // Toggle torch/flashlight (if available)
+  useEffect(() => {
+    if (!cameraStream) return;
+    
+    const videoTrack = cameraStream.getVideoTracks()[0];
+    if (videoTrack && videoTrack.getCapabilities().torch) {
+      try {
+        videoTrack.applyConstraints({
+          advanced: [{ torch: torchActive }]
+        });
+      } catch (err) {
+        console.error("Error toggling torch:", err);
+      }
+    }
+  }, [torchActive, cameraStream]);
+
   const toggleCamera = () => {
     setFacingMode(prev => prev === "user" ? "environment" : "user");
+  };
+
+  const toggleTorch = () => {
+    setTorchActive(prev => !prev);
+    toast.info(torchActive ? "Flashlight turned off" : "Flashlight turned on");
   };
 
   const toggleMode = () => {
@@ -168,8 +192,8 @@ const CameraComponent = ({ onCapture, onClose }: CameraProps) => {
         <div className="absolute inset-0 pointer-events-none">
           <div className="w-full h-full border-[40px] border-black/50 box-border"></div>
           
-          {/* Overlay indicator for barcode mode */}
-          {mode === "barcode" && (
+          {/* Mode-specific guide overlay */}
+          {mode === "barcode" ? (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
               <div className="w-4/5 h-20 border-2 border-white rounded-lg flex items-center justify-center">
                 <Barcode className="h-8 w-8 text-white/80" />
@@ -178,7 +202,29 @@ const CameraComponent = ({ onCapture, onClose }: CameraProps) => {
                 Align barcode within the frame
               </div>
             </div>
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="w-4/5 h-4/5 border-2 border-white/60 rounded-lg flex items-center justify-center">
+                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                  <svg width="80" height="80" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M10,2 L2,2 L2,10" stroke="white" strokeWidth="3" />
+                    <path d="M90,2 L98,2 L98,10" stroke="white" strokeWidth="3" />
+                    <path d="M10,98 L2,98 L2,90" stroke="white" strokeWidth="3" />
+                    <path d="M90,98 L98,98 L98,90" stroke="white" strokeWidth="3" />
+                  </svg>
+                </div>
+              </div>
+              <div className="absolute bottom-40 text-white text-center text-sm px-4 bg-black/30 py-2 rounded-full">
+                Center your fridge contents in the frame
+              </div>
+            </div>
           )}
+          
+          {/* Helper tooltip */}
+          <div className="absolute top-32 left-1/2 transform -translate-x-1/2 bg-black/70 text-white text-sm py-2 px-4 rounded-full flex items-center">
+            <Lightbulb className="h-4 w-4 mr-2 text-yellow-400" />
+            <span>{mode === "photo" ? "Open your fridge door fully" : "Hold phone steady"}</span>
+          </div>
         </div>
         
         {/* Canvas for capturing photos (hidden) */}
@@ -239,6 +285,18 @@ const CameraComponent = ({ onCapture, onClose }: CameraProps) => {
             >
               <FlipHorizontal className="h-6 w-6" />
             </Button>
+            
+            {facingMode === "environment" && (
+              <Button
+                onClick={toggleTorch}
+                variant="ghost"
+                size="icon"
+                className={`${torchActive ? 'bg-yellow-500/70' : 'bg-black/20'} text-white hover:bg-black/40 rounded-full h-12 w-12`}
+                disabled={countdown !== null}
+              >
+                <Lightbulb className="h-6 w-6" />
+              </Button>
+            )}
           </div>
         </div>
       </div>
@@ -249,7 +307,7 @@ const CameraComponent = ({ onCapture, onClose }: CameraProps) => {
           onClick={mode === "photo" ? captureWithCountdown : capturePhoto} 
           variant="ghost" 
           size="icon" 
-          className="bg-white h-16 w-16 rounded-full hover:bg-gray-200"
+          className="bg-white h-16 w-16 rounded-full hover:bg-gray-200 shadow-lg"
           disabled={!cameraActive || countdown !== null}
         >
           {mode === "photo" ? (
