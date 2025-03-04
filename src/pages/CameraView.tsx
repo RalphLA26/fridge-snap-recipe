@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Check, X, CameraIcon, Lightbulb } from "lucide-react";
+import { ArrowLeft, Check, X, CameraIcon, Lightbulb, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Camera from "@/components/camera";
 import { toast } from "sonner";
@@ -14,17 +14,25 @@ const CameraView = () => {
   const [detectedIngredients, setDetectedIngredients] = useState<string[]>([]);
   const [selectedIngredients, setSelectedIngredients] = useState<string[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [showReviewStage, setShowReviewStage] = useState(false);
   
   const handleCapture = async (imageSrc: string) => {
     // Debug log when image is captured
     console.log("Image captured in CameraView");
     setCapturedImage(imageSrc);
+    // Don't analyze immediately - wait for user to confirm
+    setShowReviewStage(true);
+  };
+  
+  const handleContinue = async () => {
+    if (!capturedImage) return;
+    
     setIsAnalyzing(true);
     
     try {
       // Analyze image using our AI recognition system
       const result = await toast.promise(
-        detectIngredientsFromImage(imageSrc),
+        detectIngredientsFromImage(capturedImage),
         {
           loading: "Analyzing fridge contents...",
           success: (data) => `Detected ${data.length} items in your fridge!`,
@@ -45,6 +53,7 @@ const CameraView = () => {
       console.error("Error detecting ingredients:", error);
     } finally {
       setIsAnalyzing(false);
+      setShowReviewStage(false);
     }
   };
   
@@ -77,9 +86,12 @@ const CameraView = () => {
   };
   
   const handleBack = () => {
-    if (capturedImage) {
-      setCapturedImage(null);
+    if (detectedIngredients.length > 0) {
       setDetectedIngredients([]);
+      setShowReviewStage(true);
+    } else if (showReviewStage) {
+      setShowReviewStage(false);
+      setCapturedImage(null);
     } else {
       navigate("/");
     }
@@ -89,6 +101,7 @@ const CameraView = () => {
     setCapturedImage(null);
     setDetectedIngredients([]);
     setSelectedIngredients([]);
+    setShowReviewStage(false);
   };
   
   return (
@@ -113,7 +126,9 @@ const CameraView = () => {
               >
                 <ArrowLeft className="h-5 w-5" />
               </Button>
-              <h1 className="text-lg font-medium text-fridge-700">Detected Items</h1>
+              <h1 className="text-lg font-medium text-fridge-700">
+                {detectedIngredients.length > 0 ? "Detected Items" : "Review Your Photo"}
+              </h1>
               <Button 
                 variant="ghost" 
                 size="icon" 
@@ -141,6 +156,46 @@ const CameraView = () => {
                 </div>
               )}
             </div>
+            
+            {showReviewStage && !detectedIngredients.length && !isAnalyzing && (
+              <div className="mb-6 bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="bg-fridge-100 p-2 rounded-full">
+                    <CameraIcon className="h-5 w-5 text-fridge-600" />
+                  </div>
+                  <h2 className="text-lg font-medium text-gray-800">
+                    Review your photo
+                  </h2>
+                </div>
+                
+                <p className="text-sm text-gray-500 mb-5 pl-10">
+                  Does your photo clearly show the items in your fridge?
+                </p>
+                
+                <motion.div 
+                  className="flex gap-3 justify-end"
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.2 }}
+                >
+                  <Button 
+                    variant="outline"
+                    onClick={handleRetake}
+                    className="bg-white border-gray-200"
+                  >
+                    Retake Photo
+                  </Button>
+                  
+                  <Button 
+                    className="bg-fridge-600 hover:bg-fridge-700 text-white"
+                    onClick={handleContinue}
+                  >
+                    Continue
+                    <ArrowRight className="ml-1 h-4 w-4" />
+                  </Button>
+                </motion.div>
+              </div>
+            )}
             
             {detectedIngredients.length > 0 ? (
               <>
@@ -199,7 +254,7 @@ const CameraView = () => {
                 </motion.div>
               </>
             ) : (
-              !isAnalyzing && (
+              !isAnalyzing && !showReviewStage && (
                 <div className="text-center p-8 bg-white rounded-xl shadow-sm border border-gray-100">
                   <p className="text-gray-500 mb-4">No ingredients detected. Try taking another photo with better lighting.</p>
                   <Button 
