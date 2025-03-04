@@ -1,11 +1,12 @@
 
 import { useState } from "react";
-import { Plus, X, Check, ShoppingBag, Trash2, ArrowUpDown, ListFilter } from "lucide-react";
+import { Plus, X, Check, ShoppingBag, Trash2, ArrowUpDown, ListFilter, Truck } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ShoppingItem, useUser } from "@/contexts/UserContext";
 import { toast } from "sonner";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 type SortOption = "added" | "alphabetical" | "checked";
 
@@ -14,6 +15,7 @@ const ShoppingList = () => {
   const [newItem, setNewItem] = useState("");
   const [newQuantity, setNewQuantity] = useState("");
   const [sortOption, setSortOption] = useState<SortOption>("added");
+  const [showDeliveryDialog, setShowDeliveryDialog] = useState(false);
 
   const handleAddItem = () => {
     if (!newItem.trim()) {
@@ -62,6 +64,48 @@ const ShoppingList = () => {
     }
   };
 
+  const handleDeliveryApp = (app: string) => {
+    // Get unchecked items for the delivery
+    const itemsToDeliver = user?.shoppingList.filter(item => !item.isChecked) || [];
+    
+    if (itemsToDeliver.length === 0) {
+      toast.error("No items to deliver. Add items or uncheck some items first.");
+      return;
+    }
+    
+    // Create a shopping list string
+    const shoppingListText = itemsToDeliver.map(item => `${item.quantity} x ${item.name}`).join(", ");
+    
+    // Handle different delivery apps
+    let url = "";
+    let appName = "";
+    
+    switch(app) {
+      case "instacart":
+        url = `https://www.instacart.com/store/search_v3/term?term=${encodeURIComponent(shoppingListText)}`;
+        appName = "Instacart";
+        break;
+      case "doordash":
+        url = `https://www.doordash.com/search/store/${encodeURIComponent(shoppingListText)}`;
+        appName = "DoorDash";
+        break;
+      case "ubereats":
+        url = `https://www.ubereats.com/search?q=${encodeURIComponent(shoppingListText)}`;
+        appName = "Uber Eats";
+        break;
+      case "walmart":
+        url = `https://www.walmart.com/search?q=${encodeURIComponent(shoppingListText)}`;
+        appName = "Walmart";
+        break;
+    }
+    
+    // Open the URL in a new tab
+    window.open(url, "_blank");
+    
+    toast.success(`Opening ${appName} with your shopping list`);
+    setShowDeliveryDialog(false);
+  };
+
   // Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -80,6 +124,7 @@ const ShoppingList = () => {
   };
 
   const sortedItems = user?.shoppingList ? sortItems(user.shoppingList) : [];
+  const hasItems = sortedItems.length > 0;
 
   return (
     <div className="space-y-4">
@@ -120,6 +165,56 @@ const ShoppingList = () => {
             Shopping List
           </h3>
           <div className="flex space-x-2">
+            {hasItems && (
+              <Dialog open={showDeliveryDialog} onOpenChange={setShowDeliveryDialog}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="sm" className="text-fridge-600 border-fridge-300">
+                    <Truck className="h-4 w-4 mr-1" />
+                    <span className="hidden sm:inline">Delivery</span>
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Get items delivered</DialogTitle>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                    <p className="text-sm text-muted-foreground">
+                      Choose a delivery service to get your shopping list items delivered:
+                    </p>
+                    <div className="grid grid-cols-2 gap-3">
+                      <Button 
+                        onClick={() => handleDeliveryApp("instacart")}
+                        className="h-16 flex flex-col gap-1"
+                      >
+                        <span className="text-xs">Instacart</span>
+                      </Button>
+                      <Button 
+                        onClick={() => handleDeliveryApp("doordash")}
+                        className="h-16 flex flex-col gap-1"
+                      >
+                        <span className="text-xs">DoorDash</span>
+                      </Button>
+                      <Button 
+                        onClick={() => handleDeliveryApp("ubereats")}
+                        className="h-16 flex flex-col gap-1"
+                      >
+                        <span className="text-xs">Uber Eats</span>
+                      </Button>
+                      <Button 
+                        onClick={() => handleDeliveryApp("walmart")}
+                        className="h-16 flex flex-col gap-1"
+                      >
+                        <span className="text-xs">Walmart</span>
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Note: Only unchecked items will be included in your delivery order.
+                    </p>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            )}
+            
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="text-gray-600">
@@ -140,7 +235,7 @@ const ShoppingList = () => {
               </DropdownMenuContent>
             </DropdownMenu>
             
-            {user?.shoppingList.length ? (
+            {hasItems && (
               <Button 
                 variant="outline" 
                 size="sm" 
@@ -153,11 +248,11 @@ const ShoppingList = () => {
                 <Trash2 className="h-4 w-4 mr-1" />
                 <span className="hidden sm:inline">Clear All</span>
               </Button>
-            ) : null}
+            )}
           </div>
         </div>
         
-        {!user?.shoppingList.length ? (
+        {!hasItems ? (
           <div className="text-center py-8 text-muted-foreground bg-gray-50 rounded-lg">
             <p>Your shopping list is empty</p>
           </div>
