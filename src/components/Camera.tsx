@@ -11,6 +11,16 @@ interface CameraProps {
   onClose: () => void;
 }
 
+// Extend MediaTrackCapabilities to include torch property
+interface ExtendedMediaTrackCapabilities extends MediaTrackCapabilities {
+  torch?: boolean;
+}
+
+// Extend MediaTrackConstraintSet to include torch property
+interface ExtendedMediaTrackConstraintSet extends MediaTrackConstraintSet {
+  torch?: boolean;
+}
+
 const CameraComponent = ({ onCapture, onClose }: CameraProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -20,6 +30,7 @@ const CameraComponent = ({ onCapture, onClose }: CameraProps) => {
   const [flash, setFlash] = useState(false);
   const [mode, setMode] = useState<"photo" | "barcode">("photo");
   const [torchActive, setTorchActive] = useState(false);
+  const [torchSupported, setTorchSupported] = useState(false);
   const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
 
   // Initialize camera
@@ -42,6 +53,14 @@ const CameraComponent = ({ onCapture, onClose }: CameraProps) => {
             videoRef.current.srcObject = stream;
             setCameraActive(true);
             setCameraStream(stream);
+            
+            // Check if torch is supported
+            const videoTrack = stream.getVideoTracks()[0];
+            const capabilities = videoTrack.getCapabilities() as ExtendedMediaTrackCapabilities;
+            setTorchSupported(!!capabilities.torch);
+            
+            // Reset torch state when changing camera
+            setTorchActive(false);
           }
         } else {
           toast.error("Camera not supported on this device or browser");
@@ -64,25 +83,35 @@ const CameraComponent = ({ onCapture, onClose }: CameraProps) => {
 
   // Toggle torch/flashlight (if available)
   useEffect(() => {
-    if (!cameraStream) return;
+    if (!cameraStream || !torchSupported) return;
     
     const videoTrack = cameraStream.getVideoTracks()[0];
-    if (videoTrack && videoTrack.getCapabilities().torch) {
+    if (videoTrack) {
       try {
-        videoTrack.applyConstraints({
-          advanced: [{ torch: torchActive }]
-        });
+        const constraints = {
+          advanced: [{ torch: torchActive } as ExtendedMediaTrackConstraintSet]
+        };
+        videoTrack.applyConstraints(constraints)
+          .catch(err => {
+            console.error("Error toggling torch:", err);
+            toast.error("Failed to toggle flashlight");
+            setTorchActive(false);
+          });
       } catch (err) {
         console.error("Error toggling torch:", err);
       }
     }
-  }, [torchActive, cameraStream]);
+  }, [torchActive, cameraStream, torchSupported]);
 
   const toggleCamera = () => {
     setFacingMode(prev => prev === "user" ? "environment" : "user");
   };
 
   const toggleTorch = () => {
+    if (!torchSupported) {
+      toast.error("Flashlight not supported on this device");
+      return;
+    }
     setTorchActive(prev => !prev);
     toast.info(torchActive ? "Flashlight turned off" : "Flashlight turned on");
   };
