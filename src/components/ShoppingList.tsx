@@ -1,22 +1,23 @@
-
 import { useState } from "react";
-import { Plus, X, Check, ShoppingBag, Trash2, ListFilter, Truck, Search } from "lucide-react";
+import { Plus, X, Check, ShoppingBag, Trash2, ListFilter, Search } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ShoppingItem, useUser } from "@/contexts/UserContext";
 import { toast } from "sonner";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 type SortOption = "added" | "alphabetical" | "checked";
 
-const ShoppingList = () => {
+interface ShoppingListProps {
+  hideDeliveryButton?: boolean;
+}
+
+const ShoppingList = ({ hideDeliveryButton = false }: ShoppingListProps) => {
   const { user, addToShoppingList, removeFromShoppingList, toggleShoppingItem, clearShoppingList } = useUser();
   const [newItem, setNewItem] = useState("");
   const [newQuantity, setNewQuantity] = useState("");
   const [sortOption, setSortOption] = useState<SortOption>("added");
-  const [showDeliveryDialog, setShowDeliveryDialog] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
   const handleAddItem = () => {
@@ -64,48 +65,6 @@ const ShoppingList = () => {
         // Items are already in the order they were added
         return itemsCopy;
     }
-  };
-
-  const handleDeliveryApp = (app: string) => {
-    // Get unchecked items for the delivery
-    const itemsToDeliver = user?.shoppingList.filter(item => !item.isChecked) || [];
-    
-    if (itemsToDeliver.length === 0) {
-      toast.error("No items to deliver. Add items or uncheck some items first.");
-      return;
-    }
-    
-    // Create a shopping list string
-    const shoppingListText = itemsToDeliver.map(item => `${item.quantity} x ${item.name}`).join(", ");
-    
-    // Handle different delivery apps
-    let url = "";
-    let appName = "";
-    
-    switch(app) {
-      case "instacart":
-        url = `https://www.instacart.com/store/search_v3/term?term=${encodeURIComponent(shoppingListText)}`;
-        appName = "Instacart";
-        break;
-      case "doordash":
-        url = `https://www.doordash.com/search/store/${encodeURIComponent(shoppingListText)}`;
-        appName = "DoorDash";
-        break;
-      case "ubereats":
-        url = `https://www.ubereats.com/search?q=${encodeURIComponent(shoppingListText)}`;
-        appName = "Uber Eats";
-        break;
-      case "walmart":
-        url = `https://www.walmart.com/search?q=${encodeURIComponent(shoppingListText)}`;
-        appName = "Walmart";
-        break;
-    }
-    
-    // Open the URL in a new tab
-    window.open(url, "_blank");
-    
-    toast.success(`Opening ${appName} with your shopping list`);
-    setShowDeliveryDialog(false);
   };
 
   // Filter items based on search query
@@ -189,56 +148,6 @@ const ShoppingList = () => {
             )}
           </h3>
           <div className="flex items-center space-x-2">
-            {hasItems && (
-              <Dialog open={showDeliveryDialog} onOpenChange={setShowDeliveryDialog}>
-                <DialogTrigger asChild>
-                  <Button variant="outline" size="sm" className="text-fridge-600 border-fridge-300 hover:bg-fridge-50">
-                    <Truck className="h-4 w-4 mr-1" />
-                    <span className="hidden sm:inline">Delivery</span>
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-md">
-                  <DialogHeader>
-                    <DialogTitle>Get items delivered</DialogTitle>
-                  </DialogHeader>
-                  <div className="grid gap-4 py-4">
-                    <p className="text-sm text-muted-foreground">
-                      Choose a delivery service to get your shopping list items delivered:
-                    </p>
-                    <div className="grid grid-cols-2 gap-3">
-                      <Button 
-                        onClick={() => handleDeliveryApp("instacart")}
-                        className="h-16 flex flex-col gap-1 hover:bg-fridge-700"
-                      >
-                        <span className="text-xs">Instacart</span>
-                      </Button>
-                      <Button 
-                        onClick={() => handleDeliveryApp("doordash")}
-                        className="h-16 flex flex-col gap-1 hover:bg-fridge-700"
-                      >
-                        <span className="text-xs">DoorDash</span>
-                      </Button>
-                      <Button 
-                        onClick={() => handleDeliveryApp("ubereats")}
-                        className="h-16 flex flex-col gap-1 hover:bg-fridge-700"
-                      >
-                        <span className="text-xs">Uber Eats</span>
-                      </Button>
-                      <Button 
-                        onClick={() => handleDeliveryApp("walmart")}
-                        className="h-16 flex flex-col gap-1 hover:bg-fridge-700"
-                      >
-                        <span className="text-xs">Walmart</span>
-                      </Button>
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-2">
-                      Note: Only unchecked items will be included in your delivery order.
-                    </p>
-                  </div>
-                </DialogContent>
-              </Dialog>
-            )}
-            
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="text-gray-600 hover:bg-gray-50">
