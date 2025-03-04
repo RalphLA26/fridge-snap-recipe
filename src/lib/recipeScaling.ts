@@ -48,27 +48,40 @@ export const formatIngredient = (ingredient: IngredientPart): string => {
     quantityStr = ingredient.quantity.toString();
   } else {
     // Convert decimal to fraction for common values
-    const fractionMap: Record<number, string> = {
-      0.25: '1/4',
-      0.33: '1/3',
-      0.5: '1/2',
-      0.67: '2/3',
-      0.75: '3/4'
+    const fractionMap: Record<string, string> = {
+      "0.25": "1/4",
+      "0.33": "1/3",
+      "0.5": "1/2",
+      "0.67": "2/3",
+      "0.75": "3/4"
     };
     
     // Find the closest fraction representation
     const decimal = Math.round(ingredient.quantity * 100) / 100;
-    const closest = Object.entries(fractionMap).reduce((prev, [value, fraction]) => {
-      return Math.abs(parseFloat(value) - decimal) < Math.abs(prev[0] - decimal)
-        ? [parseFloat(value), fraction]
-        : prev;
-    }, [99, '']);
+    const decimalStr = decimal.toString();
     
-    if (Math.abs(closest[0] - decimal) < 0.05) {
-      quantityStr = closest[1];
+    // Check if we have an exact match in our fraction map
+    if (fractionMap[decimalStr]) {
+      quantityStr = fractionMap[decimalStr];
     } else {
-      // If no close fraction, use decimal with one decimal place
-      quantityStr = decimal.toFixed(1).replace(/\.0$/, '');
+      // Find the closest match
+      let closestDiff = 99;
+      let closestFraction = "";
+      
+      Object.entries(fractionMap).forEach(([value, fraction]) => {
+        const diff = Math.abs(parseFloat(value) - decimal);
+        if (diff < closestDiff) {
+          closestDiff = diff;
+          closestFraction = fraction;
+        }
+      });
+      
+      if (closestDiff < 0.05) {
+        quantityStr = closestFraction;
+      } else {
+        // If no close fraction, use decimal with one decimal place
+        quantityStr = decimal.toFixed(1).replace(/\.0$/, '');
+      }
     }
   }
   

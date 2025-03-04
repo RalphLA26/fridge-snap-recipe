@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -30,8 +29,15 @@ const CameraView = () => {
         }
       );
       
-      setDetectedIngredients(result);
-      setSelectedIngredients(result);
+      if (Array.isArray(result)) {
+        setDetectedIngredients(result);
+        setSelectedIngredients(result);
+      } else {
+        // Handle case where result isn't an array
+        toast.error("Invalid response format from image detection");
+        setDetectedIngredients([]);
+        setSelectedIngredients([]);
+      }
     } catch (error) {
       console.error("Error detecting ingredients:", error);
     } finally {
