@@ -1,4 +1,3 @@
-
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowLeft, ShoppingBag, Truck, Store, Share2, Check, Clipboard, Tag } from "lucide-react";
@@ -173,7 +172,13 @@ const ShoppingListView = () => {
                 
                 <TabsContent value="delivery" className="m-0 p-0">
                   <div className="space-y-4">
-                    <div className="p-5 bg-fridge-50 border-b border-fridge-100">
+                    {/* Shopping list first */}
+                    <div className="px-5 pt-5">
+                      <ShoppingList hideDeliveryButton={true} />
+                    </div>
+                    
+                    {/* Delivery options second */}
+                    <div className="p-5 bg-fridge-50 border-t border-fridge-100">
                       <h3 className="font-medium text-fridge-800 mb-2 flex items-center">
                         <Truck className="h-4 w-4 mr-2" />
                         Delivery Options
@@ -209,10 +214,6 @@ const ShoppingListView = () => {
                         <Tag className="h-3 w-3 mr-1 text-fridge-400" />
                         Only unchecked items will be included in your delivery
                       </div>
-                    </div>
-                    
-                    <div className="px-5 pb-5">
-                      <ShoppingList hideDeliveryButton={true} />
                     </div>
                   </div>
                 </TabsContent>
