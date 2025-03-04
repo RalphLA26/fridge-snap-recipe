@@ -5,6 +5,8 @@ import { motion } from "framer-motion";
 import { ArrowLeft, Share2, Heart, ShoppingBag, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import RecipeDetail from "@/components/RecipeDetail";
+import RecipeReviews from "@/components/RecipeReviews";
+import IngredientSubstitutions from "@/components/IngredientSubstitutions";
 import { findRecipeById } from "@/lib/recipeData";
 import { useUser } from "@/contexts/UserContext";
 import { toast } from "sonner";
@@ -156,6 +158,12 @@ const RecipeDetailView = () => {
             Add Missing Ingredients to Shopping List
           </Button>
         </div>
+        
+        {/* Ingredient Substitutions */}
+        <IngredientSubstitutions ingredients={recipe.ingredients} />
+        
+        {/* Recipe Reviews */}
+        {id && <RecipeReviews recipeId={id} />}
       </main>
     </motion.div>
   );

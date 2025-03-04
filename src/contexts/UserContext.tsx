@@ -1,11 +1,24 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
+export interface Review {
+  id: string;
+  userId: string;
+  userName: string;
+  rating: number;
+  comment: string;
+  date: string;
+}
+
 interface UserProfile {
+  id: string;
   name: string;
   email: string;
   favoriteRecipes: string[];
   shoppingList: ShoppingItem[];
+  reviews: {
+    [recipeId: string]: Review[];
+  };
 }
 
 export interface ShoppingItem {
@@ -26,6 +39,10 @@ interface UserContextType {
   removeFromShoppingList: (itemId: string) => void;
   toggleShoppingItem: (itemId: string) => void;
   clearShoppingList: () => void;
+  addReview: (recipeId: string, review: Omit<Review, "id" | "userId" | "userName">) => void;
+  deleteReview: (recipeId: string, reviewId: string) => void;
+  getRecipeReviews: (recipeId: string) => Review[];
+  getRecipeRating: (recipeId: string) => number;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -43,10 +60,12 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       } else {
         // Create default user if none exists
         const defaultUser: UserProfile = {
+          id: "user-" + Date.now().toString(),
           name: "Guest User",
           email: "",
           favoriteRecipes: [],
           shoppingList: [],
+          reviews: {},
         };
         setUser(defaultUser);
         localStorage.setItem("fridgeUser", JSON.stringify(defaultUser));
@@ -129,6 +148,59 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       return { ...prev, shoppingList: [] };
     });
   };
+  
+  const addReview = (recipeId: string, review: Omit<Review, "id" | "userId" | "userName">) => {
+    setUser((prev) => {
+      if (!prev) return null;
+      
+      const newReview: Review = {
+        ...review,
+        id: Date.now().toString(),
+        userId: prev.id,
+        userName: prev.name,
+      };
+      
+      const existingReviews = prev.reviews[recipeId] || [];
+      const otherReviews = existingReviews.filter(r => r.userId !== prev.id);
+      
+      return {
+        ...prev,
+        reviews: {
+          ...prev.reviews,
+          [recipeId]: [...otherReviews, newReview]
+        }
+      };
+    });
+  };
+  
+  const deleteReview = (recipeId: string, reviewId: string) => {
+    setUser((prev) => {
+      if (!prev || !prev.reviews[recipeId]) return prev;
+      
+      const updatedReviews = prev.reviews[recipeId].filter(r => r.id !== reviewId);
+      
+      return {
+        ...prev,
+        reviews: {
+          ...prev.reviews,
+          [recipeId]: updatedReviews
+        }
+      };
+    });
+  };
+  
+  const getRecipeReviews = (recipeId: string): Review[] => {
+    if (!user || !user.reviews[recipeId]) return [];
+    return user.reviews[recipeId];
+  };
+  
+  const getRecipeRating = (recipeId: string): number => {
+    const reviews = getRecipeReviews(recipeId);
+    if (reviews.length === 0) return 0;
+    
+    const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
+    return Math.round(totalRating / reviews.length);
+  };
 
   return (
     <UserContext.Provider
@@ -143,6 +215,10 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         removeFromShoppingList,
         toggleShoppingItem,
         clearShoppingList,
+        addReview,
+        deleteReview,
+        getRecipeReviews,
+        getRecipeRating,
       }}
     >
       {children}

@@ -1,9 +1,10 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Clock, Utensils, ChevronRight, Heart } from "lucide-react";
+import { Clock, Utensils, ChevronRight, Heart, Star, Circle, CircleCheck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "@/contexts/UserContext";
+import { Progress } from "@/components/ui/progress";
 
 interface RecipeCardProps {
   id: string;
@@ -16,11 +17,12 @@ interface RecipeCardProps {
 
 const RecipeCard = ({ id, title, image, cookTime, matchingIngredients, totalIngredients }: RecipeCardProps) => {
   const navigate = useNavigate();
-  const { isFavorite } = useUser();
+  const { isFavorite, getRecipeRating } = useUser();
   const [imageLoaded, setImageLoaded] = useState(false);
   
   const matchPercentage = Math.round((matchingIngredients / totalIngredients) * 100);
   const favorite = isFavorite(id);
+  const rating = getRecipeRating(id);
   
   return (
     <motion.div
@@ -50,8 +52,31 @@ const RecipeCard = ({ id, title, image, cookTime, matchingIngredients, totalIngr
         />
         
         {/* Match percentage overlay */}
-        <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1 text-xs font-medium shadow-sm border border-gray-100">
-          <span className="text-fridge-700">{matchPercentage}% match</span>
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-3">
+          <div className="flex justify-between items-center">
+            <div className="text-white text-xs font-medium">
+              {matchPercentage}% match
+            </div>
+            
+            {/* Visualize matching ingredients */}
+            <div className="flex items-center">
+              {Array.from({ length: totalIngredients }, (_, i) => (
+                <div key={i} className="ml-1">
+                  {i < matchingIngredients ? (
+                    <CircleCheck className="h-3 w-3 text-green-400" />
+                  ) : (
+                    <Circle className="h-3 w-3 text-white/50" />
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          <Progress 
+            value={matchPercentage} 
+            className="h-1 mt-1 bg-white/30" 
+            indicatorClassName="bg-green-400" 
+          />
         </div>
         
         {/* Favorite icon */}
@@ -64,6 +89,19 @@ const RecipeCard = ({ id, title, image, cookTime, matchingIngredients, totalIngr
       
       <div className="p-4">
         <h3 className="font-medium text-gray-900 mb-2 line-clamp-1">{title}</h3>
+        
+        {/* Rating stars */}
+        {rating > 0 && (
+          <div className="flex items-center mb-2">
+            {Array.from({ length: 5 }, (_, i) => (
+              <Star 
+                key={i}
+                className={`h-3.5 w-3.5 ${i < rating ? "text-yellow-400 fill-current" : "text-gray-300"}`}
+              />
+            ))}
+            <span className="text-xs text-gray-500 ml-1">{rating}/5</span>
+          </div>
+        )}
         
         <div className="flex items-center justify-between mt-2 text-sm">
           <div className="flex items-center text-gray-500">

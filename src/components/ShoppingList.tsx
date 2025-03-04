@@ -1,15 +1,19 @@
 
 import { useState } from "react";
-import { Plus, X, Check, ShoppingBag, Trash2 } from "lucide-react";
+import { Plus, X, Check, ShoppingBag, Trash2, ArrowUpDown, ListFilter } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ShoppingItem, useUser } from "@/contexts/UserContext";
 import { toast } from "sonner";
+
+type SortOption = "added" | "alphabetical" | "checked";
 
 const ShoppingList = () => {
   const { user, addToShoppingList, removeFromShoppingList, toggleShoppingItem, clearShoppingList } = useUser();
   const [newItem, setNewItem] = useState("");
   const [newQuantity, setNewQuantity] = useState("");
+  const [sortOption, setSortOption] = useState<SortOption>("added");
 
   const handleAddItem = () => {
     if (!newItem.trim()) {
@@ -34,6 +38,30 @@ const ShoppingList = () => {
     }
   };
 
+  const sortItems = (items: ShoppingItem[]) => {
+    if (!items.length) return [];
+    
+    const itemsCopy = [...items];
+    
+    switch (sortOption) {
+      case "alphabetical":
+        return itemsCopy.sort((a, b) => a.name.localeCompare(b.name));
+      case "checked":
+        return itemsCopy.sort((a, b) => {
+          // Sort by checked status (unchecked first)
+          if (a.isChecked !== b.isChecked) {
+            return a.isChecked ? 1 : -1;
+          }
+          // Then by name
+          return a.name.localeCompare(b.name);
+        });
+      case "added":
+      default:
+        // Items are already in the order they were added
+        return itemsCopy;
+    }
+  };
+
   // Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -50,6 +78,8 @@ const ShoppingList = () => {
     visible: { opacity: 1, y: 0 },
     exit: { opacity: 0, x: -20 },
   };
+
+  const sortedItems = user?.shoppingList ? sortItems(user.shoppingList) : [];
 
   return (
     <div className="space-y-4">
@@ -89,20 +119,42 @@ const ShoppingList = () => {
             <ShoppingBag className="h-5 w-5 mr-2 text-fridge-600" />
             Shopping List
           </h3>
-          {user?.shoppingList.length ? (
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => {
-                clearShoppingList();
-                toast.success("Shopping list cleared");
-              }}
-              className="text-red-500 hover:text-red-700"
-            >
-              <Trash2 className="h-4 w-4 mr-1" />
-              Clear All
-            </Button>
-          ) : null}
+          <div className="flex space-x-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="text-gray-600">
+                  <ListFilter className="h-4 w-4 mr-1" />
+                  <span className="hidden sm:inline">Sort</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setSortOption("added")}>
+                  Most Recently Added
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSortOption("alphabetical")}>
+                  Alphabetical
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSortOption("checked")}>
+                  Unchecked First
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            
+            {user?.shoppingList.length ? (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => {
+                  clearShoppingList();
+                  toast.success("Shopping list cleared");
+                }}
+                className="text-red-500 hover:text-red-700"
+              >
+                <Trash2 className="h-4 w-4 mr-1" />
+                <span className="hidden sm:inline">Clear All</span>
+              </Button>
+            ) : null}
+          </div>
         </div>
         
         {!user?.shoppingList.length ? (
@@ -117,7 +169,7 @@ const ShoppingList = () => {
             animate="visible"
           >
             <AnimatePresence>
-              {user?.shoppingList.map((item) => (
+              {sortedItems.map((item) => (
                 <motion.li 
                   key={item.id}
                   variants={itemVariants}
