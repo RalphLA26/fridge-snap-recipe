@@ -6,47 +6,37 @@ import { ArrowLeft, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Camera from "@/components/Camera";
 import { toast } from "sonner";
-
-// Mockup of ingredient detection
-// In a real app, this would use computer vision to detect ingredients
-const detectIngredients = (image: string): string[] => {
-  // Mock ingredient detection
-  // This would be replaced with actual AI-based detection
-  return [
-    "eggs",
-    "milk",
-    "cheese",
-    "bell pepper",
-    "onion",
-    "tomato"
-  ];
-};
+import { detectIngredientsFromImage } from "@/lib/imageRecognition";
 
 const CameraView = () => {
   const navigate = useNavigate();
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [detectedIngredients, setDetectedIngredients] = useState<string[]>([]);
   const [selectedIngredients, setSelectedIngredients] = useState<string[]>([]);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   
-  const handleCapture = (imageSrc: string) => {
+  const handleCapture = async (imageSrc: string) => {
     setCapturedImage(imageSrc);
+    setIsAnalyzing(true);
     
-    // Simulate ingredient detection with loading time
-    toast.promise(
-      new Promise<string[]>((resolve) => {
-        setTimeout(() => {
-          const detected = detectIngredients(imageSrc);
-          setDetectedIngredients(detected);
-          setSelectedIngredients(detected);
-          resolve(detected);
-        }, 2000);
-      }),
-      {
-        loading: "Analyzing fridge contents...",
-        success: (data) => `Detected ${data.length} items in your fridge!`,
-        error: "Failed to analyze image. Please try again."
-      }
-    );
+    try {
+      // Analyze image using our AI recognition system
+      const result = await toast.promise(
+        detectIngredientsFromImage(imageSrc),
+        {
+          loading: "Analyzing fridge contents...",
+          success: (data) => `Detected ${data.length} items in your fridge!`,
+          error: "Failed to analyze image. Please try again."
+        }
+      );
+      
+      setDetectedIngredients(result);
+      setSelectedIngredients(result);
+    } catch (error) {
+      console.error("Error detecting ingredients:", error);
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
   
   const handleIngredientToggle = (ingredient: string) => {

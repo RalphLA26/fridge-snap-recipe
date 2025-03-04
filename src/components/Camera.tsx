@@ -1,9 +1,10 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Camera, XCircle, FlipHorizontal } from "lucide-react";
+import { Camera as CameraIcon, XCircle, FlipHorizontal, Barcode, Zap } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
+import { scanBarcode, lookupProduct } from "@/lib/barcodeScanner";
 
 interface CameraProps {
   onCapture: (imageSrc: string) => void;
@@ -17,6 +18,7 @@ const CameraComponent = ({ onCapture, onClose }: CameraProps) => {
   const [facingMode, setFacingMode] = useState<"user" | "environment">("environment");
   const [countdown, setCountdown] = useState<number | null>(null);
   const [flash, setFlash] = useState(false);
+  const [mode, setMode] = useState<"photo" | "barcode">("photo");
 
   // Initialize camera
   useEffect(() => {
@@ -61,6 +63,13 @@ const CameraComponent = ({ onCapture, onClose }: CameraProps) => {
     setFacingMode(prev => prev === "user" ? "environment" : "user");
   };
 
+  const toggleMode = () => {
+    setMode(prev => prev === "photo" ? "barcode" : "photo");
+    toast.info(mode === "photo" 
+      ? "Switched to barcode scanning mode" 
+      : "Switched to photo mode");
+  };
+
   const captureWithCountdown = () => {
     setCountdown(3);
     
@@ -102,8 +111,38 @@ const CameraComponent = ({ onCapture, onClose }: CameraProps) => {
         navigator.vibrate(50);
       }
       
-      // Send image back to parent component
-      onCapture(imageSrc);
+      if (mode === "barcode") {
+        // Process barcode
+        scanBarcode(imageSrc)
+          .then(barcode => {
+            const product = lookupProduct(barcode);
+            if (product) {
+              toast.success(`Detected: ${product.name}`);
+              
+              // Add to ingredients
+              const existingIngredientsJson = localStorage.getItem("fridgeIngredients");
+              const existingIngredients = existingIngredientsJson 
+                ? JSON.parse(existingIngredientsJson) 
+                : [];
+              
+              if (!existingIngredients.includes(product.name)) {
+                existingIngredients.push(product.name);
+                localStorage.setItem("fridgeIngredients", JSON.stringify(existingIngredients));
+                toast.success(`Added ${product.name} to your ingredients`);
+              } else {
+                toast.info(`${product.name} is already in your ingredients`);
+              }
+            } else {
+              toast.error("Product not found in database");
+            }
+          })
+          .catch(error => {
+            toast.error(error.message);
+          });
+      } else {
+        // Send image back to parent component for ingredient detection
+        onCapture(imageSrc);
+      }
     }
   };
 
@@ -128,6 +167,18 @@ const CameraComponent = ({ onCapture, onClose }: CameraProps) => {
         {/* Focus frame */}
         <div className="absolute inset-0 pointer-events-none">
           <div className="w-full h-full border-[40px] border-black/50 box-border"></div>
+          
+          {/* Overlay indicator for barcode mode */}
+          {mode === "barcode" && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="w-4/5 h-20 border-2 border-white rounded-lg flex items-center justify-center">
+                <Barcode className="h-8 w-8 text-white/80" />
+              </div>
+              <div className="absolute bottom-40 text-white text-center text-sm px-4">
+                Align barcode within the frame
+              </div>
+            </div>
+          )}
         </div>
         
         {/* Canvas for capturing photos (hidden) */}
@@ -164,28 +215,48 @@ const CameraComponent = ({ onCapture, onClose }: CameraProps) => {
             <XCircle className="h-8 w-8" />
           </Button>
           
-          <Button
-            onClick={toggleCamera}
-            variant="ghost"
-            size="icon"
-            className="bg-black/20 text-white hover:bg-black/40 rounded-full h-12 w-12"
-            disabled={countdown !== null}
-          >
-            <FlipHorizontal className="h-6 w-6" />
-          </Button>
+          <div className="flex space-x-2">
+            <Button
+              onClick={toggleMode}
+              variant="ghost"
+              size="icon"
+              className="bg-black/20 text-white hover:bg-black/40 rounded-full h-12 w-12"
+              disabled={countdown !== null}
+            >
+              {mode === "photo" ? (
+                <Barcode className="h-6 w-6" />
+              ) : (
+                <CameraIcon className="h-6 w-6" />
+              )}
+            </Button>
+            
+            <Button
+              onClick={toggleCamera}
+              variant="ghost"
+              size="icon"
+              className="bg-black/20 text-white hover:bg-black/40 rounded-full h-12 w-12"
+              disabled={countdown !== null}
+            >
+              <FlipHorizontal className="h-6 w-6" />
+            </Button>
+          </div>
         </div>
       </div>
       
       {/* Bottom controls */}
       <div className="bg-black p-6 flex justify-center">
         <Button 
-          onClick={captureWithCountdown} 
+          onClick={mode === "photo" ? captureWithCountdown : capturePhoto} 
           variant="ghost" 
           size="icon" 
           className="bg-white h-16 w-16 rounded-full hover:bg-gray-200"
           disabled={!cameraActive || countdown !== null}
         >
-          <Camera className="h-8 w-8 text-black" />
+          {mode === "photo" ? (
+            <CameraIcon className="h-8 w-8 text-black" />
+          ) : (
+            <Barcode className="h-8 w-8 text-black" />
+          )}
         </Button>
       </div>
     </motion.div>

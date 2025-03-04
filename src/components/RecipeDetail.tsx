@@ -2,6 +2,8 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Clock, Utensils, Check, X } from "lucide-react";
+import RecipeScaling from "./RecipeScaling";
+import GroceryStoreLocator from "./GroceryStoreLocator";
 
 interface RecipeDetailProps {
   recipe: {
@@ -25,6 +27,8 @@ interface RecipeDetailProps {
 const RecipeDetail = ({ recipe, availableIngredients }: RecipeDetailProps) => {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [activeTab, setActiveTab] = useState<"ingredients" | "instructions">("ingredients");
+  const [currentIngredients, setCurrentIngredients] = useState<string[]>(recipe.ingredients);
+  const [focusedIngredient, setFocusedIngredient] = useState<string | null>(null);
   
   const container = {
     hidden: { opacity: 0 },
@@ -47,9 +51,23 @@ const RecipeDetail = ({ recipe, availableIngredients }: RecipeDetailProps) => {
     );
   };
   
+  const handleIngredientsScaled = (newIngredients: string[]) => {
+    setCurrentIngredients(newIngredients);
+  };
+  
+  const handleIngredientClick = (ingredient: string) => {
+    setFocusedIngredient(focusedIngredient === ingredient ? null : ingredient);
+  };
+  
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [recipe.id]);
+
+  useEffect(() => {
+    // Update ingredients when recipe changes
+    setCurrentIngredients(recipe.ingredients);
+    setFocusedIngredient(null);
+  }, [recipe.ingredients]);
 
   return (
     <div className="w-full max-w-xl mx-auto">
@@ -86,6 +104,13 @@ const RecipeDetail = ({ recipe, availableIngredients }: RecipeDetailProps) => {
           <span className="text-gray-700">{recipe.servings}</span>
         </div>
       </div>
+      
+      {/* Recipe Scaling */}
+      <RecipeScaling 
+        originalServings={recipe.servings} 
+        ingredients={recipe.ingredients}
+        onIngredientsScaled={handleIngredientsScaled}
+      />
       
       {/* Nutrition */}
       <div className="grid grid-cols-4 gap-3 mb-6">
@@ -156,26 +181,42 @@ const RecipeDetail = ({ recipe, availableIngredients }: RecipeDetailProps) => {
           initial="hidden"
           animate="show"
         >
-          {recipe.ingredients.map((ingredient, index) => (
+          {currentIngredients.map((ingredient, index) => (
             <motion.li 
               key={index} 
               variants={item}
-              className="flex items-center justify-between py-3 px-4 bg-white rounded-lg shadow-sm border border-gray-100"
             >
-              <div className="flex items-center">
-                <span className="text-sm">{ingredient}</span>
+              <div 
+                className="flex items-center justify-between py-3 px-4 bg-white rounded-lg shadow-sm border border-gray-100"
+                onClick={() => handleIngredientClick(ingredient)}
+              >
+                <div className="flex items-center">
+                  <span className="text-sm">{ingredient}</span>
+                </div>
+                
+                {hasIngredient(ingredient) ? (
+                  <div className="flex items-center text-green-600 bg-green-50 px-2 py-1 rounded-full text-xs">
+                    <Check className="h-3 w-3 mr-1" />
+                    <span>In fridge</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center text-gray-500 bg-gray-100 px-2 py-1 rounded-full text-xs">
+                    <X className="h-3 w-3 mr-1" />
+                    <span>Not available</span>
+                  </div>
+                )}
               </div>
               
-              {hasIngredient(ingredient) ? (
-                <div className="flex items-center text-green-600 bg-green-50 px-2 py-1 rounded-full text-xs">
-                  <Check className="h-3 w-3 mr-1" />
-                  <span>In fridge</span>
-                </div>
-              ) : (
-                <div className="flex items-center text-gray-500 bg-gray-100 px-2 py-1 rounded-full text-xs">
-                  <X className="h-3 w-3 mr-1" />
-                  <span>Not available</span>
-                </div>
+              {/* Store locator for focused ingredient */}
+              {focusedIngredient === ingredient && !hasIngredient(ingredient) && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="mt-2 overflow-hidden"
+                >
+                  <GroceryStoreLocator ingredient={ingredient} />
+                </motion.div>
               )}
             </motion.li>
           ))}
