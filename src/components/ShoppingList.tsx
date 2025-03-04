@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Plus, X, Check, ShoppingBag, Trash2, ListFilter, Search } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -267,38 +268,6 @@ const itemVariants = {
   hidden: { opacity: 0, y: 20 },
   visible: { opacity: 1, y: 0 },
   exit: { opacity: 0, x: -20 },
-};
-
-const sortItems = (items: ShoppingItem[]) => {
-  if (!items.length) return [];
-  
-  const itemsCopy = [...items];
-  
-  switch (sortOption) {
-    case "alphabetical":
-      return itemsCopy.sort((a, b) => a.name.localeCompare(b.name));
-    case "checked":
-      return itemsCopy.sort((a, b) => {
-        // Sort by checked status (unchecked first)
-        if (a.isChecked !== b.isChecked) {
-          return a.isChecked ? 1 : -1;
-        }
-        // Then by name
-        return a.name.localeCompare(b.name);
-      });
-    case "added":
-    default:
-      // Items are already in the order they were added
-      return itemsCopy;
-  }
-};
-
-// Filter items based on search query
-const filterItems = (items: ShoppingItem[]) => {
-  if (!searchQuery.trim()) return items;
-  return items.filter(item => 
-    item.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
 };
 
 export default ShoppingList;
