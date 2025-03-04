@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -28,20 +27,29 @@ const RecipesView = () => {
   
   // Load saved ingredients from localStorage on initial render
   useEffect(() => {
-    const savedIngredients = localStorage.getItem("fridgeIngredients");
-    if (savedIngredients) {
-      const parsedIngredients = JSON.parse(savedIngredients);
-      setIngredients(parsedIngredients);
-      
-      // Find recipes based on ingredients
-      const matchedRecipes = findRecipesByIngredients(parsedIngredients);
-      setRecipes(matchedRecipes);
-      setFilteredRecipes(matchedRecipes);
-    } else {
-      // No ingredients found, show all recipes
+    try {
+      const savedIngredients = localStorage.getItem("fridgeIngredients");
+      if (savedIngredients) {
+        const parsedIngredients = JSON.parse(savedIngredients);
+        setIngredients(parsedIngredients);
+        
+        // Find recipes based on ingredients
+        const matchedRecipes = findRecipesByIngredients(parsedIngredients);
+        setRecipes(matchedRecipes);
+        setFilteredRecipes(matchedRecipes);
+      } else {
+        // No ingredients found, show all recipes
+        const allRecipes = findRecipesByIngredients([]);
+        setRecipes(allRecipes);
+        setFilteredRecipes(allRecipes);
+      }
+    } catch (error) {
+      console.error("Error loading recipes:", error);
+      // Fall back to showing all recipes
       const allRecipes = findRecipesByIngredients([]);
       setRecipes(allRecipes);
       setFilteredRecipes(allRecipes);
+      toast.error("Error loading recipes");
     }
   }, []);
   
@@ -259,27 +267,28 @@ const RecipesView = () => {
           </p>
         </div>
         
-        <motion.div 
-          className="grid grid-cols-1 gap-4"
-          variants={container}
-          initial="hidden"
-          animate="show"
-        >
-          {filteredRecipes.map(({ recipe, matchingCount }) => (
-            <motion.div key={recipe.id} variants={item}>
-              <RecipeCard
-                id={recipe.id}
-                title={recipe.title}
-                image={recipe.image}
-                cookTime={recipe.cookTime}
-                matchingIngredients={matchingCount}
-                totalIngredients={recipe.ingredients.length}
-              />
-            </motion.div>
-          ))}
-        </motion.div>
-        
-        {filteredRecipes.length === 0 && (
+        {/* Recipe cards */}
+        {filteredRecipes.length > 0 ? (
+          <motion.div 
+            className="grid grid-cols-1 gap-4"
+            variants={container}
+            initial="hidden"
+            animate="show"
+          >
+            {filteredRecipes.map(({ recipe, matchingCount }) => (
+              <motion.div key={recipe.id} variants={item}>
+                <RecipeCard
+                  id={recipe.id}
+                  title={recipe.title}
+                  image={recipe.image}
+                  cookTime={recipe.cookTime}
+                  matchingIngredients={matchingCount}
+                  totalIngredients={recipe.ingredients.length}
+                />
+              </motion.div>
+            ))}
+          </motion.div>
+        ) : (
           <div className="text-center py-12">
             <div className="bg-gray-100 inline-flex rounded-full p-3 mb-4">
               <Search className="h-6 w-6 text-gray-400" />
@@ -298,7 +307,6 @@ const RecipesView = () => {
           </div>
         )}
       </main>
-    </motion.div>
   );
 };
 

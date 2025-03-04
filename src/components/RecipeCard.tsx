@@ -22,7 +22,8 @@ const RecipeCard = ({ id, title, image, cookTime, matchingIngredients, totalIngr
   
   const matchPercentage = Math.round((matchingIngredients / totalIngredients) * 100);
   const favorite = isFavorite(id);
-  const rating = getRecipeRating(id);
+  // Add a safety check when getting the rating
+  const rating = getRecipeRating ? getRecipeRating(id) || 0 : 0;
   
   return (
     <motion.div
@@ -90,7 +91,7 @@ const RecipeCard = ({ id, title, image, cookTime, matchingIngredients, totalIngr
       <div className="p-4">
         <h3 className="font-medium text-gray-900 mb-2 line-clamp-1">{title}</h3>
         
-        {/* Rating stars */}
+        {/* Rating stars - Only show if rating exists and is greater than 0 */}
         {rating > 0 && (
           <div className="flex items-center mb-2">
             {Array.from({ length: 5 }, (_, i) => (
