@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Minus, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { scaleRecipe } from "@/lib/recipeScaling";
@@ -15,26 +15,21 @@ const RecipeScaling = ({ originalServings, ingredients, onIngredientsScaled }: R
   const originalServingsNumber = parseInt(originalServings.split(' ')[0]) || 1;
   
   const [servings, setServings] = useState(originalServingsNumber);
-  const [scaledIngredients, setScaledIngredients] = useState<string[]>(ingredients);
   
-  const handleScaleRecipe = (newServings: number) => {
-    if (newServings < 1) return;
-    
-    setServings(newServings);
-    const scaleFactor = newServings / originalServingsNumber;
+  // Scale ingredients whenever servings change
+  useEffect(() => {
+    const scaleFactor = servings / originalServingsNumber;
     const newIngredients = scaleRecipe(ingredients, scaleFactor);
-    
-    setScaledIngredients(newIngredients);
     onIngredientsScaled(newIngredients);
-  };
+  }, [servings, originalServingsNumber, ingredients, onIngredientsScaled]);
   
   const incrementServings = () => {
-    handleScaleRecipe(servings + 1);
+    setServings(prev => prev + 1);
   };
   
   const decrementServings = () => {
     if (servings > 1) {
-      handleScaleRecipe(servings - 1);
+      setServings(prev => prev - 1);
     }
   };
   
