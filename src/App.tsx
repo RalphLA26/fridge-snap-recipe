@@ -13,6 +13,7 @@ import RecipesView from "./pages/RecipesView";
 import RecipeDetailView from "./pages/RecipeDetailView";
 import ProfileView from "./pages/ProfileView";
 import ShoppingListView from "./pages/ShoppingListView";
+import InventoryView from "./pages/InventoryView";
 import NotFound from "./pages/NotFound";
 
 // Create a QueryClient for React Query
@@ -42,6 +43,7 @@ const AnimatedRoutes = () => {
         <Route path="/recipe/:id" element={<RecipeDetailView />} />
         <Route path="/profile" element={<ProfileView />} />
         <Route path="/shopping-list" element={<ShoppingListView />} />
+        <Route path="/inventory" element={<InventoryView />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AnimatePresence>

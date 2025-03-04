@@ -1,7 +1,7 @@
 
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { BookOpen, ShoppingBag, User } from "lucide-react";
+import { BookOpen, ShoppingBag, User, Package } from "lucide-react";
 import { useUser } from "@/contexts/UserContext";
 
 const Header = () => {
@@ -19,6 +19,15 @@ const Header = () => {
           FridgeSnap
         </h1>
         <div className="flex space-x-3">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => navigate("/inventory")}
+            className="relative bg-gray-50 hover:bg-gray-100 rounded-full h-10 w-10 flex items-center justify-center shadow-sm transition-all duration-200 cursor-pointer"
+            type="button"
+          >
+            <Package className="h-5 w-5 text-fridge-700" />
+          </Button>
           <Button 
             variant="ghost" 
             size="icon" 
