@@ -1,6 +1,12 @@
 // This is a simulated AI-based ingredient recognition system
 // In a production app, this would use a real computer vision API like TensorFlow.js or Google Cloud Vision
 
+// Define the return type explicitly
+export interface IngredientDetectionResult {
+  ingredients: string[];
+  confidenceScores: Record<string, number>;
+}
+
 // Enhanced food items database with more detailed characteristics for better matching
 const foodItemsDatabase = [
   // Fruits
@@ -68,7 +74,7 @@ const foodItemsDatabase = [
 ];
 
 // Structured image analysis with pattern recognition and context awareness
-const analyzeImage = (imageData: string): { ingredients: string[], confidenceScores: Record<string, number> } => {
+const analyzeImage = (imageData: string): IngredientDetectionResult => {
   // In a real implementation, this would use computer vision APIs or ML models
   
   // Generate a consistent hash from the image data for reproducible results
@@ -194,7 +200,7 @@ const analyzeImage = (imageData: string): { ingredients: string[], confidenceSco
   };
 };
 
-export const detectIngredientsFromImage = async (imageData: string): Promise<{ ingredients: string[], confidenceScores: Record<string, number> }> => {
+export const detectIngredientsFromImage = async (imageData: string): Promise<IngredientDetectionResult> => {
   return new Promise((resolve) => {
     // Simulate API delay (1.5-2.5 seconds)
     const processingTime = 1500 + Math.random() * 1000;

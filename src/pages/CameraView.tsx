@@ -6,7 +6,7 @@ import { ArrowLeft, Check, X, CameraIcon, Lightbulb, ArrowRight } from "lucide-r
 import { Button } from "@/components/ui/button";
 import Camera from "@/components/camera";
 import { toast } from "sonner";
-import { detectIngredientsFromImage } from "@/lib/imageRecognition";
+import { detectIngredientsFromImage, IngredientDetectionResult } from "@/lib/imageRecognition";
 
 const CameraView = () => {
   const navigate = useNavigate();
@@ -32,7 +32,7 @@ const CameraView = () => {
     
     try {
       // Analyze image using our AI recognition system
-      const result = await toast.promise(
+      const result = await toast.promise<IngredientDetectionResult>(
         detectIngredientsFromImage(capturedImage),
         {
           loading: "Analyzing fridge contents...",
