@@ -12,6 +12,7 @@ const CameraView = () => {
   const navigate = useNavigate();
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [detectedIngredients, setDetectedIngredients] = useState<string[]>([]);
+  const [confidenceScores, setConfidenceScores] = useState<Record<string, number>>({});
   const [selectedIngredients, setSelectedIngredients] = useState<string[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [showReviewStage, setShowReviewStage] = useState(false);
@@ -35,19 +36,21 @@ const CameraView = () => {
         detectIngredientsFromImage(capturedImage),
         {
           loading: "Analyzing fridge contents...",
-          success: (data) => `Detected ${data.length} items in your fridge!`,
+          success: (data) => `Detected ${data.ingredients.length} items in your fridge!`,
           error: "Failed to analyze image. Please try again."
         }
       );
       
-      if (Array.isArray(result)) {
-        setDetectedIngredients(result);
-        setSelectedIngredients(result);
+      if (result && Array.isArray(result.ingredients)) {
+        setDetectedIngredients(result.ingredients);
+        setSelectedIngredients(result.ingredients);
+        setConfidenceScores(result.confidenceScores || {});
       } else {
-        // Handle case where result isn't an array
+        // Handle case where result isn't as expected
         toast.error("Invalid response format from image detection");
         setDetectedIngredients([]);
         setSelectedIngredients([]);
+        setConfidenceScores({});
       }
     } catch (error) {
       console.error("Error detecting ingredients:", error);
@@ -101,7 +104,24 @@ const CameraView = () => {
     setCapturedImage(null);
     setDetectedIngredients([]);
     setSelectedIngredients([]);
+    setConfidenceScores({});
     setShowReviewStage(false);
+  };
+  
+  // Helper function to get confidence label
+  const getConfidenceLabel = (score: number): string => {
+    if (score >= 0.9) return "Very likely";
+    if (score >= 0.8) return "Likely";
+    if (score >= 0.7) return "Possible";
+    return "Maybe";
+  };
+  
+  // Helper function to get confidence color class
+  const getConfidenceColorClass = (score: number): string => {
+    if (score >= 0.9) return "bg-green-500";
+    if (score >= 0.8) return "bg-green-400";
+    if (score >= 0.7) return "bg-yellow-400";
+    return "bg-yellow-300";
   };
   
   return (
@@ -213,26 +233,44 @@ const CameraView = () => {
                     Select the ingredients you want to use in your recipes:
                   </p>
                   
-                  <div className="grid grid-cols-2 gap-3 mb-2">
-                    {detectedIngredients.map((ingredient) => (
-                      <motion.button
-                        key={ingredient}
-                        className={`p-3 rounded-lg text-left flex items-center justify-between transition-all ${
-                          selectedIngredients.includes(ingredient)
-                            ? "bg-fridge-50 border border-fridge-200 shadow-sm"
-                            : "bg-white border border-gray-200"
-                        }`}
-                        onClick={() => handleIngredientToggle(ingredient)}
-                        whileTap={{ scale: 0.98 }}
-                      >
-                        <span className="capitalize">{ingredient}</span>
-                        {selectedIngredients.includes(ingredient) ? (
-                          <Check className="h-4 w-4 text-fridge-600" />
-                        ) : (
-                          <X className="h-4 w-4 text-gray-400" />
-                        )}
-                      </motion.button>
-                    ))}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-2">
+                    {detectedIngredients.map((ingredient) => {
+                      const confidence = confidenceScores[ingredient] || 0.7;
+                      return (
+                        <motion.button
+                          key={ingredient}
+                          className={`p-3 rounded-lg text-left flex flex-col transition-all ${
+                            selectedIngredients.includes(ingredient)
+                              ? "bg-fridge-50 border border-fridge-200 shadow-sm"
+                              : "bg-white border border-gray-200"
+                          }`}
+                          onClick={() => handleIngredientToggle(ingredient)}
+                          whileTap={{ scale: 0.98 }}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="font-medium capitalize">{ingredient}</span>
+                            {selectedIngredients.includes(ingredient) ? (
+                              <Check className="h-4 w-4 text-fridge-600" />
+                            ) : (
+                              <X className="h-4 w-4 text-gray-400" />
+                            )}
+                          </div>
+                          
+                          {/* Confidence indicator */}
+                          <div className="flex items-center mt-2">
+                            <div className="w-full bg-gray-200 rounded-full h-1.5 mr-2">
+                              <div 
+                                className={`h-1.5 rounded-full ${getConfidenceColorClass(confidence)}`} 
+                                style={{ width: `${confidence * 100}%` }}
+                              ></div>
+                            </div>
+                            <span className="text-xs text-gray-500 whitespace-nowrap">
+                              {getConfidenceLabel(confidence)}
+                            </span>
+                          </div>
+                        </motion.button>
+                      );
+                    })}
                   </div>
                 </div>
                 
