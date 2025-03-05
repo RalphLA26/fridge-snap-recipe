@@ -7,11 +7,11 @@ import {
   ArrowLeft, 
   Heart, 
   Settings, 
-  Upload, 
-  ShoppingBag, 
   Camera,
   Star,
-  Pencil
+  Pencil,
+  ShoppingBag,
+  Mail
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useUser } from "@/contexts/UserContext";
@@ -20,6 +20,7 @@ import RecipeCard from "@/components/RecipeCard";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 
 const ProfileView = () => {
   const navigate = useNavigate();
@@ -78,12 +79,13 @@ const ProfileView = () => {
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <header className="p-4 bg-white border-b border-gray-200 sticky top-0 z-10">
+      <header className="p-4 bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
         <div className="container max-w-xl mx-auto flex items-center justify-between">
           <Button 
             variant="ghost" 
             size="icon" 
             onClick={() => navigate("/")}
+            className="hover:bg-gray-100"
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
@@ -92,6 +94,7 @@ const ProfileView = () => {
             variant="ghost" 
             size="icon" 
             onClick={() => setIsEditing(!isEditing)}
+            className="hover:bg-gray-100"
           >
             <Settings className="h-5 w-5" />
           </Button>
@@ -99,16 +102,25 @@ const ProfileView = () => {
       </header>
       
       <main className="container max-w-xl mx-auto p-4 space-y-6">
-        <section className="bg-white rounded-xl shadow p-6 space-y-4">
-          <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
-            <div className="relative group">
-              <div className={`w-24 h-24 rounded-full overflow-hidden bg-fridge-100 flex items-center justify-center border-2 border-fridge-200 ${profilePicture ? 'p-0' : 'p-4'}`}>
+        {/* Profile Card */}
+        <motion.section 
+          className="bg-white rounded-xl shadow-md p-6 space-y-5 overflow-hidden relative"
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.4 }}
+        >
+          <div className="absolute top-0 left-0 w-full h-16 bg-gradient-to-r from-fridge-500 to-fridge-600 opacity-90"></div>
+          
+          <div className="flex flex-col md:flex-row items-center md:items-start gap-6 relative pt-6">
+            <div className="relative group z-10">
+              <div className={`w-24 h-24 rounded-full overflow-hidden bg-white flex items-center justify-center border-4 border-white shadow-md ${profilePicture ? 'p-0' : 'p-4'}`}>
                 {profilePicture ? (
                   <img src={profilePicture} alt="Profile" className="w-full h-full object-cover" />
                 ) : (
-                  <User className="h-12 w-12 text-fridge-600" />
+                  <User className="h-12 w-12 text-fridge-500" />
                 )}
               </div>
+              
               {!isEditing && (
                 <Button 
                   variant="ghost" 
@@ -119,6 +131,7 @@ const ProfileView = () => {
                   <Pencil className="h-4 w-4" />
                 </Button>
               )}
+              
               {isEditing && (
                 <div className="absolute inset-0 flex items-center justify-center">
                   <label className="cursor-pointer w-full h-full flex items-center justify-center bg-black/30 rounded-full">
@@ -144,30 +157,44 @@ const ProfileView = () => {
                     className="focus:ring-fridge-500"
                     placeholder="Your name"
                   />
-                  <Input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="focus:ring-fridge-500"
-                    placeholder="Your email (optional)"
-                  />
-                  <Button onClick={handleSaveProfile} variant="fridge">Save Profile</Button>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="focus:ring-fridge-500 pl-10"
+                      placeholder="Your email (optional)"
+                    />
+                  </div>
+                  <Button 
+                    onClick={handleSaveProfile} 
+                    variant="fridge"
+                    className="w-full md:w-auto mt-2"
+                  >
+                    Save Profile
+                  </Button>
                 </div>
               ) : (
                 <>
                   <h2 className="text-2xl font-semibold mb-1">{user?.name}</h2>
-                  {user?.email && <p className="text-gray-500 mb-3">{user.email}</p>}
+                  {user?.email && (
+                    <p className="text-gray-500 mb-3 flex items-center justify-center md:justify-start">
+                      <Mail className="h-4 w-4 mr-1.5 text-gray-400" />
+                      {user.email}
+                    </p>
+                  )}
                   
-                  <div className="flex flex-wrap gap-3 justify-center md:justify-start">
-                    <div className="flex flex-col items-center bg-gray-50 rounded-lg px-4 py-2">
+                  <div className="flex flex-wrap gap-3 justify-center md:justify-start mt-4">
+                    <div className="flex flex-col items-center bg-gray-50 rounded-lg px-4 py-2 shadow-sm border border-gray-100">
                       <span className="text-lg font-semibold text-fridge-600">{user?.favoriteRecipes.length || 0}</span>
                       <span className="text-xs text-gray-500">Favorites</span>
                     </div>
-                    <div className="flex flex-col items-center bg-gray-50 rounded-lg px-4 py-2">
+                    <div className="flex flex-col items-center bg-gray-50 rounded-lg px-4 py-2 shadow-sm border border-gray-100">
                       <span className="text-lg font-semibold text-fridge-600">{totalReviews}</span>
                       <span className="text-xs text-gray-500">Reviews</span>
                     </div>
-                    <div className="flex flex-col items-center bg-gray-50 rounded-lg px-4 py-2">
+                    <div className="flex flex-col items-center bg-gray-50 rounded-lg px-4 py-2 shadow-sm border border-gray-100">
                       <span className="text-lg font-semibold text-fridge-600 flex items-center">
                         {averageRating} <Star className="h-3 w-3 ml-1 text-yellow-500" />
                       </span>
@@ -178,9 +205,49 @@ const ProfileView = () => {
               )}
             </div>
           </div>
-        </section>
+        </motion.section>
         
-        <section className="space-y-4">
+        {/* Quick Actions */}
+        <motion.section 
+          className="space-y-4"
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+        >
+          <div className="grid grid-cols-2 gap-4">
+            <Button 
+              variant="outline" 
+              className="py-6 flex items-center justify-center text-gray-700 shadow-sm bg-white hover:bg-gray-50 border border-gray-200"
+              onClick={() => navigate("/shopping-list")}
+            >
+              <ShoppingBag className="h-5 w-5 mr-2 text-fridge-600" />
+              <div className="flex flex-col items-start">
+                <span>Shopping List</span>
+                <span className="text-xs text-gray-500">{user?.shoppingList.length || 0} items</span>
+              </div>
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              className="py-6 flex items-center justify-center text-gray-700 shadow-sm bg-white hover:bg-gray-50 border border-gray-200"
+              onClick={() => navigate("/inventory")}
+            >
+              <User className="h-5 w-5 mr-2 text-fridge-600" />
+              <div className="flex flex-col items-start">
+                <span>My Inventory</span>
+                <span className="text-xs text-gray-500">Check your items</span>
+              </div>
+            </Button>
+          </div>
+        </motion.section>
+        
+        {/* Favorite Recipes */}
+        <motion.section 
+          className="space-y-4"
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.4, delay: 0.2 }}
+        >
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-medium flex items-center">
               <Heart className="h-5 w-5 mr-2 text-red-500" />
@@ -189,10 +256,14 @@ const ProfileView = () => {
             <Button 
               variant="outline" 
               onClick={() => navigate("/recipes")}
+              className="text-sm"
+              size="sm"
             >
               Browse All
             </Button>
           </div>
+          
+          <Separator className="my-4" />
           
           {favoriteRecipes && favoriteRecipes.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -202,6 +273,8 @@ const ProfileView = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3 }}
+                  whileHover={{ y: -5 }}
+                  className="transform transition-all duration-200"
                 >
                   <RecipeCard
                     id={recipe.id}
@@ -216,7 +289,7 @@ const ProfileView = () => {
             </div>
           ) : (
             <motion.div 
-              className="text-center py-10 bg-white rounded-lg shadow"
+              className="text-center py-10 bg-white rounded-lg shadow-sm border border-gray-100"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.2 }}
@@ -229,42 +302,22 @@ const ProfileView = () => {
               </Button>
             </motion.div>
           )}
-        </section>
+        </motion.section>
         
-        <section className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <Button 
-              variant="outline" 
-              className="py-6 flex items-center justify-center text-gray-700 shadow bg-white hover:bg-gray-50"
-              onClick={() => navigate("/shopping-list")}
-            >
-              <ShoppingBag className="h-5 w-5 mr-2 text-fridge-600" />
-              <div className="flex flex-col items-start">
-                <span>Shopping List</span>
-                <span className="text-xs text-gray-500">{user?.shoppingList.length || 0} items</span>
-              </div>
-            </Button>
-            
-            <Button 
-              variant="outline" 
-              className="py-6 flex items-center justify-center text-gray-700 shadow bg-white hover:bg-gray-50"
-              onClick={() => navigate("/inventory")}
-            >
-              <User className="h-5 w-5 mr-2 text-fridge-600" />
-              <div className="flex flex-col items-start">
-                <span>My Inventory</span>
-                <span className="text-xs text-gray-500">Check your items</span>
-              </div>
-            </Button>
-          </div>
-        </section>
-        
+        {/* Recent Reviews */}
         {totalReviews > 0 && (
-          <section className="bg-white rounded-xl shadow p-6 space-y-4">
+          <motion.section 
+            className="bg-white rounded-xl shadow-md p-6 space-y-4 border border-gray-100"
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.4, delay: 0.3 }}
+          >
             <h2 className="text-xl font-medium flex items-center">
               <Star className="h-5 w-5 mr-2 text-yellow-500" />
               Recent Reviews
             </h2>
+            
+            <Separator className="my-4" />
             
             <div className="space-y-4">
               {Object.entries(user?.reviews || {}).slice(0, 2).map(([recipeId, reviews]) => {
@@ -274,7 +327,7 @@ const ProfileView = () => {
                 const latestReview = reviews[reviews.length - 1];
                 
                 return (
-                  <div key={recipeId} className="border-b border-gray-100 pb-4 last:border-0 last:pb-0">
+                  <div key={recipeId} className="border-b border-gray-100 pb-4 last:border-0 last:pb-0 hover:bg-gray-50 p-3 rounded-lg transition-colors">
                     <div className="flex justify-between items-start">
                       <div>
                         <p className="font-medium">{recipe.title}</p>
@@ -290,7 +343,7 @@ const ProfileView = () => {
                           </span>
                         </div>
                       </div>
-                      <Badge variant="outline" className="text-xs">
+                      <Badge variant="outline" className="text-xs bg-fridge-50 hover:bg-fridge-100 border-fridge-200 text-fridge-700">
                         Your Review
                       </Badge>
                     </div>
@@ -304,12 +357,12 @@ const ProfileView = () => {
             
             <Button 
               variant="ghost" 
-              className="w-full text-fridge-600" 
+              className="w-full text-fridge-600 hover:bg-fridge-50" 
               onClick={() => navigate("/recipes")}
             >
               Browse All Recipes
             </Button>
-          </section>
+          </motion.section>
         )}
       </main>
     </motion.div>
