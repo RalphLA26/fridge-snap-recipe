@@ -1,11 +1,12 @@
+
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Camera } from "@/components/camera";
+import Camera from "@/components/camera";
 import { toast } from "sonner";
-import { ChevronLeft, Camera as CameraIcon, Flash, FlipCameraIcon, ImageIcon } from "lucide-react";
+import { ChevronLeft, Camera as CameraIcon, Zap, RotateCcw, ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useCameraControl } from "@/components/camera/useCameraControl";
+import useCameraControl from "@/components/camera/useCameraControl";
 import { detectIngredientsFromImage, IngredientDetectionResult } from "@/lib/imageRecognition";
 
 const CameraView = () => {
@@ -217,7 +218,7 @@ const CameraView = () => {
                     ${isFlashOn ? 'ring-2 ring-yellow-400' : ''}  
                   `}
                 >
-                  <Flash className="h-5 w-5" />
+                  <Zap className="h-5 w-5" />
                 </Button>
                 
                 <Button
@@ -236,7 +237,7 @@ const CameraView = () => {
                   onClick={handleSwitchCamera}
                   className="bg-black/30 backdrop-blur-sm hover:bg-black/40 text-white"
                 >
-                  <FlipCameraIcon className="h-5 w-5" />
+                  <RotateCcw className="h-5 w-5" />
                 </Button>
               </div>
               
