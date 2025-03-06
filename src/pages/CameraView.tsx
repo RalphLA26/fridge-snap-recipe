@@ -44,7 +44,13 @@ const CameraView = () => {
       if (result && Array.isArray(result.ingredients)) {
         setDetectedIngredients(result.ingredients);
         setSelectedIngredients(result.ingredients);
-        setConfidenceScores(result.confidenceScores || {});
+        
+        // Create a record of ingredient -> confidence score for easier lookup
+        const scoreMap: Record<string, number> = {};
+        result.ingredients.forEach((ingredient, index) => {
+          scoreMap[ingredient] = result.confidenceScores[index];
+        });
+        setConfidenceScores(scoreMap);
       } else {
         // Handle case where result isn't as expected
         toast.error("Invalid response format from image detection");
