@@ -1,319 +1,252 @@
-
-import { useState } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
-import { ArrowLeft, Check, X, CameraIcon, Lightbulb, ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import Camera from "@/components/camera";
+import { motion, AnimatePresence } from "framer-motion";
+import { Camera } from "@/components/camera";
 import { toast } from "sonner";
+import { ChevronLeft, Camera as CameraIcon, Flash, FlipCameraIcon, ImageIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useCameraControl } from "@/components/camera/useCameraControl";
 import { detectIngredientsFromImage, IngredientDetectionResult } from "@/lib/imageRecognition";
 
 const CameraView = () => {
   const navigate = useNavigate();
+  const cameraRef = useRef<HTMLDivElement>(null);
+  const [isFlashOn, setIsFlashOn] = useState(false);
+  const [isFrontCamera, setIsFrontCamera] = useState(false);
+  const [cameraReady, setCameraReady] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [detectedIngredients, setDetectedIngredients] = useState<string[]>([]);
-  const [confidenceScores, setConfidenceScores] = useState<Record<string, number>>({});
-  const [selectedIngredients, setSelectedIngredients] = useState<string[]>([]);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [showReviewStage, setShowReviewStage] = useState(false);
   
-  const handleCapture = async (imageSrc: string) => {
-    // Debug log when image is captured
-    console.log("Image captured in CameraView");
-    setCapturedImage(imageSrc);
-    // Don't analyze immediately - wait for user to confirm
-    setShowReviewStage(true);
-  };
-  
-  const handleContinue = async () => {
-    if (!capturedImage) return;
-    
-    setIsAnalyzing(true);
-    
-    try {
-      // Explicitly type the promise with IngredientDetectionResult
-      const result = await toast.promise<IngredientDetectionResult>(
-        detectIngredientsFromImage(capturedImage),
-        {
-          loading: "Analyzing fridge contents...",
-          success: (data) => `Detected ${data.ingredients.length} items in your fridge!`,
-          error: "Failed to analyze image. Please try again."
-        }
-      );
-      
-      if (result && Array.isArray(result.ingredients)) {
-        setDetectedIngredients(result.ingredients);
-        setSelectedIngredients(result.ingredients);
-        
-        // Create a record of ingredient -> confidence score for easier lookup
-        const scoreMap: Record<string, number> = {};
-        result.ingredients.forEach((ingredient, index) => {
-          scoreMap[ingredient] = result.confidenceScores[index];
-        });
-        setConfidenceScores(scoreMap);
-      } else {
-        // Handle case where result isn't as expected
-        toast.error("Invalid response format from image detection");
-        setDetectedIngredients([]);
-        setSelectedIngredients([]);
-        setConfidenceScores({});
-      }
-    } catch (error) {
-      console.error("Error detecting ingredients:", error);
-    } finally {
-      setIsAnalyzing(false);
-      setShowReviewStage(false);
-    }
-  };
-  
-  const handleIngredientToggle = (ingredient: string) => {
-    setSelectedIngredients(prev => 
-      prev.includes(ingredient)
-        ? prev.filter(item => item !== ingredient)
-        : [...prev, ingredient]
-    );
-  };
-  
-  const handleSave = () => {
-    // Load existing ingredients
-    const existingIngredientsJson = localStorage.getItem("fridgeIngredients");
-    const existingIngredients = existingIngredientsJson 
-      ? JSON.parse(existingIngredientsJson) 
-      : [];
-    
-    // Combine existing with new selected ingredients (avoid duplicates)
-    const combinedIngredients = [
-      ...existingIngredients,
-      ...selectedIngredients.filter(item => !existingIngredients.includes(item))
-    ];
-    
-    // Save to localStorage
-    localStorage.setItem("fridgeIngredients", JSON.stringify(combinedIngredients));
-    
-    toast.success(`Added ${selectedIngredients.length} ingredients to your list`);
-    navigate("/recipes");
-  };
-  
-  const handleBack = () => {
-    if (detectedIngredients.length > 0) {
-      setDetectedIngredients([]);
-      setShowReviewStage(true);
-    } else if (showReviewStage) {
-      setShowReviewStage(false);
-      setCapturedImage(null);
-    } else {
+  const { startCamera, stopCamera, takePhoto, switchCamera, toggleFlash } = useCameraControl({
+    cameraRef,
+    onCameraStarted: () => setCameraReady(true),
+    onCameraError: (error) => {
+      console.error("Camera error:", error);
+      toast.error("Unable to access camera");
       navigate("/");
     }
+  });
+  
+  useEffect(() => {
+    // Start camera when component mounts
+    startCamera();
+    
+    // Clean up when component unmounts
+    return () => {
+      stopCamera();
+    };
+  }, [startCamera, stopCamera]);
+  
+  const handleCapture = useCallback(async () => {
+    const image = await takePhoto();
+    if (image) {
+      setCapturedImage(image);
+      
+      toast.promise(
+        detectIngredientsFromImage(image),
+        {
+          loading: 'Analyzing image...',
+          success: (result: IngredientDetectionResult) => {
+            // Process the detection results
+            if (result && result.ingredients && result.confidenceScores) {
+              const ingredients = result.ingredients.filter((_, i) => result.confidenceScores[i] > 0.7);
+              setDetectedIngredients(ingredients);
+              return `Detected ${ingredients.length} ingredients`;
+            } else {
+              setDetectedIngredients([]);
+              return 'No ingredients detected';
+            }
+          },
+          error: 'Failed to analyze image',
+        }
+      );
+    } else {
+      toast.error("Failed to capture image");
+    }
+  }, [takePhoto]);
+  
+  const handleSwitchCamera = useCallback(() => {
+    switchCamera();
+    setIsFrontCamera(!isFrontCamera);
+  }, [switchCamera, isFrontCamera]);
+  
+  const handleToggleFlash = useCallback(() => {
+    toggleFlash();
+    setIsFlashOn(!isFlashOn);
+  }, [toggleFlash, isFlashOn]);
+  
+  const handleBack = useCallback(() => {
+    if (capturedImage) {
+      // If we have a captured image, reset to camera view
+      setCapturedImage(null);
+      setDetectedIngredients([]);
+    } else {
+      // Otherwise navigate back
+      navigate("/");
+    }
+  }, [capturedImage, navigate]);
+  
+  const handleConfirmIngredients = () => {
+    // Save detected ingredients to localStorage
+    try {
+      const existingIngredients = JSON.parse(localStorage.getItem("fridgeIngredients") || "[]");
+      
+      // Combine existing and new ingredients without duplicates
+      const updatedIngredients = Array.from(new Set([...existingIngredients, ...detectedIngredients]));
+      
+      localStorage.setItem("fridgeIngredients", JSON.stringify(updatedIngredients));
+      toast.success(`Added ${detectedIngredients.length} ingredients to your fridge`);
+      
+      // Navigate to recipes view
+      navigate("/recipes");
+    } catch (error) {
+      console.error("Error saving ingredients:", error);
+      toast.error("Failed to save ingredients");
+    }
   };
   
-  const handleRetake = () => {
-    setCapturedImage(null);
-    setDetectedIngredients([]);
-    setSelectedIngredients([]);
-    setConfidenceScores({});
-    setShowReviewStage(false);
-  };
+  // More existing code...
   
-  // Helper function to get confidence label
-  const getConfidenceLabel = (score: number): string => {
-    if (score >= 0.9) return "Very likely";
-    if (score >= 0.8) return "Likely";
-    if (score >= 0.7) return "Possible";
-    return "Maybe";
-  };
-  
-  // Helper function to get confidence color class
-  const getConfidenceColorClass = (score: number): string => {
-    if (score >= 0.9) return "bg-green-500";
-    if (score >= 0.8) return "bg-green-400";
-    if (score >= 0.7) return "bg-yellow-400";
-    return "bg-yellow-300";
-  };
+  // ... keep existing code (JSX for camera view and UI) same
   
   return (
     <motion.div 
-      className="min-h-screen bg-gray-50"
+      className="h-screen w-full relative flex flex-col bg-black overflow-hidden"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      transition={{ duration: 0.3 }}
     >
-      {!capturedImage ? (
-        <Camera onCapture={handleCapture} onClose={() => navigate("/")} />
-      ) : (
-        <>
-          <header className="p-4 bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
-            <div className="container max-w-xl mx-auto flex items-center justify-between">
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={handleBack}
-                className="hover:bg-gray-100 rounded-full"
-              >
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-              <h1 className="text-lg font-medium text-fridge-700">
-                {detectedIngredients.length > 0 ? "Detected Items" : "Review Your Photo"}
-              </h1>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={handleRetake}
-                className="hover:bg-gray-100 rounded-full text-fridge-600"
-              >
-                <CameraIcon className="h-5 w-5" />
-              </Button>
-            </div>
-          </header>
-          
-          <main className="container max-w-xl mx-auto p-4 pb-24">
-            <div className="mb-6 relative overflow-hidden rounded-lg shadow-md">
+      {/* Header with back button */}
+      <div className="absolute top-0 left-0 right-0 z-10 p-4">
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          onClick={handleBack}
+          className="bg-black/30 text-white backdrop-blur-sm hover:bg-black/40"
+        >
+          <ChevronLeft className="h-5 w-5" />
+        </Button>
+      </div>
+      
+      <AnimatePresence mode="wait">
+        {capturedImage ? (
+          // Captured image and analysis view
+          <motion.div 
+            key="result"
+            className="h-full w-full flex flex-col"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <div className="relative flex-1">
               <img 
                 src={capturedImage} 
-                alt="Captured fridge" 
-                className="w-full h-auto border border-gray-200"
+                alt="Captured" 
+                className="h-full w-full object-cover" 
               />
-              {isAnalyzing && (
-                <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                  <div className="bg-white p-4 rounded-lg shadow-lg flex flex-col items-center">
-                    <div className="animate-spin h-8 w-8 border-4 border-fridge-600 border-t-transparent rounded-full mb-2"></div>
-                    <p className="text-sm font-medium">Analyzing your fridge...</p>
-                  </div>
-                </div>
-              )}
             </div>
             
-            {showReviewStage && !detectedIngredients.length && !isAnalyzing && (
-              <div className="mb-6 bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="bg-fridge-100 p-2 rounded-full">
-                    <CameraIcon className="h-5 w-5 text-fridge-600" />
-                  </div>
-                  <h2 className="text-lg font-medium text-gray-800">
-                    Review your photo
-                  </h2>
+            <div className="bg-white p-4 rounded-t-2xl -mt-6 pt-8 min-h-64 z-10">
+              <h2 className="text-xl font-semibold mb-2">
+                {detectedIngredients.length > 0 
+                  ? `Detected Ingredients (${detectedIngredients.length})` 
+                  : "No ingredients detected"}
+              </h2>
+              
+              {detectedIngredients.length > 0 ? (
+                <div className="mb-6">
+                  <ul className="space-y-2 max-h-60 overflow-y-auto">
+                    {detectedIngredients.map((ingredient, index) => (
+                      <li 
+                        key={index}
+                        className="px-3 py-2 bg-gray-50 rounded-md text-sm flex items-center"
+                      >
+                        <span className="h-2 w-2 bg-green-500 rounded-full mr-2"></span>
+                        {ingredient}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-                
-                <p className="text-sm text-gray-500 mb-5 pl-10">
-                  Does your photo clearly show the items in your fridge?
-                </p>
-                
-                <motion.div 
-                  className="flex gap-3 justify-end"
-                  initial={{ y: 20, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.2 }}
+              ) : (
+                <div className="text-center my-8 text-gray-500">
+                  <ImageIcon className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                  <p>Try taking another photo or adding ingredients manually</p>
+                </div>
+              )}
+              
+              <div className="grid grid-cols-2 gap-3">
+                <Button 
+                  variant="outline"
+                  onClick={handleBack}
                 >
-                  <Button 
-                    variant="outline"
-                    onClick={handleRetake}
-                    className="bg-white border-gray-200"
-                  >
-                    Retake Photo
-                  </Button>
-                  
-                  <Button 
-                    className="bg-fridge-600 hover:bg-fridge-700 text-white"
-                    onClick={handleContinue}
-                  >
-                    Continue
-                    <ArrowRight className="ml-1 h-4 w-4" />
-                  </Button>
-                </motion.div>
+                  Retake Photo
+                </Button>
+                <Button 
+                  onClick={handleConfirmIngredients}
+                  disabled={detectedIngredients.length === 0}
+                >
+                  Confirm
+                </Button>
               </div>
-            )}
+            </div>
+          </motion.div>
+        ) : (
+          // Camera view
+          <motion.div
+            key="camera"
+            className="h-full flex flex-col justify-between"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <div 
+              ref={cameraRef} 
+              className="absolute inset-0 bg-black overflow-hidden"
+            >
+              <Camera className="h-full w-full object-cover" />
+            </div>
             
-            {detectedIngredients.length > 0 ? (
-              <>
-                <div className="mb-6 bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="bg-fridge-100 p-2 rounded-full">
-                      <Lightbulb className="h-5 w-5 text-fridge-600" />
-                    </div>
-                    <h2 className="text-lg font-medium text-gray-800">
-                      Found {detectedIngredients.length} items
-                    </h2>
-                  </div>
-                  
-                  <p className="text-sm text-gray-500 mb-5 pl-10">
-                    Select the ingredients you want to use in your recipes:
-                  </p>
-                  
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-2">
-                    {detectedIngredients.map((ingredient) => {
-                      const confidence = confidenceScores[ingredient] || 0.7;
-                      return (
-                        <motion.button
-                          key={ingredient}
-                          className={`p-3 rounded-lg text-left flex flex-col transition-all ${
-                            selectedIngredients.includes(ingredient)
-                              ? "bg-fridge-50 border border-fridge-200 shadow-sm"
-                              : "bg-white border border-gray-200"
-                          }`}
-                          onClick={() => handleIngredientToggle(ingredient)}
-                          whileTap={{ scale: 0.98 }}
-                        >
-                          <div className="flex items-center justify-between">
-                            <span className="font-medium capitalize">{ingredient}</span>
-                            {selectedIngredients.includes(ingredient) ? (
-                              <Check className="h-4 w-4 text-fridge-600" />
-                            ) : (
-                              <X className="h-4 w-4 text-gray-400" />
-                            )}
-                          </div>
-                          
-                          {/* Confidence indicator */}
-                          <div className="flex items-center mt-2">
-                            <div className="w-full bg-gray-200 rounded-full h-1.5 mr-2">
-                              <div 
-                                className={`h-1.5 rounded-full ${getConfidenceColorClass(confidence)}`} 
-                                style={{ width: `${confidence * 100}%` }}
-                              ></div>
-                            </div>
-                            <span className="text-xs text-gray-500 whitespace-nowrap">
-                              {getConfidenceLabel(confidence)}
-                            </span>
-                          </div>
-                        </motion.button>
-                      );
-                    })}
-                  </div>
-                </div>
-                
-                <motion.div 
-                  className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200"
-                  initial={{ y: 100 }}
-                  animate={{ y: 0 }}
-                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            {/* Camera UI Overlay */}
+            <div className="absolute bottom-0 left-0 right-0 p-6 flex flex-col items-center">
+              <div className="flex items-center justify-around w-full mb-6">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={handleToggleFlash}
+                  className={`bg-black/30 backdrop-blur-sm hover:bg-black/40 text-white
+                    ${isFlashOn ? 'ring-2 ring-yellow-400' : ''}  
+                  `}
                 >
-                  <div className="container max-w-xl mx-auto">
-                    <Button 
-                      className="w-full bg-fridge-600 hover:bg-fridge-700 text-white py-6"
-                      onClick={handleSave}
-                      disabled={selectedIngredients.length === 0}
-                    >
-                      Find Recipes with {selectedIngredients.length} Ingredient{selectedIngredients.length !== 1 ? 's' : ''}
-                    </Button>
-                  </div>
-                </motion.div>
-              </>
-            ) : (
-              !isAnalyzing && !showReviewStage && (
-                <div className="text-center p-8 bg-white rounded-xl shadow-sm border border-gray-100">
-                  <p className="text-gray-500 mb-4">No ingredients detected. Try taking another photo with better lighting.</p>
-                  <Button 
-                    onClick={handleRetake} 
-                    className="bg-fridge-600 hover:bg-fridge-700 text-white"
-                  >
-                    <CameraIcon className="h-4 w-4 mr-2" />
-                    Take Another Photo
-                  </Button>
-                </div>
-              )
-            )}
-          </main>
-        </>
-      )}
+                  <Flash className="h-5 w-5" />
+                </Button>
+                
+                <Button
+                  size="icon"
+                  onClick={handleCapture}
+                  variant="ghost"
+                  className="h-16 w-16 rounded-full bg-white hover:bg-gray-100 flex items-center justify-center ring-4 ring-black/20 transition-transform active:scale-95"
+                  disabled={!cameraReady}
+                >
+                  <div className="h-14 w-14 rounded-full border-4 border-gray-200" />
+                </Button>
+                
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={handleSwitchCamera}
+                  className="bg-black/30 backdrop-blur-sm hover:bg-black/40 text-white"
+                >
+                  <FlipCameraIcon className="h-5 w-5" />
+                </Button>
+              </div>
+              
+              <div className="mb-2 text-white text-sm font-medium text-center">
+                Tap the button to scan ingredients
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 };
