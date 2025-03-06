@@ -1,5 +1,5 @@
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import { ExtendedMediaTrackCapabilities, ExtendedMediaTrackConstraintSet } from "./types";
 import { scanBarcode, lookupProduct } from "@/lib/barcodeScanner";
@@ -15,54 +15,64 @@ export default function useCameraControl(onCapture: (imageSrc: string) => void) 
   const [torchActive, setTorchActive] = useState(false);
   const [torchSupported, setTorchSupported] = useState(false);
   const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Initialize camera
-  useEffect(() => {
-    let stream: MediaStream | null = null;
-    
-    const startCamera = async () => {
-      try {
-        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-          stream = await navigator.mediaDevices.getUserMedia({
-            video: {
-              facingMode,
-              width: { ideal: 1920 },
-              height: { ideal: 1080 }
-            },
-            audio: false
-          });
-          
-          if (videoRef.current) {
-            videoRef.current.srcObject = stream;
-            setCameraActive(true);
-            setCameraStream(stream);
-            
-            // Check if torch is supported
-            const videoTrack = stream.getVideoTracks()[0];
-            const capabilities = videoTrack.getCapabilities() as ExtendedMediaTrackCapabilities;
-            setTorchSupported(!!capabilities.torch);
-            
-            // Reset torch state when changing camera
-            setTorchActive(false);
-          }
-        } else {
-          toast.error("Camera not supported on this device or browser");
+  const startCamera = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        // Stop previous stream if it exists
+        if (cameraStream) {
+          cameraStream.getTracks().forEach(track => track.stop());
         }
-      } catch (error) {
-        console.error("Error accessing camera:", error);
-        toast.error("Failed to access camera. Please check permissions.");
+        
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode,
+            width: { ideal: 1920 },
+            height: { ideal: 1080 }
+          },
+          audio: false
+        });
+        
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          setCameraActive(true);
+          setCameraStream(stream);
+          
+          // Check if torch is supported
+          const videoTrack = stream.getVideoTracks()[0];
+          const capabilities = videoTrack.getCapabilities() as ExtendedMediaTrackCapabilities;
+          setTorchSupported(!!capabilities.torch);
+          
+          // Reset torch state when changing camera
+          setTorchActive(false);
+          
+          toast.success(`Camera activated (${facingMode === "user" ? "Front" : "Back"})`);
+        }
+      } else {
+        toast.error("Camera not supported on this device or browser");
       }
-    };
+    } catch (error) {
+      console.error("Error accessing camera:", error);
+      toast.error("Failed to access camera. Please check permissions.");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [facingMode, cameraStream]);
 
+  useEffect(() => {
     startCamera();
-
+    
     // Cleanup: stop camera when component unmounts
     return () => {
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop());
+      if (cameraStream) {
+        cameraStream.getTracks().forEach(track => track.stop());
       }
     };
-  }, [facingMode]);
+  }, [facingMode, startCamera]);
 
   // Toggle torch/flashlight (if available)
   useEffect(() => {
@@ -75,6 +85,9 @@ export default function useCameraControl(onCapture: (imageSrc: string) => void) 
           advanced: [{ torch: torchActive } as ExtendedMediaTrackConstraintSet]
         };
         videoTrack.applyConstraints(constraints)
+          .then(() => {
+            toast.success(torchActive ? "Flashlight turned on" : "Flashlight turned off");
+          })
           .catch(err => {
             console.error("Error toggling torch:", err);
             toast.error("Failed to toggle flashlight");
@@ -96,7 +109,6 @@ export default function useCameraControl(onCapture: (imageSrc: string) => void) 
       return;
     }
     setTorchActive(prev => !prev);
-    toast.info(torchActive ? "Flashlight turned off" : "Flashlight turned on");
   };
 
   const toggleMode = () => {
@@ -149,32 +161,34 @@ export default function useCameraControl(onCapture: (imageSrc: string) => void) 
       
       if (mode === "barcode") {
         // Process barcode
-        scanBarcode(imageSrc)
-          .then(barcode => {
-            const product = lookupProduct(barcode);
-            if (product) {
-              toast.success(`Detected: ${product.name}`);
-              
-              // Add to ingredients
-              const existingIngredientsJson = localStorage.getItem("fridgeIngredients");
-              const existingIngredients = existingIngredientsJson 
-                ? JSON.parse(existingIngredientsJson) 
-                : [];
-              
-              if (!existingIngredients.includes(product.name)) {
-                existingIngredients.push(product.name);
-                localStorage.setItem("fridgeIngredients", JSON.stringify(existingIngredients));
-                toast.success(`Added ${product.name} to your ingredients`);
+        toast.promise(
+          scanBarcode(imageSrc)
+            .then(barcode => {
+              const product = lookupProduct(barcode);
+              if (product) {
+                // Add to ingredients
+                const existingIngredientsJson = localStorage.getItem("fridgeIngredients");
+                const existingIngredients = existingIngredientsJson 
+                  ? JSON.parse(existingIngredientsJson) 
+                  : [];
+                
+                if (!existingIngredients.includes(product.name)) {
+                  existingIngredients.push(product.name);
+                  localStorage.setItem("fridgeIngredients", JSON.stringify(existingIngredients));
+                  return `Added ${product.name} to your ingredients`;
+                } else {
+                  return `${product.name} is already in your ingredients`;
+                }
               } else {
-                toast.info(`${product.name} is already in your ingredients`);
+                throw new Error("Product not found in database");
               }
-            } else {
-              toast.error("Product not found in database");
-            }
-          })
-          .catch(error => {
-            toast.error(error.message);
-          });
+            }),
+          {
+            loading: 'Scanning barcode...',
+            success: (message) => message,
+            error: (error) => error.message,
+          }
+        );
       } else {
         // Send image back to parent component for ingredient detection
         onCapture(imageSrc);
@@ -192,6 +206,7 @@ export default function useCameraControl(onCapture: (imageSrc: string) => void) 
     mode,
     torchActive,
     torchSupported,
+    isLoading,
     toggleCamera,
     toggleTorch,
     toggleMode,

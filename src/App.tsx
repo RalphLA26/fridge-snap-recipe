@@ -6,18 +6,38 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import { UserProvider } from "./contexts/UserContext";
-import { useEffect } from "react";
+import { useEffect, Suspense, lazy } from "react";
 import Index from "./pages/Index";
-import CameraView from "./pages/CameraView";
-import RecipesView from "./pages/RecipesView";
-import RecipeDetailView from "./pages/RecipeDetailView";
-import ProfileView from "./pages/ProfileView";
-import ShoppingListView from "./pages/ShoppingListView";
-import InventoryView from "./pages/InventoryView";
-import NotFound from "./pages/NotFound";
+import { Loader2 } from "lucide-react";
 
 // Create a QueryClient for React Query
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
+
+// Lazy load pages for better performance
+const CameraView = lazy(() => import("./pages/CameraView"));
+const RecipesView = lazy(() => import("./pages/RecipesView"));
+const RecipeDetailView = lazy(() => import("./pages/RecipeDetailView"));
+const ProfileView = lazy(() => import("./pages/ProfileView"));
+const ShoppingListView = lazy(() => import("./pages/ShoppingListView"));
+const InventoryView = lazy(() => import("./pages/InventoryView"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+
+// Loading component for suspense
+const PageLoader = () => (
+  <div className="flex h-screen w-full items-center justify-center">
+    <div className="flex flex-col items-center gap-2">
+      <Loader2 className="h-10 w-10 animate-spin text-fridge-600" />
+      <p className="text-sm text-gray-500">Loading page...</p>
+    </div>
+  </div>
+);
 
 // AnimatePresence wrapper for route transitions
 const AnimatedRoutes = () => {
@@ -36,16 +56,18 @@ const AnimatedRoutes = () => {
   
   return (
     <AnimatePresence mode="wait">
-      <Routes location={location} key={location.pathname}>
-        <Route path="/" element={<Index />} />
-        <Route path="/camera" element={<CameraView />} />
-        <Route path="/recipes" element={<RecipesView />} />
-        <Route path="/recipe/:id" element={<RecipeDetailView />} />
-        <Route path="/profile" element={<ProfileView />} />
-        <Route path="/shopping-list" element={<ShoppingListView />} />
-        <Route path="/inventory" element={<InventoryView />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+      <Suspense fallback={<PageLoader />}>
+        <Routes location={location} key={location.pathname}>
+          <Route path="/" element={<Index />} />
+          <Route path="/camera" element={<CameraView />} />
+          <Route path="/recipes" element={<RecipesView />} />
+          <Route path="/recipe/:id" element={<RecipeDetailView />} />
+          <Route path="/profile" element={<ProfileView />} />
+          <Route path="/shopping-list" element={<ShoppingListView />} />
+          <Route path="/inventory" element={<InventoryView />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Suspense>
     </AnimatePresence>
   );
 };
@@ -61,7 +83,7 @@ const App = () => {
       <UserProvider>
         <TooltipProvider>
           <BrowserRouter>
-            <div className="app-container"> {/* Removed padding bottom */}
+            <div className="app-container bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen"> 
               <AnimatedRoutes />
             </div>
             <Toaster />
