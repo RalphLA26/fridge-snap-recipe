@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -18,63 +17,59 @@ const CameraView = () => {
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [detectedIngredients, setDetectedIngredients] = useState<string[]>([]);
   
-  const { startCamera, stopCamera, takePhoto, switchCamera, toggleFlash } = useCameraControl({
-    cameraRef,
-    onCameraStarted: () => setCameraReady(true),
-    onCameraError: (error) => {
-      console.error("Camera error:", error);
-      toast.error("Unable to access camera");
-      navigate("/");
-    }
-  });
+  const handleCaptureImage = useCallback((imageSrc: string) => {
+    setCapturedImage(imageSrc);
+    
+    toast.promise(
+      detectIngredientsFromImage(imageSrc),
+      {
+        loading: 'Analyzing image...',
+        success: (result: IngredientDetectionResult) => {
+          // Process the detection results
+          if (result && result.ingredients && result.confidenceScores) {
+            const ingredients = result.ingredients.filter((_, i) => result.confidenceScores[i] > 0.7);
+            setDetectedIngredients(ingredients);
+            return `Detected ${ingredients.length} ingredients`;
+          } else {
+            setDetectedIngredients([]);
+            return 'No ingredients detected';
+          }
+        },
+        error: 'Failed to analyze image',
+      }
+    );
+  }, []);
+  
+  const cameraControl = useCameraControl(handleCaptureImage);
   
   useEffect(() => {
-    // Start camera when component mounts
-    startCamera();
-    
-    // Clean up when component unmounts
-    return () => {
-      stopCamera();
-    };
-  }, [startCamera, stopCamera]);
-  
-  const handleCapture = useCallback(async () => {
-    const image = await takePhoto();
-    if (image) {
-      setCapturedImage(image);
-      
-      toast.promise(
-        detectIngredientsFromImage(image),
-        {
-          loading: 'Analyzing image...',
-          success: (result: IngredientDetectionResult) => {
-            // Process the detection results
-            if (result && result.ingredients && result.confidenceScores) {
-              const ingredients = result.ingredients.filter((_, i) => result.confidenceScores[i] > 0.7);
-              setDetectedIngredients(ingredients);
-              return `Detected ${ingredients.length} ingredients`;
-            } else {
-              setDetectedIngredients([]);
-              return 'No ingredients detected';
-            }
-          },
-          error: 'Failed to analyze image',
-        }
-      );
-    } else {
-      toast.error("Failed to capture image");
+    if (cameraRef.current && cameraControl.videoRef.current) {
+      // Move the video element to our container ref
+      cameraRef.current.appendChild(cameraControl.videoRef.current);
+      cameraControl.capturePhoto(); // Start camera
     }
-  }, [takePhoto]);
+    
+    // Cleanup when component unmounts
+    return () => {
+      if (cameraControl.videoRef.current && cameraControl.videoRef.current.parentNode) {
+        cameraControl.videoRef.current.parentNode.removeChild(cameraControl.videoRef.current);
+      }
+    };
+  }, [cameraControl]);
+  
+  const handleCapture = useCallback(() => {
+    cameraControl.capturePhoto();
+  }, [cameraControl]);
   
   const handleSwitchCamera = useCallback(() => {
-    switchCamera();
+    cameraControl.toggleCamera();
     setIsFrontCamera(!isFrontCamera);
-  }, [switchCamera, isFrontCamera]);
+  }, [cameraControl, isFrontCamera]);
   
   const handleToggleFlash = useCallback(() => {
-    toggleFlash();
+    cameraControl.toggleTorch();
     setIsFlashOn(!isFlashOn);
-  }, [toggleFlash, isFlashOn]);
+  }, [cameraControl, isFlashOn]);
   
   const handleBack = useCallback(() => {
     if (capturedImage) {
@@ -99,16 +94,12 @@ const CameraView = () => {
       toast.success(`Added ${detectedIngredients.length} ingredients to your fridge`);
       
       // Navigate to recipes view
-      navigate("/recipes");
+      navigate("/inventory");
     } catch (error) {
       console.error("Error saving ingredients:", error);
       toast.error("Failed to save ingredients");
     }
   };
-  
-  // More existing code...
-  
-  // ... keep existing code (JSX for camera view and UI) same
   
   return (
     <motion.div 
@@ -204,7 +195,7 @@ const CameraView = () => {
               ref={cameraRef} 
               className="absolute inset-0 bg-black overflow-hidden"
             >
-              <Camera className="h-full w-full object-cover" />
+              {/* Camera will be appended here via ref */}
             </div>
             
             {/* Camera UI Overlay */}
@@ -226,7 +217,6 @@ const CameraView = () => {
                   onClick={handleCapture}
                   variant="ghost"
                   className="h-16 w-16 rounded-full bg-white hover:bg-gray-100 flex items-center justify-center ring-4 ring-black/20 transition-transform active:scale-95"
-                  disabled={!cameraReady}
                 >
                   <div className="h-14 w-14 rounded-full border-4 border-gray-200" />
                 </Button>

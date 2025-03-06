@@ -1,21 +1,23 @@
-
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
-import { Plus, Search, ShoppingBag, Archive } from "lucide-react";
+import { Plus, Search, ShoppingBag, Archive, BarChart } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import InventoryItemsList from "@/components/InventoryItemsList";
+import InventoryStatistics from "@/components/InventoryStatistics";
 import { useUser } from "@/contexts/UserContext";
+import { getExpiryStatus } from "@/lib/inventoryUtils";
 
 export interface InventoryItem {
   id: string;
   name: string;
   quantity: string;
+  unit: string;
   category: string;
   expiryDate?: string;
   addedAt: string;
@@ -32,15 +34,22 @@ const DEFAULT_CATEGORIES = [
   "Other"
 ];
 
+const QUANTITY_UNITS = [
+  "pcs", "g", "kg", "ml", "L", "tbsp", "tsp", "cup", "oz", "lb", "bunch", "can", "bottle", "box", "package"
+];
+
 const InventoryView = () => {
   const navigate = useNavigate();
   const { addToShoppingList } = useUser();
   const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
   const [newItem, setNewItem] = useState("");
   const [newQuantity, setNewQuantity] = useState("1");
+  const [newUnit, setNewUnit] = useState("pcs");
   const [selectedCategory, setSelectedCategory] = useState("Pantry");
+  const [expiryDate, setExpiryDate] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("all");
+  const [showStats, setShowStats] = useState(false);
   
   // Load saved inventory from localStorage on initial render
   useEffect(() => {
@@ -65,13 +74,16 @@ const InventoryView = () => {
       id: Date.now().toString(),
       name: newItem.trim(),
       quantity: newQuantity || "1",
+      unit: newUnit,
       category: selectedCategory,
+      ...(expiryDate && { expiryDate }),
       addedAt: new Date().toISOString()
     };
     
     setInventoryItems(prev => [...prev, newInventoryItem]);
     setNewItem("");
     setNewQuantity("1");
+    setExpiryDate("");
     toast.success(`${newItem} added to inventory`);
   };
   
@@ -87,15 +99,28 @@ const InventoryView = () => {
   const handleAddToShoppingList = (item: InventoryItem) => {
     addToShoppingList({
       name: item.name,
-      quantity: item.quantity,
+      quantity: `${item.quantity} ${item.unit}`,
       isChecked: false
     });
     toast.success(`${item.name} added to shopping list`);
   };
   
-  const handleUpdateQuantity = (id: string, newQuantity: string) => {
+  const handleUpdateQuantity = (id: string, newQuantity: string, newUnit?: string) => {
     setInventoryItems(prev => 
-      prev.map(item => item.id === id ? {...item, quantity: newQuantity} : item)
+      prev.map(item => item.id === id ? {
+        ...item, 
+        quantity: newQuantity,
+        ...(newUnit && { unit: newUnit })
+      } : item)
+    );
+  };
+
+  const handleUpdateExpiryDate = (id: string, newExpiryDate: string) => {
+    setInventoryItems(prev => 
+      prev.map(item => item.id === id ? {
+        ...item, 
+        expiryDate: newExpiryDate
+      } : item)
     );
   };
   
@@ -121,17 +146,48 @@ const InventoryView = () => {
       filtered = filtered.filter(item => item.category === activeTab);
     }
     
-    // Sort by newest first
-    return filtered.sort((a, b) => 
-      new Date(b.addedAt).getTime() - new Date(a.addedAt).getTime()
-    );
+    // Sort by expiry date (items expiring sooner first), then by newest
+    return filtered.sort((a, b) => {
+      // If both have expiry dates, sort by expiry date (soonest first)
+      if (a.expiryDate && b.expiryDate) {
+        return new Date(a.expiryDate).getTime() - new Date(b.expiryDate).getTime();
+      }
+      
+      // If only one has expiry date, it goes first
+      if (a.expiryDate) return -1;
+      if (b.expiryDate) return 1;
+      
+      // Otherwise sort by newest first
+      return new Date(b.addedAt).getTime() - new Date(a.addedAt).getTime();
+    });
   };
   
   const filteredItems = getFilteredItems();
-  const itemCountByCategory = DEFAULT_CATEGORIES.reduce((acc, category) => {
-    acc[category] = inventoryItems.filter(item => item.category === category).length;
-    return acc;
-  }, {} as Record<string, number>);
+  
+  // Calculate expiring soon and expired counts
+  const expiryStats = useMemo(() => {
+    const today = new Date();
+    let expiringSoon = 0;
+    let expired = 0;
+    
+    inventoryItems.forEach(item => {
+      if (item.expiryDate) {
+        const status = getExpiryStatus(item.expiryDate);
+        if (status === 'expired') expired++;
+        else if (status === 'expiring-soon') expiringSoon++;
+      }
+    });
+    
+    return { expiringSoon, expired };
+  }, [inventoryItems]);
+  
+  // Calculate item counts by category
+  const itemCountByCategory = useMemo(() => {
+    return DEFAULT_CATEGORIES.reduce((acc, category) => {
+      acc[category] = inventoryItems.filter(item => item.category === category).length;
+      return acc;
+    }, {} as Record<string, number>);
+  }, [inventoryItems]);
   
   return (
     <motion.div 
@@ -147,6 +203,15 @@ const InventoryView = () => {
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-bold text-gray-800">My Inventory</h2>
           <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowStats(!showStats)}
+              className="text-fridge-600 border-fridge-200 hover:bg-fridge-50"
+            >
+              <BarChart className="h-4 w-4 mr-1.5" />
+              {showStats ? "Hide" : "Show"} Stats
+            </Button>
             <Button
               variant="outline"
               size="sm"
@@ -168,6 +233,14 @@ const InventoryView = () => {
           </div>
         </div>
         
+        {showStats && inventoryItems.length > 0 && (
+          <InventoryStatistics 
+            items={inventoryItems} 
+            categoryCounts={itemCountByCategory}
+            expiryStats={expiryStats}
+          />
+        )}
+        
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
           <div className="flex flex-col space-y-4 mb-6">
             <div className="flex space-x-2">
@@ -188,8 +261,8 @@ const InventoryView = () => {
               </Button>
             </div>
             
-            <div className="flex space-x-2">
-              <div className="w-1/3">
+            <div className="flex flex-wrap gap-2">
+              <div className="w-full sm:w-1/4">
                 <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Category" />
@@ -203,19 +276,35 @@ const InventoryView = () => {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="w-1/3">
+              <div className="w-1/3 sm:w-1/6">
                 <Input
                   type="text"
                   value={newQuantity}
                   onChange={(e) => setNewQuantity(e.target.value)}
-                  placeholder="Quantity (e.g. 2 lbs)"
+                  placeholder="Qty"
                   className="w-full"
                 />
               </div>
-              <div className="w-1/3">
+              <div className="w-1/3 sm:w-1/6">
+                <Select value={newUnit} onValueChange={setNewUnit}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Unit" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {QUANTITY_UNITS.map(unit => (
+                      <SelectItem key={unit} value={unit}>
+                        {unit}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="w-1/3 sm:w-1/3">
                 <Input
                   type="date"
-                  placeholder="Expiry date (optional)"
+                  placeholder="Expiry date"
+                  value={expiryDate}
+                  onChange={(e) => setExpiryDate(e.target.value)}
                   className="w-full"
                 />
               </div>
@@ -263,6 +352,7 @@ const InventoryView = () => {
                     items={filteredItems}
                     onRemove={handleRemoveItem}
                     onUpdateQuantity={handleUpdateQuantity}
+                    onUpdateExpiryDate={handleUpdateExpiryDate}
                     onAddToShoppingList={handleAddToShoppingList}
                   />
                 </TabsContent>
@@ -273,6 +363,7 @@ const InventoryView = () => {
                       items={filteredItems}
                       onRemove={handleRemoveItem}
                       onUpdateQuantity={handleUpdateQuantity}
+                      onUpdateExpiryDate={handleUpdateExpiryDate}
                       onAddToShoppingList={handleAddToShoppingList}
                     />
                   </TabsContent>
@@ -296,6 +387,16 @@ const InventoryView = () => {
             <div className="mt-6 flex justify-between items-center">
               <span className="text-sm text-gray-500">
                 {inventoryItems.length} item{inventoryItems.length !== 1 ? 's' : ''} in inventory
+                {expiryStats.expiringSoon > 0 && (
+                  <span className="ml-2 text-amber-600">
+                    • {expiryStats.expiringSoon} expiring soon
+                  </span>
+                )}
+                {expiryStats.expired > 0 && (
+                  <span className="ml-2 text-red-600">
+                    • {expiryStats.expired} expired
+                  </span>
+                )}
               </span>
               <Button
                 variant="outline"
