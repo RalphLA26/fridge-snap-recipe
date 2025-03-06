@@ -31,7 +31,7 @@ const CameraView = () => {
     setIsAnalyzing(true);
     
     try {
-      // Analyze image using our AI recognition system
+      // Explicitly type the promise with IngredientDetectionResult
       const result = await toast.promise<IngredientDetectionResult>(
         detectIngredientsFromImage(capturedImage),
         {
