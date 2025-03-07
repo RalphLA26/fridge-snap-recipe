@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import useCameraControl from "./useCameraControl";
 import CameraUI from "./CameraUI";
 import { CameraProps } from "./types";
@@ -15,12 +15,32 @@ const Camera: React.FC<CameraProps> = ({ onCapture, onClose }) => {
     mode,
     torchActive,
     torchSupported,
+    isLoading,
     toggleCamera,
     toggleTorch,
     toggleMode,
     captureWithCountdown,
-    capturePhoto
+    capturePhoto,
+    startCamera
   } = useCameraControl(onCapture);
+
+  // Initialize camera when component mounts
+  useEffect(() => {
+    const initCamera = async () => {
+      try {
+        await startCamera();
+      } catch (error) {
+        console.error("Failed to initialize camera:", error);
+      }
+    };
+    
+    initCamera();
+    
+    // Cleanup when component unmounts
+    return () => {
+      // Cleanup is handled in useCameraControl hook
+    };
+  }, [startCamera]);
 
   return (
     <CameraUI
@@ -31,6 +51,7 @@ const Camera: React.FC<CameraProps> = ({ onCapture, onClose }) => {
       mode={mode}
       torchActive={torchActive}
       torchSupported={torchSupported}
+      isLoading={isLoading}
       videoRef={videoRef}
       canvasRef={canvasRef}
       onClose={onClose}

@@ -7,7 +7,8 @@ import {
   FlipHorizontal, 
   Barcode, 
   Lightbulb,
-  Refrigerator 
+  Refrigerator,
+  Loader2
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -19,6 +20,7 @@ interface CameraUIProps {
   mode: "photo" | "barcode";
   torchActive: boolean;
   torchSupported: boolean;
+  isLoading?: boolean;
   videoRef: React.RefObject<HTMLVideoElement>;
   canvasRef: React.RefObject<HTMLCanvasElement>;
   onClose: () => void;
@@ -33,7 +35,8 @@ interface CameraUIProps {
 export const CameraViewfinder: React.FC<{
   videoRef: React.RefObject<HTMLVideoElement>;
   mode: "photo" | "barcode";
-}> = ({ videoRef, mode }) => (
+  isLoading?: boolean;
+}> = ({ videoRef, mode, isLoading }) => (
   <div className="relative flex-1 overflow-hidden">
     {/* Camera viewfinder */}
     <video 
@@ -43,6 +46,16 @@ export const CameraViewfinder: React.FC<{
       playsInline 
       muted
     />
+    
+    {/* Loading overlay */}
+    {isLoading && (
+      <div className="absolute inset-0 bg-black/70 flex items-center justify-center z-10">
+        <div className="text-center">
+          <Loader2 className="h-10 w-10 animate-spin text-white mx-auto mb-2" />
+          <p className="text-white">Accessing camera...</p>
+        </div>
+      </div>
+    )}
     
     {/* Focus frame */}
     <div className="absolute inset-0 pointer-events-none">
@@ -92,6 +105,7 @@ export const CameraControls: React.FC<{
   torchSupported: boolean;
   mode: "photo" | "barcode";
   countdown: number | null;
+  isLoading?: boolean;
   onClose: () => void;
   toggleMode: () => void;
   toggleCamera: () => void;
@@ -102,6 +116,7 @@ export const CameraControls: React.FC<{
   torchSupported, 
   mode, 
   countdown, 
+  isLoading,
   onClose, 
   toggleMode, 
   toggleCamera, 
@@ -123,7 +138,7 @@ export const CameraControls: React.FC<{
         variant="ghost"
         size="icon"
         className="bg-black/20 text-white hover:bg-black/40 rounded-full h-12 w-12"
-        disabled={countdown !== null}
+        disabled={countdown !== null || isLoading}
       >
         {mode === "photo" ? (
           <Barcode className="h-6 w-6" />
@@ -137,7 +152,7 @@ export const CameraControls: React.FC<{
         variant="ghost"
         size="icon"
         className="bg-black/20 text-white hover:bg-black/40 rounded-full h-12 w-12"
-        disabled={countdown !== null}
+        disabled={countdown !== null || isLoading}
       >
         <FlipHorizontal className="h-6 w-6" />
       </Button>
@@ -148,7 +163,7 @@ export const CameraControls: React.FC<{
           variant="ghost"
           size="icon"
           className={`${torchActive ? 'bg-yellow-500/70' : 'bg-black/20'} text-white hover:bg-black/40 rounded-full h-12 w-12`}
-          disabled={countdown !== null}
+          disabled={countdown !== null || isLoading || !torchSupported}
         >
           <Lightbulb className="h-6 w-6" />
         </Button>
@@ -162,12 +177,14 @@ export const CaptureButton: React.FC<{
   mode: "photo" | "barcode";
   cameraActive: boolean;
   countdown: number | null;
+  isLoading?: boolean;
   captureWithCountdown: () => void;
   capturePhoto: () => void;
 }> = ({ 
   mode, 
   cameraActive, 
   countdown, 
+  isLoading,
   captureWithCountdown, 
   capturePhoto 
 }) => (
@@ -177,9 +194,11 @@ export const CaptureButton: React.FC<{
       variant="ghost" 
       size="icon" 
       className="bg-white h-16 w-16 rounded-full hover:bg-gray-200 shadow-lg"
-      disabled={!cameraActive || countdown !== null}
+      disabled={!cameraActive || countdown !== null || isLoading}
     >
-      {mode === "photo" ? (
+      {isLoading ? (
+        <Loader2 className="h-8 w-8 text-black animate-spin" />
+      ) : mode === "photo" ? (
         <CameraIcon className="h-8 w-8 text-black" />
       ) : (
         <Barcode className="h-8 w-8 text-black" />
@@ -225,6 +244,7 @@ const CameraUI: React.FC<CameraUIProps> = ({
   mode,
   torchActive,
   torchSupported,
+  isLoading,
   videoRef,
   canvasRef,
   onClose,
@@ -243,7 +263,7 @@ const CameraUI: React.FC<CameraUIProps> = ({
       transition={{ duration: 0.3 }}
     >
       {/* Viewfinder area */}
-      <CameraViewfinder videoRef={videoRef} mode={mode} />
+      <CameraViewfinder videoRef={videoRef} mode={mode} isLoading={isLoading} />
       
       {/* Controls at the top */}
       <CameraControls 
@@ -252,6 +272,7 @@ const CameraUI: React.FC<CameraUIProps> = ({
         torchSupported={torchSupported}
         mode={mode}
         countdown={countdown}
+        isLoading={isLoading}
         onClose={onClose}
         toggleMode={toggleMode}
         toggleCamera={toggleCamera}
@@ -269,6 +290,7 @@ const CameraUI: React.FC<CameraUIProps> = ({
         mode={mode}
         cameraActive={cameraActive}
         countdown={countdown}
+        isLoading={isLoading}
         captureWithCountdown={captureWithCountdown}
         capturePhoto={capturePhoto}
       />
@@ -277,4 +299,3 @@ const CameraUI: React.FC<CameraUIProps> = ({
 };
 
 export default CameraUI;
-

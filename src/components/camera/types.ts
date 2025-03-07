@@ -25,4 +25,5 @@ export interface CameraState {
   torchActive: boolean;
   torchSupported: boolean;
   cameraStream: MediaStream | null;
+  isLoading: boolean;
 }
