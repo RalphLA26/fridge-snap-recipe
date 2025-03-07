@@ -5,15 +5,10 @@ import Camera from "@/components/camera";
 import { toast } from "sonner";
 import { ChevronLeft, Camera as CameraIcon, Zap, RotateCcw, ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import useCameraControl from "@/components/camera/useCameraControl";
 import { detectIngredientsFromImage, IngredientDetectionResult } from "@/lib/imageRecognition";
 
 const CameraView = () => {
   const navigate = useNavigate();
-  const cameraRef = useRef<HTMLDivElement>(null);
-  const [isFlashOn, setIsFlashOn] = useState(false);
-  const [isFrontCamera, setIsFrontCamera] = useState(false);
-  const [cameraReady, setCameraReady] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [detectedIngredients, setDetectedIngredients] = useState<string[]>([]);
   
@@ -39,37 +34,6 @@ const CameraView = () => {
       }
     );
   }, []);
-  
-  const cameraControl = useCameraControl(handleCaptureImage);
-  
-  useEffect(() => {
-    if (cameraRef.current && cameraControl.videoRef.current) {
-      // Move the video element to our container ref
-      cameraRef.current.appendChild(cameraControl.videoRef.current);
-      cameraControl.capturePhoto(); // Start camera
-    }
-    
-    // Cleanup when component unmounts
-    return () => {
-      if (cameraControl.videoRef.current && cameraControl.videoRef.current.parentNode) {
-        cameraControl.videoRef.current.parentNode.removeChild(cameraControl.videoRef.current);
-      }
-    };
-  }, [cameraControl]);
-  
-  const handleCapture = useCallback(() => {
-    cameraControl.capturePhoto();
-  }, [cameraControl]);
-  
-  const handleSwitchCamera = useCallback(() => {
-    cameraControl.toggleCamera();
-    setIsFrontCamera(!isFrontCamera);
-  }, [cameraControl, isFrontCamera]);
-  
-  const handleToggleFlash = useCallback(() => {
-    cameraControl.toggleTorch();
-    setIsFlashOn(!isFlashOn);
-  }, [cameraControl, isFlashOn]);
   
   const handleBack = useCallback(() => {
     if (capturedImage) {
@@ -191,50 +155,7 @@ const CameraView = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            <div 
-              ref={cameraRef} 
-              className="absolute inset-0 bg-black overflow-hidden"
-            >
-              {/* Camera will be appended here via ref */}
-            </div>
-            
-            {/* Camera UI Overlay */}
-            <div className="absolute bottom-0 left-0 right-0 p-6 flex flex-col items-center">
-              <div className="flex items-center justify-around w-full mb-6">
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  onClick={handleToggleFlash}
-                  className={`bg-black/30 backdrop-blur-sm hover:bg-black/40 text-white
-                    ${isFlashOn ? 'ring-2 ring-yellow-400' : ''}  
-                  `}
-                >
-                  <Zap className="h-5 w-5" />
-                </Button>
-                
-                <Button
-                  size="icon"
-                  onClick={handleCapture}
-                  variant="ghost"
-                  className="h-16 w-16 rounded-full bg-white hover:bg-gray-100 flex items-center justify-center ring-4 ring-black/20 transition-transform active:scale-95"
-                >
-                  <div className="h-14 w-14 rounded-full border-4 border-gray-200" />
-                </Button>
-                
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  onClick={handleSwitchCamera}
-                  className="bg-black/30 backdrop-blur-sm hover:bg-black/40 text-white"
-                >
-                  <RotateCcw className="h-5 w-5" />
-                </Button>
-              </div>
-              
-              <div className="mb-2 text-white text-sm font-medium text-center">
-                Tap the button to scan ingredients
-              </div>
-            </div>
+            <Camera onCapture={handleCaptureImage} onClose={handleBack} />
           </motion.div>
         )}
       </AnimatePresence>

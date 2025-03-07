@@ -39,6 +39,10 @@ export default function useCameraControl(onCapture: (imageSrc: string) => void) 
         
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
+          videoRef.current.play().catch(err => {
+            console.error("Error playing video:", err);
+            toast.error("Failed to start camera stream");
+          });
           setCameraActive(true);
           setCameraStream(stream);
           
@@ -144,55 +148,67 @@ export default function useCameraControl(onCapture: (imageSrc: string) => void) 
     if (video && canvas) {
       const context = canvas.getContext('2d');
       
-      // Set canvas dimensions to match the video
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      
-      // Draw the current video frame onto the canvas
-      context?.drawImage(video, 0, 0, canvas.width, canvas.height);
-      
-      // Convert canvas to image data URL
-      const imageSrc = canvas.toDataURL('image/jpeg', 0.8);
-      
-      // Trigger vibration if supported
-      if (navigator.vibrate) {
-        navigator.vibrate(50);
+      if (!context) {
+        toast.error("Could not get canvas context");
+        return;
       }
       
-      if (mode === "barcode") {
-        // Process barcode
-        toast.promise(
-          scanBarcode(imageSrc)
-            .then(barcode => {
-              const product = lookupProduct(barcode);
-              if (product) {
-                // Add to ingredients
-                const existingIngredientsJson = localStorage.getItem("fridgeIngredients");
-                const existingIngredients = existingIngredientsJson 
-                  ? JSON.parse(existingIngredientsJson) 
-                  : [];
-                
-                if (!existingIngredients.includes(product.name)) {
-                  existingIngredients.push(product.name);
-                  localStorage.setItem("fridgeIngredients", JSON.stringify(existingIngredients));
-                  return `Added ${product.name} to your ingredients`;
+      try {
+        // Set canvas dimensions to match the video
+        canvas.width = video.videoWidth || 640;
+        canvas.height = video.videoHeight || 480;
+        
+        // Draw the current video frame onto the canvas
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        
+        // Convert canvas to image data URL
+        const imageSrc = canvas.toDataURL('image/jpeg', 0.8);
+        
+        // Trigger vibration if supported
+        if (navigator.vibrate) {
+          navigator.vibrate(50);
+        }
+        
+        if (mode === "barcode") {
+          // Process barcode
+          toast.promise(
+            scanBarcode(imageSrc)
+              .then(barcode => {
+                const product = lookupProduct(barcode);
+                if (product) {
+                  // Add to ingredients
+                  const existingIngredientsJson = localStorage.getItem("fridgeIngredients");
+                  const existingIngredients = existingIngredientsJson 
+                    ? JSON.parse(existingIngredientsJson) 
+                    : [];
+                  
+                  if (!existingIngredients.includes(product.name)) {
+                    existingIngredients.push(product.name);
+                    localStorage.setItem("fridgeIngredients", JSON.stringify(existingIngredients));
+                    return `Added ${product.name} to your ingredients`;
+                  } else {
+                    return `${product.name} is already in your ingredients`;
+                  }
                 } else {
-                  return `${product.name} is already in your ingredients`;
+                  throw new Error("Product not found in database");
                 }
-              } else {
-                throw new Error("Product not found in database");
-              }
-            }),
-          {
-            loading: 'Scanning barcode...',
-            success: (message) => message,
-            error: (error) => error.message,
-          }
-        );
-      } else {
-        // Send image back to parent component for ingredient detection
-        onCapture(imageSrc);
+              }),
+            {
+              loading: 'Scanning barcode...',
+              success: (message) => message,
+              error: (error) => error.message,
+            }
+          );
+        } else {
+          // Send image back to parent component for ingredient detection
+          onCapture(imageSrc);
+        }
+      } catch (error) {
+        console.error("Error capturing photo:", error);
+        toast.error("Failed to capture photo");
       }
+    } else {
+      toast.error("Camera is not ready");
     }
   };
 
