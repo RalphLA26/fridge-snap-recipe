@@ -1,7 +1,6 @@
 
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
 import { useUser } from "@/contexts/UserContext";
 import Header from "@/components/Header";
 import HomeBanner from "@/components/HomeBanner";
@@ -19,7 +18,6 @@ const Index = () => {
     if (savedIngredients) {
       setIngredients(JSON.parse(savedIngredients));
     }
-    console.log("Index component mounted");
   }, []);
   
   // Save ingredients to localStorage whenever the ingredients state changes
@@ -36,42 +34,38 @@ const Index = () => {
   };
   
   const handleCameraClick = () => {
-    console.log("Camera button clicked");
     navigate("/camera");
   };
   
   const handleFindRecipes = () => {
-    console.log("Find Recipes button clicked");
     navigate("/recipes");
   };
   
   return (
-    <motion.div 
-      className="min-h-screen bg-gray-50 flex flex-col"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.3 }}
-    >
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       <Header />
       
-      <main className="flex-1 container max-w-xl mx-auto px-4 py-6 space-y-8">
+      <main className="flex-1 container max-w-3xl mx-auto px-4 py-6 space-y-6">
         <HomeBanner />
         
-        <QuickActions 
-          ingredientsCount={ingredients.length}
-          onCameraClick={handleCameraClick}
-          onFindRecipes={handleFindRecipes}
-        />
+        <div className="grid gap-4 grid-cols-1 md:grid-cols-2 mt-6">
+          <QuickActions 
+            ingredientsCount={ingredients.length}
+            onCameraClick={handleCameraClick}
+            onFindRecipes={handleFindRecipes}
+          />
+        </div>
         
-        <IngredientManager
-          ingredients={ingredients}
-          onAddIngredient={handleAddIngredient}
-          onRemoveIngredient={handleRemoveIngredient}
-          onFindRecipes={handleFindRecipes}
-        />
+        <div className="bg-white rounded-xl shadow-sm p-6 mt-6">
+          <IngredientManager
+            ingredients={ingredients}
+            onAddIngredient={handleAddIngredient}
+            onRemoveIngredient={handleRemoveIngredient}
+            onFindRecipes={handleFindRecipes}
+          />
+        </div>
       </main>
-    </motion.div>
+    </div>
   );
 };
 
