@@ -1,3 +1,4 @@
+
 import { useState, useCallback, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Camera as CameraIcon, SwitchCamera, Scan, X, Check, ChevronLeft } from "lucide-react";
@@ -8,7 +9,6 @@ import { useCamera } from "@/hooks/useCamera";
 import { useBarcode } from "@/hooks/useBarcode";
 import { useInventory } from "@/hooks/useInventory";
 import { toast } from "sonner";
-import { Checkbox } from "@/components/ui/checkbox";
 
 interface CameraProps {
   onClose: () => void;
@@ -170,19 +170,19 @@ const Camera = ({ onClose }: CameraProps) => {
               <ChevronLeft className="h-5 w-5" />
             </Button>
             
-            {/* Mode toggle switch */}
-            <div className="flex items-center bg-black/40 backdrop-blur-sm rounded-full p-1.5">
-              <motion.div 
-                className="relative flex items-center gap-2 text-white"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-              >
+            {/* Mode toggle switch - improved UI */}
+            <motion.div 
+              className="flex items-center bg-black/50 backdrop-blur-lg rounded-full p-1.5 border border-white/10 shadow-lg"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+            >
+              <div className="relative flex items-center gap-2 text-white">
                 <Button
                   variant={showBarcodeUI ? "ghost" : "fridge"}
                   size="sm"
                   onClick={() => toggleBarcodeMode(false)}
-                  className={`rounded-full flex items-center gap-1.5 ${!showBarcodeUI ? 'shadow-md' : 'opacity-80'}`}
+                  className={`rounded-full flex items-center gap-1.5 transition-all duration-300 ${!showBarcodeUI ? 'shadow-md' : 'opacity-70 hover:opacity-100'}`}
                 >
                   <CameraIcon className="h-4 w-4" />
                   <span className="text-xs font-medium">Photo</span>
@@ -192,80 +192,129 @@ const Camera = ({ onClose }: CameraProps) => {
                   variant={showBarcodeUI ? "fridge" : "ghost"}
                   size="sm"
                   onClick={() => toggleBarcodeMode(true)}
-                  className={`rounded-full flex items-center gap-1.5 ${showBarcodeUI ? 'shadow-md' : 'opacity-80'}`}
+                  className={`rounded-full flex items-center gap-1.5 transition-all duration-300 ${showBarcodeUI ? 'shadow-md' : 'opacity-70 hover:opacity-100'}`}
                 >
                   <Scan className="h-4 w-4" />
                   <span className="text-xs font-medium">Barcode</span>
                 </Button>
-              </motion.div>
-            </div>
+              </div>
+            </motion.div>
             
             <div className="w-10" />  {/* Empty space for alignment */}
           </div>
           
-          {/* Scanning overlay for barcode mode */}
+          {/* Scanning overlay for barcode mode - improved UI */}
           {showBarcodeUI && (
             <div className="absolute inset-0 flex flex-col items-center justify-center">
               <motion.div 
-                className="w-64 h-64 border-2 border-fridge-500 rounded-lg relative"
+                className="relative"
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.3 }}
               >
-                <div className="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-fridge-500"></div>
-                <div className="absolute top-0 right-0 w-6 h-6 border-t-2 border-r-2 border-fridge-500"></div>
-                <div className="absolute bottom-0 left-0 w-6 h-6 border-b-2 border-l-2 border-fridge-500"></div>
-                <div className="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 border-fridge-500"></div>
+                {/* Inner scanning area */}
+                <div className="w-64 h-64 relative">
+                  {/* Scanner frame with animated gradient border */}
+                  <div className="absolute inset-0 rounded-lg overflow-hidden">
+                    <div className="absolute inset-0 bg-transparent border-2 border-fridge-500/80 rounded-lg"></div>
+                    
+                    {/* Animated scanner line */}
+                    <motion.div 
+                      className="absolute left-0 right-0 h-0.5 bg-fridge-500 z-10 shadow-[0_0_8px_rgba(56,189,248,0.8)]"
+                      initial={{ top: 0 }}
+                      animate={{ top: "100%" }}
+                      transition={{ 
+                        duration: 2, 
+                        ease: "linear",
+                        repeat: Infinity,
+                      }}
+                    />
+                    
+                    {/* Corner elements */}
+                    <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-fridge-500 rounded-tl-lg"></div>
+                    <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-fridge-500 rounded-tr-lg"></div>
+                    <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-fridge-500 rounded-bl-lg"></div>
+                    <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-fridge-500 rounded-br-lg"></div>
+                  </div>
+                  
+                  {/* Subtle scanner effect */}
+                  <motion.div 
+                    className="absolute inset-0 rounded-lg"
+                    animate={{ 
+                      boxShadow: ["inset 0 0 0px rgba(56, 189, 248, 0)", "inset 0 0 25px rgba(56, 189, 248, 0.4)", "inset 0 0 0px rgba(56, 189, 248, 0)"] 
+                    }}
+                    transition={{ duration: 2.5, repeat: Infinity }}
+                  />
+                </div>
+                
+                {/* Scanning indicator */}
                 <motion.div 
-                  className="absolute inset-0 border-fridge-500"
-                  animate={{ 
-                    boxShadow: ["inset 0 0 0px rgba(42, 157, 143, 0)", "inset 0 0 20px rgba(42, 157, 143, 0.5)", "inset 0 0 0px rgba(42, 157, 143, 0)"] 
-                  }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                />
+                  className="mt-8 flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-black/60 backdrop-blur-md border border-white/10 shadow-lg"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                >
+                  <div className="relative flex-shrink-0">
+                    <div className="absolute inset-0 rounded-full bg-fridge-500/30 animate-pulse"></div>
+                    <div className="relative h-2 w-2 rounded-full bg-fridge-500"></div>
+                  </div>
+                  <p className="text-white text-sm font-medium">
+                    Center the barcode
+                  </p>
+                </motion.div>
               </motion.div>
-              <p className="text-white mt-6 text-center bg-black/50 px-4 py-2 rounded-full text-sm">
-                Center the barcode in the box
-              </p>
             </div>
           )}
           
           <canvas ref={canvasRef} className="hidden" />
           
-          {/* Camera controls */}
+          {/* Camera controls - improved UI */}
           <motion.div 
-            className="absolute bottom-0 left-0 right-0 pb-10 flex flex-col items-center bg-gradient-to-t from-black/70 via-black/40 to-transparent pt-20"
+            className="absolute bottom-0 left-0 right-0 pb-10 flex flex-col items-center bg-gradient-to-t from-black/80 via-black/50 to-transparent pt-24"
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.2 }}
           >
             <div className="flex items-center justify-center gap-8 mb-6">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={switchCamera}
-                disabled={isLoading}
-                className="rounded-full p-3 bg-black/40 backdrop-blur-sm text-white hover:bg-black/60 disabled:opacity-50"
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.3 }}
               >
-                <SwitchCamera className="h-6 w-6" />
-              </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={switchCamera}
+                  disabled={isLoading}
+                  className="rounded-full p-3 bg-black/50 backdrop-blur-md text-white hover:bg-black/70 disabled:opacity-50 border border-white/10 shadow-lg"
+                >
+                  <SwitchCamera className="h-6 w-6" />
+                </Button>
+              </motion.div>
               
-              <Button
-                onClick={handleTakePhoto}
-                disabled={isLoading || showBarcodeUI}
-                className="rounded-full h-18 w-18 bg-white flex items-center justify-center p-0 hover:bg-gray-100 disabled:opacity-50 disabled:bg-gray-400 shadow-lg transition-transform duration-200 hover:scale-105"
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.2 }}
+                whileTap={{ scale: 0.95 }}
               >
-                <div className="rounded-full h-16 w-16 border-2 border-gray-300"></div>
-              </Button>
+                <Button
+                  onClick={handleTakePhoto}
+                  disabled={isLoading || showBarcodeUI}
+                  className="rounded-full h-18 w-18 bg-white flex items-center justify-center p-0 hover:bg-gray-100 disabled:opacity-50 disabled:bg-gray-400 shadow-lg transition-all duration-200 hover:scale-105 border-4 border-white/80"
+                >
+                  <div className="rounded-full h-16 w-16 border-2 border-gray-300"></div>
+                </Button>
+              </motion.div>
               
               <div className="w-14 h-14" /> {/* Spacer to maintain centered capture button */}
             </div>
             
             <motion.div 
-              className="text-white text-sm bg-black/50 px-4 py-2 rounded-full max-w-xs text-center"
+              className="text-white text-sm bg-black/60 backdrop-blur-md px-5 py-2.5 rounded-full max-w-xs text-center border border-white/10 shadow-lg"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.3 }}
+              transition={{ delay: 0.4 }}
             >
               {showBarcodeUI
                 ? "Scanning for barcodes... Hold steady!"
@@ -274,7 +323,7 @@ const Camera = ({ onClose }: CameraProps) => {
           </motion.div>
         </div>
       ) : (
-        /* Image review and results */
+        /* Image review and results - improved UI */
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -299,7 +348,7 @@ const Camera = ({ onClose }: CameraProps) => {
                 <ChevronLeft className="h-5 w-5" />
               </Button>
               
-              <div className="text-white text-sm font-medium backdrop-blur-sm bg-black/30 px-3 py-1 rounded-full">
+              <div className="text-white text-sm font-medium backdrop-blur-md bg-black/50 px-4 py-2 rounded-full border border-white/10 shadow-md">
                 Review Results
               </div>
               
@@ -307,7 +356,7 @@ const Camera = ({ onClose }: CameraProps) => {
             </div>
           </div>
           
-          {/* Results display */}
+          {/* Results display - improved UI */}
           <div className="flex-1 bg-gray-900 p-5 flex flex-col">
             <h3 className="text-white text-lg font-medium mb-4">
               {ingredients.length > 0
@@ -324,7 +373,7 @@ const Camera = ({ onClose }: CameraProps) => {
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.1 }}
-                    className="text-white bg-gray-800 p-4 rounded-lg flex items-center shadow-sm"
+                    className="text-white bg-gray-800/90 p-4 rounded-lg flex items-center shadow-md border border-gray-700/50"
                   >
                     <div className="h-3 w-3 bg-fridge-500 rounded-full mr-3 flex-shrink-0"></div>
                     <span className="font-medium">{item}</span>
@@ -337,12 +386,12 @@ const Camera = ({ onClose }: CameraProps) => {
               </div>
             )}
             
-            {/* Action buttons */}
+            {/* Action buttons - improved UI */}
             <div className="flex gap-3 justify-between mt-auto">
               <Button
                 onClick={handleRetake}
                 variant="outline"
-                className="border-gray-700 text-white hover:bg-gray-800 flex-1"
+                className="border-gray-700 text-white hover:bg-gray-800 flex-1 shadow-md"
               >
                 <X className="h-4 w-4 mr-2" />
                 Retake
@@ -352,7 +401,7 @@ const Camera = ({ onClose }: CameraProps) => {
                 onClick={handleConfirm}
                 variant="fridge"
                 disabled={ingredients.length === 0}
-                className="flex-1"
+                className="flex-1 shadow-md"
               >
                 <Check className="h-4 w-4 mr-2" />
                 Add to Inventory
