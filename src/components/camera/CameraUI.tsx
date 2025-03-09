@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -145,6 +144,7 @@ export const CameraControls: React.FC<{
   onClose: () => void;
   toggleCamera: () => void;
   toggleTorch: () => void;
+  toggleMode: () => void; // Added this missing prop
 }> = ({ 
   facingMode, 
   torchActive, 
@@ -152,7 +152,8 @@ export const CameraControls: React.FC<{
   countdown, 
   onClose, 
   toggleCamera, 
-  toggleTorch 
+  toggleTorch,
+  toggleMode  // Added this missing prop
 }) => (
   <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center">
     <Button 
@@ -290,9 +291,9 @@ const CameraUI: React.FC<CameraUIProps> = ({
         mode={mode}
         countdown={countdown}
         onClose={onClose}
-        toggleMode={toggleMode}
         toggleCamera={toggleCamera}
         toggleTorch={toggleTorch}
+        toggleMode={toggleMode}
       />
       
       {/* Canvas for capturing photos (hidden) */}
