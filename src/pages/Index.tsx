@@ -43,14 +43,14 @@ const Index = () => {
   };
   
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       <Header />
       
-      <main className="flex-1 container max-w-3xl mx-auto px-4 py-8">
+      <main className="flex-1 container max-w-md mx-auto px-4 py-6">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
+          transition={{ duration: 0.3 }}
         >
           <HomeBanner />
           
@@ -61,10 +61,10 @@ const Index = () => {
           />
           
           <motion.div 
-            className="bg-white rounded-xl shadow-sm p-6 mt-6 border border-gray-100"
-            initial={{ opacity: 0, y: 20 }}
+            className="mt-5"
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
+            transition={{ duration: 0.3, delay: 0.1 }}
           >
             <IngredientManager
               ingredients={ingredients}
