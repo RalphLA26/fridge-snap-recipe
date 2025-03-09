@@ -1,42 +1,17 @@
+
 import { useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import Camera from "@/components/camera/Camera";
-import CapturedImageView from "@/components/camera/CapturedImageView";
-import { useImageAnalysis } from "@/hooks/useImageAnalysis";
 import { useInventory } from "@/hooks/useInventory";
 
 const CameraView = () => {
   const navigate = useNavigate();
-  const { 
-    capturedImage, 
-    detectedIngredients, 
-    isAnalyzing, 
-    analyzeImage, 
-    reset 
-  } = useImageAnalysis();
-  
-  const { saveIngredientsToInventory } = useInventory();
-  
-  const handleCaptureImage = useCallback((imageSrc: string) => {
-    analyzeImage(imageSrc);
-  }, [analyzeImage]);
   
   const handleBack = useCallback(() => {
-    if (capturedImage) {
-      // If we have a captured image, reset to camera view
-      reset();
-    } else {
-      // Otherwise navigate back
-      navigate("/");
-    }
-  }, [capturedImage, navigate, reset]);
-  
-  const handleConfirmIngredients = useCallback(() => {
-    saveIngredientsToInventory(detectedIngredients);
-  }, [detectedIngredients, saveIngredientsToInventory]);
+    navigate("/");
+  }, [navigate]);
   
   return (
     <motion.div 
@@ -57,27 +32,15 @@ const CameraView = () => {
         </Button>
       </div>
       
-      <AnimatePresence mode="wait">
-        {capturedImage ? (
-          <CapturedImageView
-            imageSrc={capturedImage}
-            isAnalyzing={isAnalyzing}
-            detectedIngredients={detectedIngredients}
-            onRetake={handleBack}
-            onSave={handleConfirmIngredients}
-          />
-        ) : (
-          <motion.div
-            key="camera"
-            className="h-full flex flex-col justify-between"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <Camera onCapture={handleCaptureImage} onClose={handleBack} />
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <div className="flex flex-col items-center justify-center h-full text-white">
+        <div className="text-center p-6">
+          <h2 className="text-2xl font-bold mb-4">Camera Removed</h2>
+          <p className="mb-8">The camera functionality has been removed as requested.</p>
+          <Button onClick={handleBack} className="bg-fridge-600 hover:bg-fridge-700">
+            Return Home
+          </Button>
+        </div>
+      </div>
     </motion.div>
   );
 };
