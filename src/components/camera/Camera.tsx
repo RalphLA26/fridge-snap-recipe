@@ -1,12 +1,25 @@
 
-import React, { memo } from "react";
+import React, { memo, useEffect, useState } from "react";
 import useCameraControl from "./useCameraControl";
 import CameraUI from "./CameraUI";
 import { CameraProps } from "./types";
 import { Loader2, Camera as CameraIcon, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
 const Camera: React.FC<CameraProps> = ({ onCapture, onClose }) => {
+  const [renderComplete, setRenderComplete] = useState(false);
+  
+  // Effect to ensure component is fully rendered before initializing camera
+  useEffect(() => {
+    // Set a small delay to ensure DOM is fully rendered
+    const timer = setTimeout(() => {
+      setRenderComplete(true);
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, []);
+  
   const {
     videoRef,
     canvasRef,
@@ -29,9 +42,24 @@ const Camera: React.FC<CameraProps> = ({ onCapture, onClose }) => {
   if (isLoading) {
     return (
       <div className="fixed inset-0 z-50 bg-black flex flex-col items-center justify-center p-4">
-        <Loader2 className="h-12 w-12 text-white animate-spin mb-4" />
-        <p className="text-white text-lg text-center">Initializing camera...</p>
-        <p className="text-gray-400 text-sm mt-2 text-center">Please allow camera permissions if prompted</p>
+        <LoadingSpinner 
+          size="lg" 
+          color="fridge" 
+          text="Initializing camera..." 
+          className="mb-4"
+        />
+        <p className="text-white text-lg text-center mt-2">Please wait while we set up the camera</p>
+        <p className="text-gray-400 text-sm mt-4 text-center">Allow camera permissions if prompted</p>
+        
+        <div className="mt-8">
+          <Button
+            onClick={onClose}
+            variant="outline"
+            className="border-gray-700 text-white hover:bg-gray-800"
+          >
+            Go Back
+          </Button>
+        </div>
       </div>
     );
   }
@@ -65,7 +93,7 @@ const Camera: React.FC<CameraProps> = ({ onCapture, onClose }) => {
     );
   }
 
-  return (
+  return renderComplete ? (
     <CameraUI
       cameraActive={cameraActive}
       facingMode={facingMode}
@@ -83,6 +111,11 @@ const Camera: React.FC<CameraProps> = ({ onCapture, onClose }) => {
       captureWithCountdown={captureWithCountdown}
       capturePhoto={capturePhoto}
     />
+  ) : (
+    <div className="fixed inset-0 z-50 bg-black flex flex-col items-center justify-center p-4">
+      <LoadingSpinner size="lg" color="fridge" className="mb-4" />
+      <p className="text-white text-lg text-center">Preparing camera...</p>
+    </div>
   );
 };
 
