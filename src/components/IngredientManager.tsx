@@ -74,19 +74,19 @@ const IngredientManager = ({
                 value={newIngredient}
                 onChange={(e) => setNewIngredient(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleAddIngredient()}
-                className="flex h-11 w-full rounded-lg border border-gray-200 pl-10 pr-3 py-2 text-sm ring-offset-background placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fridge-400 focus-visible:ring-offset-2"
+                className="flex h-11 w-full rounded-lg border border-gray-200 bg-white pl-4 pr-10 py-2 text-sm ring-offset-background placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fridge-400 focus-visible:ring-offset-2"
                 placeholder="Add an ingredient..."
               />
-              <Plus className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <Button 
+                onClick={handleAddIngredient}
+                size="sm"
+                className="absolute right-1 top-1/2 transform -translate-y-1/2 h-9 w-9 rounded-md bg-fridge-500 hover:bg-fridge-600 text-white p-0"
+                type="button"
+                aria-label="Add ingredient"
+              >
+                <Plus className="h-5 w-5" />
+              </Button>
             </div>
-            <Button 
-              onClick={handleAddIngredient}
-              size="icon"
-              className="h-11 w-11 rounded-lg bg-gradient-to-br from-fridge-500 to-fridge-600 hover:from-fridge-600 hover:to-fridge-700 text-white shadow-sm"
-              type="button"
-            >
-              <Plus className="h-5 w-5" />
-            </Button>
           </div>
           
           <div>
