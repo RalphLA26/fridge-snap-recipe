@@ -46,11 +46,12 @@ const Index = () => {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Header />
       
-      <main className="flex-1 container max-w-md mx-auto px-4 py-6">
+      <main className="flex-1 container max-w-md mx-auto px-4 py-4">
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5 }}
+          className="space-y-5"
         >
           <HomeBanner />
           
@@ -60,19 +61,12 @@ const Index = () => {
             onFindRecipes={handleFindRecipes}
           />
           
-          <motion.div 
-            className="mt-5"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.1 }}
-          >
-            <IngredientManager
-              ingredients={ingredients}
-              onAddIngredient={handleAddIngredient}
-              onRemoveIngredient={handleRemoveIngredient}
-              onFindRecipes={handleFindRecipes}
-            />
-          </motion.div>
+          <IngredientManager
+            ingredients={ingredients}
+            onAddIngredient={handleAddIngredient}
+            onRemoveIngredient={handleRemoveIngredient}
+            onFindRecipes={handleFindRecipes}
+          />
         </motion.div>
       </main>
     </div>
