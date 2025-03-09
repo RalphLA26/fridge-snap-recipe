@@ -16,45 +16,63 @@ export default function useCameraControl(onCapture: (imageSrc: string) => void) 
   const [torchSupported, setTorchSupported] = useState(false);
   const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Cleanup function to stop camera stream
+  const stopCameraStream = useCallback(() => {
+    if (cameraStream) {
+      cameraStream.getTracks().forEach(track => track.stop());
+      setCameraStream(null);
+    }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+  }, [cameraStream]);
 
   // Initialize camera
   const startCamera = useCallback(async () => {
     try {
       setIsLoading(true);
       
+      // Stop previous stream if it exists
+      stopCameraStream();
+      
       if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        // Stop previous stream if it exists
-        if (cameraStream) {
-          cameraStream.getTracks().forEach(track => track.stop());
-        }
-        
-        const stream = await navigator.mediaDevices.getUserMedia({
+        const constraints = {
           video: {
             facingMode,
             width: { ideal: 1920 },
             height: { ideal: 1080 }
           },
           audio: false
-        });
+        };
+        
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        setCameraStream(stream);
         
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
-          videoRef.current.play().catch(err => {
-            console.error("Error playing video:", err);
-            toast.error("Failed to start camera stream");
-          });
-          setCameraActive(true);
-          setCameraStream(stream);
           
-          // Check if torch is supported
-          const videoTrack = stream.getVideoTracks()[0];
-          const capabilities = videoTrack.getCapabilities() as ExtendedMediaTrackCapabilities;
-          setTorchSupported(!!capabilities.torch);
-          
-          // Reset torch state when changing camera
-          setTorchActive(false);
-          
-          toast.success(`Camera activated (${facingMode === "user" ? "Front" : "Back"})`);
+          // Set up play promise handling
+          const playPromise = videoRef.current.play();
+          if (playPromise !== undefined) {
+            playPromise
+              .then(() => {
+                setCameraActive(true);
+                // Check if torch is supported
+                const videoTrack = stream.getVideoTracks()[0];
+                const capabilities = videoTrack.getCapabilities() as ExtendedMediaTrackCapabilities;
+                setTorchSupported(!!capabilities.torch);
+                
+                // Reset torch state when changing camera
+                setTorchActive(false);
+                
+                toast.success(`Camera activated (${facingMode === "user" ? "Front" : "Back"})`);
+              })
+              .catch(err => {
+                console.error("Error playing video:", err);
+                toast.error("Failed to start camera stream");
+              });
+          }
         }
       } else {
         toast.error("Camera not supported on this device or browser");
@@ -65,18 +83,17 @@ export default function useCameraControl(onCapture: (imageSrc: string) => void) 
     } finally {
       setIsLoading(false);
     }
-  }, [facingMode, cameraStream]);
+  }, [facingMode, stopCameraStream]);
 
+  // Initialize camera on component mount and when facingMode changes
   useEffect(() => {
     startCamera();
     
     // Cleanup: stop camera when component unmounts
     return () => {
-      if (cameraStream) {
-        cameraStream.getTracks().forEach(track => track.stop());
-      }
+      stopCameraStream();
     };
-  }, [facingMode, startCamera]);
+  }, [facingMode, startCamera, stopCameraStream]);
 
   // Toggle torch/flashlight (if available)
   useEffect(() => {

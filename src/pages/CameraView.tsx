@@ -1,9 +1,10 @@
-import { useState, useCallback, useRef, useEffect } from "react";
+
+import { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import Camera from "@/components/camera";
 import { toast } from "sonner";
-import { ChevronLeft, Camera as CameraIcon, Zap, RotateCcw, ImageIcon } from "lucide-react";
+import { ChevronLeft, Camera as CameraIcon, ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { detectIngredientsFromImage, IngredientDetectionResult } from "@/lib/imageRecognition";
 
@@ -11,25 +12,40 @@ const CameraView = () => {
   const navigate = useNavigate();
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [detectedIngredients, setDetectedIngredients] = useState<string[]>([]);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   
   const handleCaptureImage = useCallback((imageSrc: string) => {
+    if (!imageSrc) {
+      toast.error("Failed to capture image");
+      return;
+    }
+    
     setCapturedImage(imageSrc);
+    setIsAnalyzing(true);
     
     toast.promise(
-      detectIngredientsFromImage(imageSrc),
-      {
-        loading: 'Analyzing image...',
-        success: (result: IngredientDetectionResult) => {
+      detectIngredientsFromImage(imageSrc)
+        .then((result: IngredientDetectionResult) => {
           // Process the detection results
           if (result && result.ingredients && result.confidenceScores) {
             const ingredients = result.ingredients.filter((_, i) => result.confidenceScores[i] > 0.7);
             setDetectedIngredients(ingredients);
-            return `Detected ${ingredients.length} ingredients`;
+            return ingredients.length > 0 ? `Detected ${ingredients.length} ingredients` : 'No ingredients detected';
           } else {
             setDetectedIngredients([]);
             return 'No ingredients detected';
           }
-        },
+        })
+        .catch(error => {
+          console.error("Image analysis error:", error);
+          throw new Error('Failed to analyze image');
+        })
+        .finally(() => {
+          setIsAnalyzing(false);
+        }),
+      {
+        loading: 'Analyzing image...',
+        success: (message) => message,
         error: 'Failed to analyze image',
       }
     );
@@ -46,7 +62,7 @@ const CameraView = () => {
     }
   }, [capturedImage, navigate]);
   
-  const handleConfirmIngredients = () => {
+  const handleConfirmIngredients = useCallback(() => {
     // Save detected ingredients to localStorage
     try {
       const existingIngredients = JSON.parse(localStorage.getItem("fridgeIngredients") || "[]");
@@ -57,13 +73,20 @@ const CameraView = () => {
       localStorage.setItem("fridgeIngredients", JSON.stringify(updatedIngredients));
       toast.success(`Added ${detectedIngredients.length} ingredients to your fridge`);
       
-      // Navigate to recipes view
+      // Navigate to inventory view
       navigate("/inventory");
     } catch (error) {
       console.error("Error saving ingredients:", error);
       toast.error("Failed to save ingredients");
     }
-  };
+  }, [detectedIngredients, navigate]);
+  
+  // Clean up on unmount
+  useEffect(() => {
+    return () => {
+      // Any cleanup needed when leaving the camera view
+    };
+  }, []);
   
   return (
     <motion.div 
@@ -100,6 +123,14 @@ const CameraView = () => {
                 alt="Captured" 
                 className="h-full w-full object-cover" 
               />
+              {isAnalyzing && (
+                <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                  <div className="text-white text-center">
+                    <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-white mx-auto mb-4"></div>
+                    <p className="text-lg">Analyzing image...</p>
+                  </div>
+                </div>
+              )}
             </div>
             
             <div className="bg-white p-4 rounded-t-2xl -mt-6 pt-8 min-h-64 z-10">
@@ -139,7 +170,7 @@ const CameraView = () => {
                 </Button>
                 <Button 
                   onClick={handleConfirmIngredients}
-                  disabled={detectedIngredients.length === 0}
+                  disabled={detectedIngredients.length === 0 || isAnalyzing}
                 >
                   Confirm
                 </Button>
