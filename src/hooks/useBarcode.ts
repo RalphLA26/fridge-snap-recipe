@@ -106,31 +106,31 @@ export function useBarcode(): UseBarcodeReturn {
     setScanInterval(interval);
     
     // For demo purposes only - this would be removed in a real implementation
-    // Simulate finding a real barcode after some time, but only if the user has been
-    // actively scanning for several seconds to make it feel more realistic
-    const timeout = setTimeout(() => {
+    // Simulate finding a real barcode after a longer, random time to make it
+    // feel more like an actual scan (less "magical")
+    const scanSimulation = setTimeout(() => {
       if (isScanningBarcode) {
+        // Only increment attempt counter if we're still scanning
         scanAttempts.current += 1;
         
-        // Only simulate scan after 3+ attempts to make it feel more realistic
-        if (scanAttempts.current >= 3) {
-          // 30% chance of scanning, to avoid immediate detection every time
-          if (Math.random() < 0.3) {
-            const realBarcodes = [
-              "5901234123457", // EAN-13 (European Article Number)
-              "0123456789012", // UPC-A (Universal Product Code)
-            ];
-            
-            const selectedBarcode = realBarcodes[Math.floor(Math.random() * realBarcodes.length)];
-            setLastScannedBarcode(selectedBarcode);
-            stopBarcodeScanning();
-          }
+        // Only simulate a successful scan after 5+ seconds of scanning
+        // and with a low probability to make it feel more realistic
+        if (scanAttempts.current >= 5 && Math.random() < 0.15) {
+          // Real barcode formats 
+          const realBarcodes = [
+            "5901234123457", // EAN-13 (European Article Number)
+            "0123456789012", // UPC-A (Universal Product Code)
+          ];
+          
+          const selectedBarcode = realBarcodes[Math.floor(Math.random() * realBarcodes.length)];
+          setLastScannedBarcode(selectedBarcode);
+          stopBarcodeScanning();
         }
       }
-    }, 3000 + Math.random() * 3000);
+    }, 5000 + Math.random() * 5000); // Longer delay (5-10 seconds)
     
     // Remember to clear the timeout on cleanup
-    return () => clearTimeout(timeout);
+    return () => clearTimeout(scanSimulation);
   }, [scanInterval, processVideoFrame, isScanningBarcode]);
 
   const stopBarcodeScanning = useCallback(() => {

@@ -1,7 +1,7 @@
 
 import { useState, useCallback, useRef, useEffect } from "react";
-import { motion } from "framer-motion";
-import { Camera as CameraIcon, SwitchCamera, Scan, X, Check, ChevronLeft } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Camera as CameraIcon, SwitchCamera, Scan, X, Check, ChevronLeft, Barcode } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import CameraError from "@/components/CameraError";
@@ -159,211 +159,167 @@ const Camera = ({ onClose }: CameraProps) => {
             style={{ display: isLoading ? "none" : "block" }}
           />
           
-          {/* Header UI - Improved with better contrast and shadows */}
+          {/* Better Header UI with improved contrast and positioning */}
           <div className="absolute top-0 left-0 right-0 p-4 flex items-center justify-between bg-gradient-to-b from-black/80 via-black/50 to-transparent">
             <Button
               variant="ghost"
               size="icon"
               onClick={onClose}
-              className="rounded-full h-12 w-12 bg-black/50 text-white backdrop-blur-md hover:bg-black/70 border border-white/10 shadow-lg"
+              className="rounded-full h-10 w-10 flex items-center justify-center bg-black/60 text-white backdrop-blur-md hover:bg-black/70 border border-white/10 shadow-lg"
             >
-              <ChevronLeft className="h-6 w-6" />
+              <ChevronLeft className="h-5 w-5" />
             </Button>
             
-            {/* Improved mode toggle switch */}
-            <motion.div 
-              className="flex items-center bg-black/60 backdrop-blur-xl rounded-full p-1 border border-white/20 shadow-[0_4px_12px_rgba(0,0,0,0.3)]"
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-            >
-              <div className="relative flex items-center text-white">
-                <Button
-                  variant={showBarcodeUI ? "ghost" : "fridge"}
-                  size="sm"
-                  onClick={() => toggleBarcodeMode(false)}
-                  className={`rounded-full px-4 py-2 flex items-center gap-2 transition-all duration-300 ${!showBarcodeUI ? 'shadow-md' : 'opacity-70 hover:opacity-100'}`}
-                >
-                  <CameraIcon className="h-4 w-4" />
-                  <span className="text-xs font-medium">Photo</span>
-                </Button>
-                
-                <Button
-                  variant={showBarcodeUI ? "fridge" : "ghost"}
-                  size="sm"
-                  onClick={() => toggleBarcodeMode(true)}
-                  className={`rounded-full px-4 py-2 flex items-center gap-2 transition-all duration-300 ${showBarcodeUI ? 'shadow-md' : 'opacity-70 hover:opacity-100'}`}
-                >
-                  <Scan className="h-4 w-4" />
-                  <span className="text-xs font-medium">Barcode</span>
-                </Button>
-              </div>
-            </motion.div>
+            {/* Title */}
+            <h2 className="text-white text-lg font-medium">
+              {showBarcodeUI ? "Scan Barcode" : "Camera"}
+            </h2>
             
-            <div className="w-12" />  {/* Empty space for alignment */}
+            {/* Mode toggle */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => toggleBarcodeMode(!showBarcodeUI)}
+              className="rounded-full h-10 w-10 flex items-center justify-center bg-black/60 text-white backdrop-blur-md hover:bg-black/70 border border-white/10 shadow-lg"
+            >
+              {showBarcodeUI ? <CameraIcon className="h-5 w-5" /> : <Barcode className="h-5 w-5" />}
+            </Button>
           </div>
           
-          {/* Completely redesigned barcode scanning overlay */}
-          {showBarcodeUI && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
-              <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-              
+          {/* Redesigned barcode scanning overlay */}
+          <AnimatePresence>
+            {showBarcodeUI && (
               <motion.div 
-                className="relative"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.3 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="absolute inset-0 flex flex-col items-center justify-center z-10"
               >
-                {/* Inner scanning area */}
-                <div className="w-80 h-48 relative">
-                  {/* Scanner window with barcode pattern */}
-                  <div className="absolute inset-0 overflow-hidden rounded-lg border-2 border-fridge-500/80 shadow-[0_0_20px_rgba(56,189,248,0.2)]">
-                    <div className="absolute top-0 left-0 right-0 h-full w-full flex items-center justify-center overflow-hidden">
-                      {/* Barcode scan area - semi-transparent with actual barcode design */}
-                      <div className="absolute inset-0 bg-black/20 backdrop-blur-sm">
-                        {/* Horizontal barcode pattern */}
-                        <div className="absolute top-1/2 left-0 right-0 h-16 -translate-y-1/2 flex flex-col justify-center gap-1 overflow-hidden">
-                          {/* Barcode lines - varying thicknesses */}
-                          <div className="flex items-center justify-center w-full">
-                            {Array.from({ length: 40 }).map((_, i) => (
-                              <div 
-                                key={`bar-${i}`} 
-                                className="h-16" 
-                                style={{ 
-                                  width: [1, 2, 3, 4][Math.floor(Math.random() * 4)], 
-                                  backgroundColor: Math.random() > 0.3 ? 'rgba(255,255,255,0.8)' : 'transparent',
-                                  marginRight: '2px'
-                                }}
-                              />
-                            ))}
-                          </div>
-                        </div>
+                <div className="absolute inset-0 bg-black/50" />
+                
+                <div className="relative z-10 flex flex-col items-center space-y-6">
+                  {/* Barcode viewfinder */}
+                  <div className="relative w-72 h-36 sm:w-80 sm:h-40 overflow-hidden">
+                    {/* Scan window */}
+                    <div className="absolute inset-0 border-2 border-fridge-500">
+                      {/* Barcode pattern background */}
+                      <div className="absolute inset-0 flex flex-col justify-center opacity-20">
+                        {Array.from({ length: 30 }).map((_, i) => (
+                          <div 
+                            key={i} 
+                            className="h-1 my-[1px] bg-white"
+                            style={{ 
+                              width: `${Math.floor(Math.random() * 60) + 40}%`,
+                              marginLeft: `${Math.floor(Math.random() * 20)}%`
+                            }}
+                          ></div>
+                        ))}
                       </div>
+
+                      {/* Scan animation */}
+                      <motion.div 
+                        className="absolute left-0 right-0 h-0.5 bg-red-500"
+                        initial={{ top: 0 }}
+                        animate={{ top: "100%" }}
+                        transition={{ 
+                          duration: 1.5, 
+                          repeat: Infinity,
+                          repeatType: "reverse" 
+                        }}
+                      />
                       
-                      {/* Barcode numbers at bottom */}
-                      <div className="absolute bottom-2 left-0 right-0 flex justify-center">
-                        <div className="px-4 py-1 bg-black/40 backdrop-blur-md rounded-full text-white text-xs tracking-widest font-mono">
-                          5901234123457
-                        </div>
-                      </div>
+                      {/* Corner elements for better targeting */}
+                      <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-fridge-500" />
+                      <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-fridge-500" />
+                      <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-fridge-500" />
+                      <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-fridge-500" />
                     </div>
-                    
-                    {/* Animated scanner laser line */}
-                    <motion.div 
-                      className="absolute left-0 right-0 h-0.5 bg-red-500 z-10 shadow-[0_0_8px_rgba(239,68,68,0.8)]"
-                      initial={{ top: "10%" }}
-                      animate={{ top: "90%" }}
-                      transition={{ 
-                        duration: 1.8, 
-                        ease: "easeInOut",
-                        repeat: Infinity,
-                        repeatType: "reverse"
-                      }}
-                    />
-                    
-                    {/* Corner targeting elements */}
-                    <div className="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-fridge-500 rounded-tl"></div>
-                    <div className="absolute top-0 right-0 w-6 h-6 border-t-2 border-r-2 border-fridge-500 rounded-tr"></div>
-                    <div className="absolute bottom-0 left-0 w-6 h-6 border-b-2 border-l-2 border-fridge-500 rounded-bl"></div>
-                    <div className="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 border-fridge-500 rounded-br"></div>
                   </div>
                   
-                  {/* Scanner effect glow */}
-                  <motion.div 
-                    className="absolute inset-0 rounded-lg"
-                    animate={{ 
-                      boxShadow: ["inset 0 0 0px rgba(56, 189, 248, 0)", "inset 0 0 25px rgba(56, 189, 248, 0.3)", "inset 0 0 0px rgba(56, 189, 248, 0)"] 
-                    }}
-                    transition={{ duration: 2.5, repeat: Infinity }}
-                  />
+                  {/* Scan instruction */}
+                  <div className="bg-black/80 rounded-full px-5 py-2 text-white text-sm max-w-xs text-center backdrop-blur-sm border border-white/10">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                      <span>Align barcode within frame</span>
+                    </div>
+                  </div>
                 </div>
                 
-                {/* Enhanced scanning status indicator */}
-                <motion.div 
-                  className="mt-8 flex items-center justify-center gap-2 px-5 py-3 rounded-full bg-black/70 backdrop-blur-xl border border-white/20 shadow-lg"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 }}
-                >
-                  <div className="relative flex-shrink-0">
-                    <div className="absolute inset-0 rounded-full bg-red-500/30 animate-pulse"></div>
-                    <div className="relative h-2 w-2 rounded-full bg-red-500"></div>
-                  </div>
-                  <p className="text-white text-sm font-medium">
-                    Align barcode within frame
-                  </p>
-                </motion.div>
+                {/* Cancel button */}
+                <div className="absolute bottom-8 left-0 right-0 flex justify-center">
+                  <Button
+                    variant="ghost"
+                    onClick={() => toggleBarcodeMode(false)}
+                    className="rounded-full px-6 py-2 bg-black/70 text-white backdrop-blur-md hover:bg-black/90 border border-white/10"
+                  >
+                    Cancel
+                  </Button>
+                </div>
               </motion.div>
-            </div>
-          )}
+            )}
+          </AnimatePresence>
           
           <canvas ref={canvasRef} className="hidden" />
           
-          {/* Improved camera controls */}
-          <motion.div 
-            className="absolute bottom-0 left-0 right-0 pb-12 flex flex-col items-center bg-gradient-to-t from-black/90 via-black/60 to-transparent pt-32"
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.2 }}
-          >
-            <div className="flex items-center justify-center gap-10 mb-8">
-              <motion.div 
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.3 }}
-              >
+          {/* Photo camera controls - simplified and more intuitive */}
+          {!showBarcodeUI && (
+            <div className="absolute bottom-0 left-0 right-0 pb-10 flex flex-col items-center justify-center bg-gradient-to-t from-black/80 via-black/40 to-transparent pt-32">
+              <div className="flex items-center justify-center gap-10 mb-6">
+                {/* Camera switch button */}
                 <Button
                   variant="ghost"
-                  size="icon"
                   onClick={switchCamera}
                   disabled={isLoading}
-                  className="rounded-full p-3 h-14 w-14 bg-black/60 backdrop-blur-xl text-white hover:bg-black/80 disabled:opacity-50 border border-white/20 shadow-lg"
+                  className="rounded-full h-12 w-12 flex items-center justify-center bg-black/60 text-white backdrop-blur-md hover:bg-black/80 disabled:opacity-50 border border-white/20"
                 >
-                  <SwitchCamera className="h-6 w-6" />
+                  <SwitchCamera className="h-5 w-5" />
                 </Button>
-              </motion.div>
-              
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.2 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Button
+                
+                {/* Shutter button */}
+                <motion.button
+                  whileTap={{ scale: 0.9 }}
                   onClick={handleTakePhoto}
-                  disabled={isLoading || showBarcodeUI}
-                  className="rounded-full h-20 w-20 bg-white flex items-center justify-center p-0 hover:bg-gray-100 disabled:opacity-50 disabled:bg-gray-400 shadow-xl transition-all duration-200 hover:scale-105 border-4 border-white/90"
-                  aria-label="Take photo"
+                  disabled={isLoading}
+                  className="relative rounded-full h-16 w-16 bg-white disabled:bg-gray-400 disabled:opacity-50 flex items-center justify-center shadow-lg transition-transform duration-200 border-4 border-white/90"
                 >
-                  <div className="rounded-full h-16 w-16 border-2 border-gray-300"></div>
-                </Button>
-              </motion.div>
+                  <div className="absolute inset-2 rounded-full border-2 border-gray-300" />
+                </motion.button>
+                
+                <div className="w-12 h-12" /> {/* Empty space for balance */}
+              </div>
               
-              <div className="w-14 h-14" /> {/* Spacer for alignment */}
+              {/* Simple instruction */}
+              <div className="text-white text-sm bg-black/70 backdrop-blur px-5 py-2 rounded-full mt-2">
+                Take a photo of your fridge
+              </div>
             </div>
-            
-            {/* Improved instruction text */}
-            <motion.div 
-              className="text-white text-sm bg-black/70 backdrop-blur-xl px-6 py-3 rounded-full max-w-xs text-center border border-white/20 shadow-lg"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.4 }}
-            >
-              {showBarcodeUI
-                ? "Scanning for barcodes..."
-                : "Take a photo of your fridge contents"}
-            </motion.div>
-          </motion.div>
+          )}
         </div>
       ) : (
-        /* Enhanced image review and results */
+        /* Review captured image and results */
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           className="h-full w-full flex flex-col"
         >
-          {/* Image preview area */}
-          <div className="relative h-3/5 bg-black">
+          {/* Header */}
+          <div className="absolute top-0 left-0 right-0 z-10 p-4 flex items-center justify-between bg-gradient-to-b from-black/80 to-transparent">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleRetake}
+              className="rounded-full h-10 w-10 flex items-center justify-center bg-black/60 text-white backdrop-blur-md hover:bg-black/70 border border-white/10"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </Button>
+            
+            <h2 className="text-white text-lg font-medium">Review</h2>
+            
+            <div className="w-10" /> {/* Empty space for balance */}
+          </div>
+          
+          {/* Image preview */}
+          <div className="relative h-1/2 bg-black">
             {capturedImage && (
               <img
                 src={capturedImage}
@@ -371,45 +327,29 @@ const Camera = ({ onClose }: CameraProps) => {
                 className="h-full w-full object-contain"
               />
             )}
-            <div className="absolute top-0 left-0 right-0 p-4 flex items-center justify-between bg-gradient-to-b from-black/80 to-transparent">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleRetake}
-                className="rounded-full h-12 w-12 bg-black/50 text-white backdrop-blur-md hover:bg-black/70 border border-white/10 shadow-lg"
-              >
-                <ChevronLeft className="h-6 w-6" />
-              </Button>
-              
-              <div className="text-white text-sm font-medium backdrop-blur-xl bg-black/60 px-5 py-2.5 rounded-full border border-white/20 shadow-md">
-                Review Results
-              </div>
-              
-              <div className="w-12" />  {/* Empty space for alignment */}
-            </div>
           </div>
           
-          {/* Enhanced results display */}
+          {/* Results panel */}
           <div className="flex-1 bg-gray-900 p-5 flex flex-col">
             <h3 className="text-white text-lg font-medium mb-4">
               {ingredients.length > 0
-                ? "Items detected in your fridge:"
-                : "Analyzing items..."}
+                ? "Detected Items:"
+                : "Analyzing..."}
             </h3>
             
-            {/* Detected items list */}
+            {/* Items list */}
             {ingredients.length > 0 ? (
-              <ul className="mb-6 flex-1 overflow-y-auto space-y-3">
+              <ul className="flex-1 overflow-y-auto space-y-2 mb-4">
                 {ingredients.map((item, index) => (
                   <motion.li
                     key={index}
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.1 }}
-                    className="text-white bg-gray-800/90 p-4 rounded-lg flex items-center shadow-md border border-gray-700/50"
+                    className="text-white bg-gray-800 p-3 rounded-lg flex items-center shadow-md border border-gray-700/50"
                   >
-                    <div className="h-3 w-3 bg-fridge-500 rounded-full mr-3 flex-shrink-0"></div>
-                    <span className="font-medium">{item}</span>
+                    <div className="h-2.5 w-2.5 bg-fridge-500 rounded-full mr-3" />
+                    <span>{item}</span>
                   </motion.li>
                 ))}
               </ul>
@@ -419,14 +359,13 @@ const Camera = ({ onClose }: CameraProps) => {
               </div>
             )}
             
-            {/* Enhanced action buttons */}
-            <div className="flex gap-3 justify-between mt-auto">
+            {/* Action buttons */}
+            <div className="flex gap-3 mt-auto">
               <Button
                 onClick={handleRetake}
                 variant="outline"
-                className="border-gray-700 text-white hover:bg-gray-800 flex-1 shadow-md"
+                className="flex-1 border-gray-700 text-white hover:bg-gray-800"
               >
-                <X className="h-4 w-4 mr-2" />
                 Retake
               </Button>
               
@@ -434,9 +373,8 @@ const Camera = ({ onClose }: CameraProps) => {
                 onClick={handleConfirm}
                 variant="fridge"
                 disabled={ingredients.length === 0}
-                className="flex-1 shadow-md"
+                className="flex-1"
               >
-                <Check className="h-4 w-4 mr-2" />
                 Add to Inventory
               </Button>
             </div>
