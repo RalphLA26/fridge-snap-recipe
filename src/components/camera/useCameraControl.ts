@@ -37,7 +37,7 @@ export default function useCameraControl(onCapture: (imageSrc: string) => void) 
     setCameraActive(false);
   }, [cameraStream]);
 
-  // Initialize camera
+  // Initialize camera with better error handling and fallbacks
   const startCamera = useCallback(async () => {
     try {
       setIsLoading(true);
@@ -49,30 +49,63 @@ export default function useCameraControl(onCapture: (imageSrc: string) => void) 
         throw new Error("Camera API is not supported in this browser");
       }
       
-      // Set a reasonable timeout for camera initialization
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error("Camera initialization timed out")), 10000);
-      });
+      // Try different settings to improve compatibility
+      let stream: MediaStream | null = null;
+      let errorMessage = "";
       
-      // Start with more flexible constraints
-      const constraints = {
-        video: {
-          facingMode: facingMode,
-          // Use realistic resolutions that are more likely to be supported
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
+      // Try different constraints in order of preference
+      const constraintsOptions = [
+        // First try: Preferred facing mode with ideal resolution
+        {
+          video: {
+            facingMode: facingMode,
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+          },
+          audio: false
         },
-        audio: false
-      };
+        // Second try: Preferred facing mode with any resolution
+        {
+          video: {
+            facingMode: facingMode
+          },
+          audio: false
+        },
+        // Third try: Any camera
+        {
+          video: true,
+          audio: false
+        }
+      ];
       
-      // Race the camera initialization with a timeout
-      const stream = await Promise.race([
-        navigator.mediaDevices.getUserMedia(constraints),
-        timeoutPromise
-      ]) as MediaStream;
+      // Try each constraint option until one works
+      for (const constraints of constraintsOptions) {
+        try {
+          // Set a timeout for getUserMedia to prevent hanging
+          const timeoutPromise = new Promise<MediaStream>((_, reject) => {
+            setTimeout(() => reject(new Error("Camera access timed out")), 8000);
+          });
+          
+          // Race between getUserMedia and timeout
+          stream = await Promise.race([
+            navigator.mediaDevices.getUserMedia(constraints),
+            timeoutPromise
+          ]);
+          
+          // If we got a stream, break out of the loop
+          if (stream && stream.getVideoTracks().length > 0) {
+            break;
+          }
+        } catch (error) {
+          errorMessage = error instanceof Error ? error.message : "Unknown camera error";
+          console.warn(`Attempt failed with constraints:`, constraints, error);
+          // Continue to the next constraint option
+        }
+      }
       
+      // If all attempts failed
       if (!stream || stream.getVideoTracks().length === 0) {
-        throw new Error("No video stream available");
+        throw new Error(errorMessage || "Failed to access any camera");
       }
       
       setCameraStream(stream);
@@ -80,90 +113,87 @@ export default function useCameraControl(onCapture: (imageSrc: string) => void) 
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         
-        // Make sure we've loaded the metadata before playing
-        videoRef.current.onloadedmetadata = () => {
-          if (videoRef.current) {
-            // Set up play promise handling
-            const playPromise = videoRef.current.play();
-            if (playPromise !== undefined) {
-              playPromise
-                .then(() => {
-                  setCameraActive(true);
-                  setRetryCount(0); // Reset retry count on success
-                  
-                  try {
-                    // Check if torch is supported
-                    const videoTrack = stream.getVideoTracks()[0];
-                    if (videoTrack) {
-                      const capabilities = videoTrack.getCapabilities() as ExtendedMediaTrackCapabilities;
-                      setTorchSupported(!!capabilities.torch);
-                      
-                      // Reset torch state when changing camera
-                      setTorchActive(false);
-                      
-                      toast.success(`Camera activated (${facingMode === "user" ? "Front" : "Back"})`);
-                    }
-                  } catch (error) {
-                    console.error("Error checking torch capabilities:", error);
-                    setTorchSupported(false);
-                  }
-                })
-                .catch(err => {
-                  console.error("Error playing video:", err);
-                  toast.error("Failed to start video playback. Try again or check permissions.");
-                  stopCameraStream();
-                  
-                  // Try with front camera if back camera fails
-                  if (facingMode === "environment" && retryCount === 0) {
-                    setFacingMode("user");
-                    setRetryCount(prev => prev + 1);
-                  }
-                });
-            }
-          }
-        };
-        
-        // Handle errors during video loading
-        videoRef.current.onerror = () => {
-          console.error("Video element error");
-          toast.error("Video element encountered an error");
-          stopCameraStream();
+        // Use a promise to ensure metadata is loaded
+        const playPromise = new Promise<void>((resolve, reject) => {
+          if (!videoRef.current) return reject("Video element not available");
           
-          if (retryCount < maxRetries) {
-            setTimeout(() => {
-              setRetryCount(prev => prev + 1);
-              startCamera();
-            }, 1000);
+          videoRef.current.onloadedmetadata = async () => {
+            if (!videoRef.current) return reject("Video element not available");
+            
+            try {
+              await videoRef.current.play();
+              resolve();
+            } catch (playError) {
+              reject(playError);
+            }
+          };
+          
+          videoRef.current.onerror = (e) => {
+            reject(`Video element error: ${e}`);
+          };
+        });
+        
+        try {
+          await playPromise;
+          setCameraActive(true);
+          setRetryCount(0); // Reset retry count on success
+          
+          // Check if torch is supported
+          const videoTrack = stream.getVideoTracks()[0];
+          if (videoTrack) {
+            const capabilities = videoTrack.getCapabilities() as ExtendedMediaTrackCapabilities;
+            const hasTorch = !!capabilities.torch;
+            setTorchSupported(hasTorch);
+            
+            // Reset torch state when changing camera
+            setTorchActive(false);
+            
+            toast.success(`Camera ready (${facingMode === "user" ? "Front" : "Back"})`);
           }
-        };
+        } catch (playError) {
+          console.error("Play error:", playError);
+          throw new Error(`Could not play video: ${playError}`);
+        }
+      } else {
+        throw new Error("Video element not available");
       }
     } catch (error) {
-      console.error("Error accessing camera:", error);
+      console.error("Camera initialization error:", error);
       
-      // Provide more specific error messages based on the error
+      // More helpful error messages based on error type
       if (error instanceof DOMException) {
         if (error.name === 'NotAllowedError') {
           toast.error("Camera access denied. Please check your browser permissions.");
         } else if (error.name === 'NotFoundError') {
           toast.error("No camera found on this device.");
-        } else if (error.name === 'NotReadableError') {
+        } else if (error.name === 'NotReadableError' || error.name === 'AbortError') {
           toast.error("Camera is already in use by another application.");
+        } else if (error.name === 'SecurityError') {
+          toast.error("Camera access blocked due to security restrictions.");
+        } else if (error.name === 'OverconstrainedError') {
+          toast.error("Camera doesn't support the requested resolution.");
         } else {
-          toast.error(`Camera error: ${error.message}`);
+          toast.error(`Camera error: ${error.name}`);
         }
       } else {
-        toast.error(`Failed to access camera: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        toast.error(`Failed to start camera: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
       
-      // Try with front camera if back camera fails
+      // Try with front camera if back camera fails and we haven't tried it yet
       if (facingMode === "environment" && retryCount === 0) {
         setFacingMode("user");
         setRetryCount(prev => prev + 1);
       } else if (retryCount < maxRetries) {
+        // Add exponential backoff for retries
+        const delay = Math.min(1000 * Math.pow(2, retryCount), 5000);
         setTimeout(() => {
           setRetryCount(prev => prev + 1);
           startCamera();
-        }, 1000);
+        }, delay);
+      } else {
+        // After max retries, reset the retry count and show a final error
+        setRetryCount(0);
+        toast.error("Could not access camera after multiple attempts. Please check your device and permissions.");
       }
     } finally {
       setIsLoading(false);
@@ -197,7 +227,9 @@ export default function useCameraControl(onCapture: (imageSrc: string) => void) 
         
         videoTrack.applyConstraints(constraints)
           .then(() => {
-            toast.success(torchActive ? "Flashlight turned on" : "Flashlight turned off");
+            if (torchActive) {
+              toast.success("Flashlight turned on");
+            }
           })
           .catch(err => {
             console.error("Error toggling torch:", err);
@@ -216,8 +248,13 @@ export default function useCameraControl(onCapture: (imageSrc: string) => void) 
     if (navigator.permissions && navigator.permissions.query) {
       navigator.permissions.query({ name: 'camera' as PermissionName })
         .then(permissionStatus => {
+          if (permissionStatus.state === 'denied') {
+            toast.error("Camera permission denied. Please allow camera access in your browser settings.");
+            stopCameraStream();
+          }
+          
           permissionStatus.onchange = () => {
-            if (permissionStatus.state === 'granted') {
+            if (permissionStatus.state === 'granted' && !cameraActive) {
               startCamera();
             } else if (permissionStatus.state === 'denied') {
               toast.error("Camera permission denied");
@@ -229,7 +266,26 @@ export default function useCameraControl(onCapture: (imageSrc: string) => void) 
           console.error('Error checking permissions:', error);
         });
     }
-  }, [startCamera, stopCameraStream]);
+  }, [startCamera, stopCameraStream, cameraActive]);
+
+  // Handle page visibility changes
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && !cameraActive && !isLoading) {
+        // Resume camera when page becomes visible
+        startCamera();
+      } else if (document.visibilityState === 'hidden' && cameraActive) {
+        // Pause camera when page is hidden
+        stopCameraStream();
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [cameraActive, startCamera, stopCameraStream, isLoading]);
 
   // Safely toggle camera
   const toggleCamera = useCallback(() => {
@@ -284,6 +340,11 @@ export default function useCameraControl(onCapture: (imageSrc: string) => void) 
       return;
     }
     
+    if (!cameraActive) {
+      toast.error("Camera is not active");
+      return;
+    }
+    
     try {
       const context = canvas.getContext('2d');
       
@@ -293,7 +354,7 @@ export default function useCameraControl(onCapture: (imageSrc: string) => void) 
       }
       
       if (!video.videoWidth || !video.videoHeight) {
-        toast.error("Video stream is not available or ready");
+        toast.error("Video stream is not available");
         return;
       }
       
@@ -354,7 +415,7 @@ export default function useCameraControl(onCapture: (imageSrc: string) => void) 
       console.error("Error capturing photo:", error);
       toast.error("Failed to capture photo");
     }
-  }, [mode, onCapture]);
+  }, [mode, onCapture, cameraActive]);
 
   return {
     videoRef,
