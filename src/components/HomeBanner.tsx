@@ -5,12 +5,12 @@ import { UtensilsCrossed } from "lucide-react";
 const HomeBanner = () => {
   return (
     <motion.div
-      className="overflow-hidden relative rounded-xl shadow-lg"
+      className="overflow-hidden relative rounded-2xl shadow-lg"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
     >
-      <div className="bg-gradient-to-br from-fridge-600 via-fridge-500 to-fridge-400 p-8 text-white rounded-xl relative overflow-hidden">
+      <div className="bg-gradient-to-br from-fridge-600 via-fridge-500 to-fridge-400 p-8 text-white rounded-2xl relative overflow-hidden">
         {/* Decorative elements */}
         <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -mr-16 -mt-10 animate-pulse-subtle" />
         <div className="absolute bottom-0 left-0 w-28 h-28 bg-white/10 rounded-full -ml-10 -mb-8 animate-pulse-subtle" 

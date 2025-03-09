@@ -58,7 +58,7 @@ const Index = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
-          className="space-y-6"
+          className="space-y-7"
         >
           <HomeBanner />
           
@@ -67,50 +67,49 @@ const Index = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.5 }}
-            className="mt-6"
           >
-            <Card className="overflow-hidden border-none shadow-lg hover:shadow-xl transition-all duration-300">
+            <Card className="overflow-hidden border-none rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-white to-gray-50">
               <CardContent className="p-0">
                 {/* Card Header */}
-                <div className="bg-gradient-to-r from-fridge-600 to-fridge-700 p-4 text-white">
-                  <h2 className="text-lg font-semibold">Add Ingredients</h2>
-                  <p className="text-sm text-white/80">Choose how to add items to your inventory</p>
+                <div className="bg-gradient-to-r from-fridge-600 to-fridge-700 p-5 text-white rounded-t-2xl">
+                  <h2 className="text-xl font-semibold">Get Started</h2>
+                  <p className="text-sm text-white/90 mt-1">Add ingredients to your inventory</p>
                 </div>
                 
-                {/* Card Actions */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 p-4 bg-white">
-                  {/* Scan Food Option */}
+                {/* Card Actions with Improved Layout */}
+                <div className="p-5 space-y-3">
+                  {/* Scan Food Option - Now with gradient and enhanced styling */}
                   <motion.div
                     whileHover={{ scale: 0.98 }}
                     whileTap={{ scale: 0.95 }}
-                    className="p-4 rounded-xl bg-gradient-to-br from-fridge-50 to-fridge-100 cursor-pointer border border-fridge-200 shadow-sm"
+                    className="p-5 rounded-xl bg-gradient-to-r from-fridge-50 to-fridge-100 cursor-pointer border border-fridge-200 shadow-sm hover:shadow-md transition-all duration-300"
                     onClick={handleCameraClick}
                   >
                     <div className="flex items-center space-x-4">
-                      <div className="w-14 h-14 rounded-full bg-fridge-600 flex items-center justify-center shadow-md flex-shrink-0">
+                      <div className="w-14 h-14 rounded-full bg-gradient-to-br from-fridge-500 to-fridge-600 flex items-center justify-center shadow-md flex-shrink-0">
                         <Camera className="h-7 w-7 text-white" />
                       </div>
                       <div>
-                        <h3 className="font-semibold text-fridge-900">Scan Food</h3>
-                        <p className="text-sm text-fridge-700">Use camera to identify ingredients</p>
+                        <h3 className="font-semibold text-fridge-900 text-lg">Scan Food</h3>
+                        <p className="text-sm text-fridge-700">Use your camera to identify ingredients automatically</p>
                       </div>
                     </div>
                   </motion.div>
                   
-                  {/* Add Manually Option */}
+                  {/* Add Manually Option - Now with gradient and enhanced styling */}
                   <motion.div
                     whileHover={{ scale: 0.98 }}
                     whileTap={{ scale: 0.95 }}
-                    className="p-4 rounded-xl bg-gradient-to-br from-fridge-50 to-fridge-100 cursor-pointer border border-fridge-200 shadow-sm"
+                    className="p-5 rounded-xl bg-gradient-to-r from-fridge-50 to-fridge-100 cursor-pointer border border-fridge-200 shadow-sm hover:shadow-md transition-all duration-300"
                     onClick={() => setShowIngredients(true)}
                   >
                     <div className="flex items-center space-x-4">
-                      <div className="w-14 h-14 rounded-full bg-fridge-600 flex items-center justify-center shadow-md flex-shrink-0">
+                      <div className="w-14 h-14 rounded-full bg-gradient-to-br from-fridge-500 to-fridge-600 flex items-center justify-center shadow-md flex-shrink-0">
                         <Plus className="h-7 w-7 text-white" />
                       </div>
                       <div>
-                        <h3 className="font-semibold text-fridge-900">Add Manually</h3>
-                        <p className="text-sm text-fridge-700">Type in your ingredients</p>
+                        <h3 className="font-semibold text-fridge-900 text-lg">Add Manually</h3>
+                        <p className="text-sm text-fridge-700">Type in your ingredients to track them</p>
                       </div>
                     </div>
                   </motion.div>
@@ -119,24 +118,25 @@ const Index = () => {
             </Card>
           </motion.div>
           
-          {/* Ingredients Counter Button */}
+          {/* Ingredients Counter Button - Enhanced with gradient and better shadows */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, duration: 0.5 }}
-            className="w-full mt-2"
           >
             <Button
               variant="outline"
-              className="w-full py-6 border border-fridge-100 shadow-md rounded-xl flex justify-between items-center bg-white hover:bg-fridge-50 transition-all duration-300"
+              className="w-full py-6 border border-fridge-200 shadow-md rounded-xl flex justify-between items-center bg-white hover:bg-fridge-50 transition-all duration-300"
               onClick={toggleIngredients}
             >
-              <span className="font-medium flex items-center">
-                <UtensilsCrossed className="h-5 w-5 mr-2 text-fridge-600" />
-                My Ingredients
-              </span>
               <div className="flex items-center">
-                <span className="bg-fridge-100 text-fridge-700 rounded-full px-3 py-1 text-sm font-medium mr-2">
+                <div className="bg-fridge-100 rounded-full p-2.5 mr-3">
+                  <UtensilsCrossed className="h-5 w-5 text-fridge-600" />
+                </div>
+                <span className="font-medium text-gray-800">My Ingredients</span>
+              </div>
+              <div className="flex items-center">
+                <span className="bg-gradient-to-r from-fridge-100 to-fridge-200 text-fridge-700 rounded-full px-3.5 py-1.5 text-sm font-medium mr-2.5 shadow-sm">
                   {ingredients.length}
                 </span>
                 {showIngredients ? (
