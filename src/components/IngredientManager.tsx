@@ -51,8 +51,8 @@ const IngredientManager = ({
   };
 
   return (
-    <Card className="mt-5 border-fridge-100 shadow-md overflow-hidden">
-      <CardHeader className="bg-gradient-to-r from-fridge-50 to-white pb-3">
+    <Card className="mt-5 border-fridge-100 shadow-md overflow-hidden bg-white">
+      <CardHeader className="bg-gradient-to-r from-fridge-50 to-white pb-3 border-b border-fridge-100/60">
         <CardTitle className="text-xl font-medium text-gray-800 flex items-center">
           <ListChecks className="mr-2 h-5 w-5 text-fridge-600" />
           My Ingredients
@@ -64,7 +64,7 @@ const IngredientManager = ({
         </CardTitle>
       </CardHeader>
       
-      <CardContent className="p-4">
+      <CardContent className="p-5">
         <div className="space-y-4">
           {/* Add ingredient input */}
           <div className="flex items-center space-x-2">
@@ -82,7 +82,7 @@ const IngredientManager = ({
             <Button 
               onClick={handleAddIngredient}
               size="icon"
-              className="h-11 w-11 rounded-lg bg-fridge-600 hover:bg-fridge-700 text-white shadow-sm"
+              className="h-11 w-11 rounded-lg bg-gradient-to-br from-fridge-500 to-fridge-600 hover:from-fridge-600 hover:to-fridge-700 text-white shadow-sm"
               type="button"
             >
               <Plus className="h-5 w-5" />
@@ -93,22 +93,22 @@ const IngredientManager = ({
             <AnimatePresence>
               {ingredients.length === 0 ? (
                 <motion.div 
-                  className="text-center py-8 bg-gray-50 rounded-lg"
+                  className="text-center py-10 bg-gradient-to-b from-gray-50 to-white rounded-lg border border-gray-100"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                 >
                   <div className="flex flex-col items-center">
-                    <div className="bg-gray-100 rounded-full p-3 mb-3">
+                    <div className="bg-gray-100 rounded-full p-3 mb-3 shadow-sm">
                       <PlusCircle className="h-6 w-6 text-gray-400" />
                     </div>
-                    <p className="text-gray-500 max-w-[200px] mx-auto">No ingredients yet. Add ingredients to get started.</p>
+                    <p className="text-gray-500 max-w-[220px] mx-auto">No ingredients yet. Add ingredients to get started.</p>
                   </div>
                 </motion.div>
               ) : (
                 <div>
                   <motion.ul 
-                    className="space-y-2 max-h-[280px] overflow-y-auto pr-1 mb-4 py-1 divide-y divide-gray-100"
+                    className="space-y-2.5 max-h-[280px] overflow-y-auto pr-1 mb-5 py-1 divide-y divide-gray-100"
                     variants={container}
                     initial="hidden"
                     animate="show"
@@ -116,7 +116,7 @@ const IngredientManager = ({
                     {ingredients.map((ingredient, index) => (
                       <motion.li 
                         key={ingredient}
-                        className="flex items-center justify-between py-3 px-4 bg-gradient-to-r from-white to-fridge-50 rounded-lg border border-fridge-100 group hover:from-fridge-50 hover:to-fridge-100 transition-colors duration-200"
+                        className="flex items-center justify-between py-3 px-4 bg-gradient-to-r from-white to-fridge-50 rounded-lg border border-fridge-100 group hover:from-fridge-50 hover:to-fridge-100 transition-colors duration-200 shadow-sm"
                         variants={item}
                         layout
                         initial={{ opacity: 0, y: 10 }}
@@ -124,8 +124,8 @@ const IngredientManager = ({
                         transition={{ delay: index * 0.05 }}
                       >
                         <div className="flex items-center">
-                          <div className="bg-fridge-100 rounded-full p-1.5 mr-3">
-                            <Check className="h-3 w-3 text-fridge-600" />
+                          <div className="bg-gradient-to-br from-fridge-100 to-fridge-50 rounded-full p-1.5 mr-3 shadow-sm">
+                            <Check className="h-3 w-3 text-fridge-700" />
                           </div>
                           <span className="text-gray-700 font-medium">{ingredient}</span>
                         </div>
@@ -151,7 +151,7 @@ const IngredientManager = ({
                     >
                       <Button 
                         onClick={onFindRecipes}
-                        className="bg-gradient-to-r from-fridge-600 to-fridge-700 hover:from-fridge-700 hover:to-fridge-800 text-white px-5 py-2 rounded-lg shadow-sm inline-flex items-center"
+                        className="bg-gradient-to-r from-fridge-600 to-fridge-700 hover:from-fridge-700 hover:to-fridge-800 text-white px-5 py-6 rounded-lg shadow-md inline-flex items-center font-medium"
                         type="button"
                       >
                         <Search className="mr-2 h-4 w-4" />

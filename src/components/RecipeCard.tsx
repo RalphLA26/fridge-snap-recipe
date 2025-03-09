@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Clock, Utensils, ChevronRight, Heart, Star, Circle, CircleCheck } from "lucide-react";
@@ -33,14 +34,14 @@ const RecipeCard = ({ id, title, image, cookTime, matchingIngredients, totalIngr
   
   return (
     <motion.div
-      className="rounded-xl overflow-hidden bg-white shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100"
-      whileHover={{ y: -5 }}
+      className="rounded-xl overflow-hidden bg-white shadow hover:shadow-lg transition-all duration-300 border border-gray-100 h-full flex flex-col"
+      whileHover={{ y: -5, boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)" }}
       onClick={() => navigate(`/recipe/${id}`)}
     >
       <div className="aspect-video relative overflow-hidden bg-gray-100">
         {!imageLoaded && (
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-8 h-8 border-2 border-fridge-600 border-t-transparent rounded-full animate-spin"></div>
+            <div className="w-8 h-8 border-2 border-fridge-500 border-t-transparent rounded-full animate-spin"></div>
           </div>
         )}
         <motion.img
@@ -59,9 +60,9 @@ const RecipeCard = ({ id, title, image, cookTime, matchingIngredients, totalIngr
         />
         
         {/* Match percentage overlay */}
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-3">
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-3">
           <div className="flex justify-between items-center">
-            <div className="text-white text-xs font-medium">
+            <div className="text-white text-xs font-semibold">
               {matchPercentage}% match
             </div>
             
@@ -70,9 +71,9 @@ const RecipeCard = ({ id, title, image, cookTime, matchingIngredients, totalIngr
               {Array.from({ length: totalIngredients }, (_, i) => (
                 <div key={i} className="ml-1">
                   {i < matchingIngredients ? (
-                    <CircleCheck className="h-3 w-3 text-green-400" />
+                    <CircleCheck className="h-3.5 w-3.5 text-green-400" />
                   ) : (
-                    <Circle className="h-3 w-3 text-white/50" />
+                    <Circle className="h-3 w-3 text-white/60" />
                   )}
                 </div>
               ))}
@@ -81,8 +82,8 @@ const RecipeCard = ({ id, title, image, cookTime, matchingIngredients, totalIngr
           
           <Progress 
             value={matchPercentage} 
-            className="h-1 mt-1 bg-white/30" 
-            indicatorClassName="bg-green-400" 
+            className="h-1.5 mt-1 bg-white/30 rounded-full" 
+            indicatorClassName="bg-gradient-to-r from-green-400 to-green-500" 
           />
         </div>
         
@@ -94,8 +95,8 @@ const RecipeCard = ({ id, title, image, cookTime, matchingIngredients, totalIngr
         )}
       </div>
       
-      <div className="p-4">
-        <h3 className="font-medium text-gray-900 mb-2 line-clamp-1">{title}</h3>
+      <div className="p-4 flex flex-col flex-grow">
+        <h3 className="font-semibold text-gray-900 mb-2 line-clamp-1">{title}</h3>
         
         {/* Rating stars - Only show if rating exists and is greater than 0 */}
         {rating > 0 && (
@@ -111,21 +112,21 @@ const RecipeCard = ({ id, title, image, cookTime, matchingIngredients, totalIngr
         )}
         
         <div className="flex items-center justify-between mt-2 text-sm">
-          <div className="flex items-center text-gray-500">
+          <div className="flex items-center text-gray-600">
             <Clock className="h-4 w-4 mr-1" />
             <span>{cookTime}</span>
           </div>
           
-          <div className="flex items-center text-gray-500">
+          <div className="flex items-center text-gray-600">
             <Utensils className="h-4 w-4 mr-1" />
             <span>
-              {matchingIngredients}/{totalIngredients} ingredients
+              {matchingIngredients}/{totalIngredients}
             </span>
           </div>
         </div>
         
-        <div className="mt-4 pt-3 border-t border-gray-100 flex justify-between items-center">
-          <span className="text-xs text-gray-500">
+        <div className="mt-auto pt-3 border-t border-gray-100 flex justify-between items-center mt-4">
+          <span className={`text-xs ${matchingIngredients === totalIngredients ? "text-green-600 font-medium" : "text-gray-500"}`}>
             {matchingIngredients === totalIngredients
               ? "You have all ingredients!"
               : `Missing ${totalIngredients - matchingIngredients} ingredients`}
