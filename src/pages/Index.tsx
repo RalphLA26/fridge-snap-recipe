@@ -43,15 +43,15 @@ const Index = () => {
   };
   
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex flex-col">
       <Header />
       
-      <main className="flex-1 container max-w-md mx-auto px-4 py-4">
+      <main className="flex-1 container max-w-md mx-auto px-4 py-5">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
-          className="space-y-5"
+          className="space-y-6"
         >
           <HomeBanner />
           
@@ -67,6 +67,9 @@ const Index = () => {
           />
         </motion.div>
       </main>
+      
+      {/* Subtle footer gradient */}
+      <div className="h-3 bg-gradient-to-r from-fridge-100 via-fridge-200 to-fridge-100 opacity-50" />
     </div>
   );
 };
