@@ -8,7 +8,7 @@ import IngredientManager from "@/components/IngredientManager";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronDown, ChevronUp, Camera, Plus } from "lucide-react";
+import { ChevronDown, ChevronUp, Camera, Plus, UtensilsCrossed } from "lucide-react";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -53,7 +53,7 @@ const Index = () => {
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex flex-col">
       <Header />
       
-      <main className="flex-1 container max-w-lg mx-auto px-5 py-8">
+      <main className="flex-1 container max-w-lg mx-auto px-5 py-6">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -62,8 +62,8 @@ const Index = () => {
         >
           <HomeBanner />
           
-          {/* Action Cards */}
-          <div className="grid grid-cols-2 gap-4">
+          {/* Action Cards with improved styling */}
+          <div className="grid grid-cols-2 gap-4 mt-6">
             {/* Add Ingredient Card */}
             <motion.div
               whileHover={{ scale: 1.03 }}
@@ -71,7 +71,7 @@ const Index = () => {
               className="col-span-1"
             >
               <Card 
-                className="overflow-hidden border-fridge-100 shadow-md hover:shadow-lg transition-all duration-200 h-full cursor-pointer bg-gradient-to-br from-white to-fridge-50"
+                className="overflow-hidden border-none shadow-md hover:shadow-lg transition-all duration-200 h-full cursor-pointer bg-gradient-to-br from-white to-fridge-50"
                 onClick={() => setShowIngredients(true)}
               >
                 <CardContent className="p-6 flex flex-col items-center justify-center h-full">
@@ -91,7 +91,7 @@ const Index = () => {
               className="col-span-1"
             >
               <Card 
-                className="overflow-hidden border-fridge-100 shadow-md hover:shadow-lg transition-all duration-200 h-full cursor-pointer bg-gradient-to-br from-fridge-600 to-fridge-700"
+                className="overflow-hidden border-none shadow-md hover:shadow-lg transition-all duration-200 h-full cursor-pointer bg-gradient-to-br from-fridge-600 to-fridge-700"
                 onClick={handleCameraClick}
               >
                 <CardContent className="p-6 flex flex-col items-center justify-center h-full">
@@ -105,18 +105,21 @@ const Index = () => {
             </motion.div>
           </div>
           
-          {/* Ingredients Counter Button */}
+          {/* Ingredients Counter Button with improved styling */}
           <motion.div
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            className="w-full"
+            className="w-full mt-2"
           >
             <Button
               variant="outline"
-              className="w-full py-6 border-fridge-200 border flex justify-between items-center"
+              className="w-full py-6 border border-fridge-100 shadow-sm rounded-xl flex justify-between items-center bg-white"
               onClick={toggleIngredients}
             >
-              <span className="font-medium">My Ingredients</span>
+              <span className="font-medium flex items-center">
+                <UtensilsCrossed className="h-5 w-5 mr-2 text-fridge-600" />
+                My Ingredients
+              </span>
               <div className="flex items-center">
                 <span className="bg-fridge-100 text-fridge-700 rounded-full px-3 py-1 text-sm font-medium mr-2">
                   {ingredients.length}
