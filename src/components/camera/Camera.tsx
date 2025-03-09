@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Camera as CameraIcon, SwitchCamera, Scan, X, Check, ChevronLeft } from "lucide-react";
@@ -9,6 +8,7 @@ import { useCamera } from "@/hooks/useCamera";
 import { useBarcode } from "@/hooks/useBarcode";
 import { useInventory } from "@/hooks/useInventory";
 import { toast } from "sonner";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface CameraProps {
   onClose: () => void;
@@ -91,16 +91,16 @@ const Camera = ({ onClose }: CameraProps) => {
     }
   };
 
-  const toggleBarcodeScanner = () => {
-    if (isScanningBarcode) {
-      stopBarcodeScanning();
-      setShowBarcodeUI(false);
-    } else {
+  const toggleBarcodeMode = (enabled: boolean) => {
+    if (enabled) {
       if (videoRef.current) {
         setShowBarcodeUI(true);
         startBarcodeScanning(videoRef.current);
         toast.info("Scanning for barcodes...", { duration: 3000 });
       }
+    } else {
+      stopBarcodeScanning();
+      setShowBarcodeUI(false);
     }
   };
 
@@ -170,8 +170,34 @@ const Camera = ({ onClose }: CameraProps) => {
               <ChevronLeft className="h-5 w-5" />
             </Button>
             
-            <div className="text-white text-sm font-medium backdrop-blur-sm bg-black/30 px-3 py-1 rounded-full">
-              {showBarcodeUI ? "Barcode Scanner" : "Fridge Scanner"}
+            {/* Mode toggle switch */}
+            <div className="flex items-center bg-black/40 backdrop-blur-sm rounded-full p-1.5">
+              <motion.div 
+                className="relative flex items-center gap-2 text-white"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                <Button
+                  variant={showBarcodeUI ? "ghost" : "fridge"}
+                  size="sm"
+                  onClick={() => toggleBarcodeMode(false)}
+                  className={`rounded-full flex items-center gap-1.5 ${!showBarcodeUI ? 'shadow-md' : 'opacity-80'}`}
+                >
+                  <CameraIcon className="h-4 w-4" />
+                  <span className="text-xs font-medium">Photo</span>
+                </Button>
+                
+                <Button
+                  variant={showBarcodeUI ? "fridge" : "ghost"}
+                  size="sm"
+                  onClick={() => toggleBarcodeMode(true)}
+                  className={`rounded-full flex items-center gap-1.5 ${showBarcodeUI ? 'shadow-md' : 'opacity-80'}`}
+                >
+                  <Scan className="h-4 w-4" />
+                  <span className="text-xs font-medium">Barcode</span>
+                </Button>
+              </motion.div>
             </div>
             
             <div className="w-10" />  {/* Empty space for alignment */}
@@ -217,32 +243,22 @@ const Camera = ({ onClose }: CameraProps) => {
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={toggleBarcodeScanner}
-                className={`rounded-full p-3 backdrop-blur-sm text-white 
-                  ${isScanningBarcode 
-                    ? 'bg-fridge-600 hover:bg-fridge-700 ring-2 ring-fridge-400' 
-                    : 'bg-black/40 hover:bg-black/60'}`}
+                onClick={switchCamera}
+                disabled={isLoading}
+                className="rounded-full p-3 bg-black/40 backdrop-blur-sm text-white hover:bg-black/60 disabled:opacity-50"
               >
-                <Scan className="h-6 w-6" />
+                <SwitchCamera className="h-6 w-6" />
               </Button>
               
               <Button
                 onClick={handleTakePhoto}
-                disabled={isLoading || isScanningBarcode}
+                disabled={isLoading || showBarcodeUI}
                 className="rounded-full h-18 w-18 bg-white flex items-center justify-center p-0 hover:bg-gray-100 disabled:opacity-50 disabled:bg-gray-400 shadow-lg transition-transform duration-200 hover:scale-105"
               >
                 <div className="rounded-full h-16 w-16 border-2 border-gray-300"></div>
               </Button>
               
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={switchCamera}
-                disabled={isLoading || isScanningBarcode}
-                className="rounded-full p-3 bg-black/40 backdrop-blur-sm text-white hover:bg-black/60 disabled:opacity-50"
-              >
-                <SwitchCamera className="h-6 w-6" />
-              </Button>
+              <div className="w-14 h-14" /> {/* Spacer to maintain centered capture button */}
             </div>
             
             <motion.div 
