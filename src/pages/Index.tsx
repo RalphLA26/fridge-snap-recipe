@@ -62,48 +62,55 @@ const Index = () => {
         >
           <HomeBanner />
           
-          {/* Unified Action Card with improved styling - Camera first */}
+          {/* Enhanced Action Cards with Improved Layout */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.5 }}
             className="mt-6"
           >
-            <Card className="overflow-hidden border-none shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-white to-fridge-50">
+            <Card className="overflow-hidden border-none shadow-lg hover:shadow-xl transition-all duration-300">
               <CardContent className="p-0">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
-                  {/* Scan Ingredient Card - Now First */}
+                {/* Card Header */}
+                <div className="bg-gradient-to-r from-fridge-600 to-fridge-700 p-4 text-white">
+                  <h2 className="text-lg font-semibold">Add Ingredients</h2>
+                  <p className="text-sm text-white/80">Choose how to add items to your inventory</p>
+                </div>
+                
+                {/* Card Actions */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 p-4 bg-white">
+                  {/* Scan Food Option */}
                   <motion.div
                     whileHover={{ scale: 0.98 }}
                     whileTap={{ scale: 0.95 }}
-                    className="p-6 bg-gradient-to-r from-fridge-600 to-fridge-700 cursor-pointer"
+                    className="p-4 rounded-xl bg-gradient-to-br from-fridge-50 to-fridge-100 cursor-pointer border border-fridge-200 shadow-sm"
                     onClick={handleCameraClick}
                   >
-                    <div className="flex flex-col items-center justify-center text-center space-y-4">
-                      <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-md">
-                        <Camera className="h-8 w-8 text-white" />
+                    <div className="flex items-center space-x-4">
+                      <div className="w-14 h-14 rounded-full bg-fridge-600 flex items-center justify-center shadow-md flex-shrink-0">
+                        <Camera className="h-7 w-7 text-white" />
                       </div>
                       <div>
-                        <h3 className="font-semibold text-lg text-white mb-1">Scan Food</h3>
-                        <p className="text-sm text-white/80">Use camera to identify ingredients</p>
+                        <h3 className="font-semibold text-fridge-900">Scan Food</h3>
+                        <p className="text-sm text-fridge-700">Use camera to identify ingredients</p>
                       </div>
                     </div>
                   </motion.div>
                   
-                  {/* Add Ingredient Card - Now Second */}
+                  {/* Add Manually Option */}
                   <motion.div
                     whileHover={{ scale: 0.98 }}
                     whileTap={{ scale: 0.95 }}
-                    className="p-6 border-t md:border-t-0 md:border-l border-fridge-100/50 cursor-pointer"
+                    className="p-4 rounded-xl bg-gradient-to-br from-fridge-50 to-fridge-100 cursor-pointer border border-fridge-200 shadow-sm"
                     onClick={() => setShowIngredients(true)}
                   >
-                    <div className="flex flex-col items-center justify-center text-center space-y-4">
-                      <div className="w-16 h-16 rounded-full bg-gradient-to-br from-fridge-100 to-fridge-200 flex items-center justify-center shadow-md">
-                        <Plus className="h-8 w-8 text-fridge-600" />
+                    <div className="flex items-center space-x-4">
+                      <div className="w-14 h-14 rounded-full bg-fridge-600 flex items-center justify-center shadow-md flex-shrink-0">
+                        <Plus className="h-7 w-7 text-white" />
                       </div>
                       <div>
-                        <h3 className="font-semibold text-lg text-gray-800 mb-1">Add Ingredient</h3>
-                        <p className="text-sm text-gray-500">Manually add items to your inventory</p>
+                        <h3 className="font-semibold text-fridge-900">Add Manually</h3>
+                        <p className="text-sm text-fridge-700">Type in your ingredients</p>
                       </div>
                     </div>
                   </motion.div>
@@ -112,7 +119,7 @@ const Index = () => {
             </Card>
           </motion.div>
           
-          {/* Ingredients Counter Button with improved styling */}
+          {/* Ingredients Counter Button */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
