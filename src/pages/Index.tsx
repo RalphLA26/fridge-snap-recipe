@@ -5,7 +5,6 @@ import { useUser } from "@/contexts/UserContext";
 import Header from "@/components/Header";
 import HomeBanner from "@/components/HomeBanner";
 import IngredientManager from "@/components/IngredientManager";
-import QuickActions from "@/components/QuickActions";
 import { motion } from "framer-motion";
 
 const Index = () => {
@@ -34,10 +33,6 @@ const Index = () => {
     setIngredients(prev => prev.filter(item => item !== ingredient));
   };
   
-  const handleCameraClick = () => {
-    navigate("/camera");
-  };
-  
   const handleFindRecipes = () => {
     navigate("/recipes");
   };
@@ -54,10 +49,6 @@ const Index = () => {
           className="space-y-6"
         >
           <HomeBanner />
-          
-          <QuickActions 
-            onCameraClick={handleCameraClick}
-          />
           
           <IngredientManager
             ingredients={ingredients}
