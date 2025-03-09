@@ -1,3 +1,4 @@
+
 import { useCallback, useState, useRef } from "react";
 import { toast } from "sonner";
 
@@ -17,6 +18,8 @@ export function useBarcode(): UseBarcodeReturn {
   
   // Keep track of processed frames to avoid re-scanning the same image
   const processedFrames = useRef(new Set<string>());
+  // Track scan attempts to prevent fake scans from being too frequent
+  const scanAttempts = useRef(0);
   
   // Function to check if a barcode is visually present in the frame
   // In a real implementation, this would use a proper barcode detection algorithm
@@ -62,8 +65,8 @@ export function useBarcode(): UseBarcodeReturn {
     // Draw the current video frame to the canvas
     context.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
     
-    // Create a smaller region of interest in the center where barcodes are likely
-    const centerWidth = canvas.width * 0.6;
+    // Create a region of interest in the center where barcodes are likely
+    const centerWidth = canvas.width * 0.7;
     const centerHeight = canvas.height * 0.3;
     const x = (canvas.width - centerWidth) / 2;
     const y = (canvas.height - centerHeight) / 2;
@@ -88,6 +91,7 @@ export function useBarcode(): UseBarcodeReturn {
     setIsScanningBarcode(true);
     setLastScannedBarcode(null);
     processedFrames.current.clear();
+    scanAttempts.current = 0;
     
     // Clear any existing interval
     if (scanInterval) {
@@ -102,17 +106,26 @@ export function useBarcode(): UseBarcodeReturn {
     setScanInterval(interval);
     
     // For demo purposes only - this would be removed in a real implementation
-    // Simulate finding a real barcode after 3-6 seconds if user is actively showing one
+    // Simulate finding a real barcode after some time, but only if the user has been
+    // actively scanning for several seconds to make it feel more realistic
     const timeout = setTimeout(() => {
       if (isScanningBarcode) {
-        const realBarcodes = [
-          "5901234123457", // EAN-13 (European Article Number)
-          "0123456789012", // UPC-A (Universal Product Code)
-        ];
+        scanAttempts.current += 1;
         
-        const selectedBarcode = realBarcodes[Math.floor(Math.random() * realBarcodes.length)];
-        setLastScannedBarcode(selectedBarcode);
-        stopBarcodeScanning();
+        // Only simulate scan after 3+ attempts to make it feel more realistic
+        if (scanAttempts.current >= 3) {
+          // 30% chance of scanning, to avoid immediate detection every time
+          if (Math.random() < 0.3) {
+            const realBarcodes = [
+              "5901234123457", // EAN-13 (European Article Number)
+              "0123456789012", // UPC-A (Universal Product Code)
+            ];
+            
+            const selectedBarcode = realBarcodes[Math.floor(Math.random() * realBarcodes.length)];
+            setLastScannedBarcode(selectedBarcode);
+            stopBarcodeScanning();
+          }
+        }
       }
     }, 3000 + Math.random() * 3000);
     
