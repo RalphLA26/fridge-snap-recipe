@@ -45,16 +45,14 @@ const Index = () => {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Header />
       
-      <main className="flex-1 container max-w-3xl mx-auto px-4 py-6 space-y-6">
+      <main className="flex-1 container max-w-3xl mx-auto px-4 py-6">
         <HomeBanner />
         
-        <div className="grid gap-4 grid-cols-1 md:grid-cols-2 mt-6">
-          <QuickActions 
-            ingredientsCount={ingredients.length}
-            onCameraClick={handleCameraClick}
-            onFindRecipes={handleFindRecipes}
-          />
-        </div>
+        <QuickActions 
+          ingredientsCount={ingredients.length}
+          onCameraClick={handleCameraClick}
+          onFindRecipes={handleFindRecipes}
+        />
         
         <div className="bg-white rounded-xl shadow-sm p-6 mt-6">
           <IngredientManager

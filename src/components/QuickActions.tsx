@@ -13,10 +13,10 @@ const QuickActions = ({
   onFindRecipes 
 }: QuickActionsProps) => {
   return (
-    <div className="grid gap-4 grid-cols-2">
+    <div className="grid gap-4 grid-cols-2 mt-6">
       <div
         onClick={onCameraClick}
-        className="bg-white p-6 rounded-xl shadow-sm flex flex-col items-center text-center gap-2 cursor-pointer"
+        className="bg-white p-6 rounded-xl shadow-sm flex flex-col items-center text-center gap-2 cursor-pointer hover:shadow-md transition-all duration-200"
       >
         <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mb-2">
           <Camera className="w-5 h-5 text-fridge-600" />
@@ -27,7 +27,7 @@ const QuickActions = ({
 
       <div
         onClick={onFindRecipes}
-        className={`${ingredientsCount > 0 ? 'bg-fridge-400' : 'bg-blue-300'} p-6 rounded-xl shadow-sm flex flex-col items-center text-center gap-2 cursor-pointer`}
+        className={`${ingredientsCount > 0 ? 'bg-fridge-400' : 'bg-blue-300'} p-6 rounded-xl shadow-sm flex flex-col items-center text-center gap-2 cursor-pointer hover:shadow-md transition-all duration-200`}
       >
         <div className="w-10 h-10 rounded-full bg-white/30 flex items-center justify-center mb-2">
           <Search className="w-5 h-5 text-white" />
