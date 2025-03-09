@@ -1,16 +1,38 @@
 
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, ShoppingBag, Truck, Share2, Check, Tag } from "lucide-react";
+import { ArrowLeft, ShoppingBag, Truck, Share2, Check, Tag, ListChecks, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input"; 
 import ShoppingList from "@/components/ShoppingList";
 import { useUser } from "@/contexts/UserContext";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { useEffect, useState } from "react";
+import { findNearbyStores, GroceryStore } from "@/lib/groceryStoreLocator";
 
 const ShoppingListView = () => {
   const navigate = useNavigate();
   const { user } = useUser();
+  const [nearbyStores, setNearbyStores] = useState<GroceryStore[]>([]);
+  const [isLoadingStores, setIsLoadingStores] = useState(false);
+  
+  // Load nearby stores
+  useEffect(() => {
+    const loadStores = async () => {
+      setIsLoadingStores(true);
+      try {
+        const stores = await findNearbyStores();
+        setNearbyStores(stores);
+      } catch (error) {
+        console.error("Error loading stores:", error);
+      } finally {
+        setIsLoadingStores(false);
+      }
+    };
+    
+    loadStores();
+  }, []);
   
   const handleDeliveryApp = (app: string) => {
     // Get unchecked items for the delivery
@@ -140,9 +162,42 @@ const ShoppingListView = () => {
                   <ShoppingList hideDeliveryButton={true} />
                 </div>
                 
-                {/* Delivery options section */}
-                {user?.shoppingList.length > 0 && (
+                {/* Nearby stores section */}
+                {user?.shoppingList.filter(item => !item.isChecked).length > 0 && (
                   <div className="p-5 bg-fridge-50/50 border-t border-fridge-100">
+                    <h3 className="font-medium text-fridge-800 mb-3 flex items-center">
+                      <Search className="h-4 w-4 mr-2" />
+                      Nearby Grocery Stores
+                    </h3>
+                    
+                    <div className="space-y-2 mb-4">
+                      {isLoadingStores ? (
+                        <div className="text-center py-3">
+                          <div className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-solid border-fridge-500 border-r-transparent"></div>
+                          <p className="mt-2 text-sm text-gray-500">Finding stores near you...</p>
+                        </div>
+                      ) : nearbyStores.length > 0 ? (
+                        nearbyStores.map(store => (
+                          <div key={store.id} className="bg-white rounded-lg p-3 border border-gray-200 shadow-sm hover:shadow transition-all">
+                            <div className="flex justify-between items-center">
+                              <div>
+                                <h4 className="font-medium">{store.name}</h4>
+                                <p className="text-xs text-gray-500">{store.address}</p>
+                              </div>
+                              <span className="text-sm bg-fridge-50 px-2 py-0.5 rounded-full text-fridge-600">
+                                {store.distance} mi
+                              </span>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-center py-3 text-gray-500 text-sm">
+                          No stores found nearby
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Delivery options section */}
                     <h3 className="font-medium text-fridge-800 mb-2 flex items-center">
                       <Truck className="h-4 w-4 mr-2" />
                       Delivery Options
@@ -189,12 +244,12 @@ const ShoppingListView = () => {
           <motion.div 
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-yellow-50 border border-yellow-100 rounded-lg p-4 text-sm text-yellow-800 flex items-start max-w-md mx-auto"
+            className="bg-green-50 border border-green-100 rounded-lg p-4 text-sm text-green-800 flex items-start max-w-md mx-auto"
           >
-            <Check className="h-5 w-5 text-yellow-500 mr-2 flex-shrink-0 mt-0.5" />
+            <ListChecks className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
             <div>
-              <p className="font-medium">All items are checked</p>
-              <p className="text-yellow-600 text-xs mt-1">Uncheck items you want to order for delivery</p>
+              <p className="font-medium">All items are purchased!</p>
+              <p className="text-green-600 text-xs mt-1">Your shopping list is complete. Add more items or uncheck items to use delivery services.</p>
             </div>
           </motion.div>
         )}

@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Plus, X, Check, ShoppingBag, Trash2, ListFilter, Search } from "lucide-react";
+import { Plus, X, Check, ShoppingBag, Trash2, ListFilter, Search, ListChecks } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +21,7 @@ const ShoppingList = ({ hideDeliveryButton = false }: ShoppingListProps) => {
   const [newQuantity, setNewQuantity] = useState("");
   const [sortOption, setSortOption] = useState<SortOption>("added");
   const [searchQuery, setSearchQuery] = useState("");
+  const [showForm, setShowForm] = useState(false);
 
   const handleAddItem = () => {
     if (!newItem.trim()) {
@@ -36,6 +37,9 @@ const ShoppingList = ({ hideDeliveryButton = false }: ShoppingListProps) => {
 
     setNewItem("");
     setNewQuantity("");
+    if (window.innerWidth < 768) {
+      setShowForm(false); // Hide form after adding on mobile
+    }
     toast.success("Item added to shopping list");
   };
 
@@ -83,42 +87,86 @@ const ShoppingList = ({ hideDeliveryButton = false }: ShoppingListProps) => {
   const itemsLeft = sortedItems.filter(item => !item.isChecked).length;
   const completedItems = sortedItems.filter(item => item.isChecked).length;
 
+  // Group items by categories
+  const groupedItems = {
+    unchecked: filteredItems.filter(item => !item.isChecked),
+    checked: filteredItems.filter(item => item.isChecked)
+  };
+
   return (
     <div className="space-y-4">
-      {/* Input area with improved styling */}
-      <div className="bg-white rounded-xl shadow-sm p-4 border border-fridge-100">
-        <div className="flex flex-col gap-3">
-          <div className="flex flex-col md:flex-row items-start md:items-center gap-2">
-            <div className="flex-1 w-full">
-              <Input
-                type="text"
-                value={newItem}
-                onChange={(e) => setNewItem(e.target.value)}
-                onKeyDown={handleKeyPress}
-                className="border-fridge-100 focus:border-fridge-400"
-                placeholder="Add item to shopping list..."
-              />
-            </div>
-            <div className="flex-initial w-full md:w-24">
-              <Input
-                type="text"
-                value={newQuantity}
-                onChange={(e) => setNewQuantity(e.target.value)}
-                onKeyDown={handleKeyPress}
-                className="border-fridge-100 focus:border-fridge-400"
-                placeholder="Qty"
-              />
-            </div>
-            <Button 
-              onClick={handleAddItem}
-              className="h-10 rounded-full bg-fridge-600 hover:bg-fridge-700 text-white w-full md:w-auto transition-all duration-200 shadow-sm hover:shadow"
-            >
-              <Plus className="h-5 w-5 mr-1" />
-              <span>Add Item</span>
-            </Button>
-          </div>
+      {/* Mobile add button - only visible on mobile when form is hidden */}
+      {!showForm && (
+        <div className="md:hidden">
+          <Button 
+            onClick={() => setShowForm(true)}
+            className="w-full rounded-xl bg-fridge-600 hover:bg-fridge-700 text-white transition-all duration-200 shadow-sm hover:shadow"
+          >
+            <Plus className="h-5 w-5 mr-1" />
+            <span>Add Item</span>
+          </Button>
         </div>
-      </div>
+      )}
+      
+      {/* Input area with improved styling - conditionally shown on mobile */}
+      <AnimatePresence>
+        {(showForm || window.innerWidth >= 768) && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            <div className="bg-white rounded-xl shadow-sm p-4 border border-fridge-100">
+              <div className="flex flex-col gap-3">
+                <div className="flex justify-between items-center mb-1">
+                  <h3 className="text-sm font-medium text-gray-700">Add Item</h3>
+                  {window.innerWidth < 768 && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowForm(false)}
+                      className="h-7 w-7 p-0 rounded-full"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+                <div className="flex flex-col md:flex-row items-start md:items-center gap-2">
+                  <div className="flex-1 w-full">
+                    <Input
+                      type="text"
+                      value={newItem}
+                      onChange={(e) => setNewItem(e.target.value)}
+                      onKeyDown={handleKeyPress}
+                      className="border-fridge-100 focus:border-fridge-400"
+                      placeholder="Add item to shopping list..."
+                    />
+                  </div>
+                  <div className="flex-initial w-full md:w-24">
+                    <Input
+                      type="text"
+                      value={newQuantity}
+                      onChange={(e) => setNewQuantity(e.target.value)}
+                      onKeyDown={handleKeyPress}
+                      className="border-fridge-100 focus:border-fridge-400"
+                      placeholder="Qty"
+                    />
+                  </div>
+                  <Button 
+                    onClick={handleAddItem}
+                    className="h-10 rounded-full bg-fridge-600 hover:bg-fridge-700 text-white w-full md:w-auto transition-all duration-200 shadow-sm hover:shadow"
+                  >
+                    <Plus className="h-5 w-5 mr-1" />
+                    <span>Add Item</span>
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       
       {/* Shopping list area */}
       <div className="mt-2">
@@ -197,59 +245,116 @@ const ShoppingList = ({ hideDeliveryButton = false }: ShoppingListProps) => {
             <p>No items match your search</p>
           </div>
         ) : (
-          <motion.ul 
-            className="space-y-2.5"
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-          >
-            <AnimatePresence>
-              {filteredItems.map((item) => (
-                <motion.li 
-                  key={item.id}
-                  variants={itemVariants}
-                  exit="exit"
-                  className={cn(
-                    "flex items-center justify-between py-3 px-4 rounded-xl shadow-sm border transform transition-all duration-200 hover:shadow",
-                    item.isChecked 
-                      ? "border-green-200 bg-gradient-to-r from-green-50 to-green-50/60" 
-                      : "border-fridge-100 bg-white"
-                  )}
+          <div className="space-y-6">
+            {/* Unchecked items */}
+            {groupedItems.unchecked.length > 0 && (
+              <div>
+                <h4 className="text-sm font-medium text-gray-500 mb-2 flex items-center">
+                  <ShoppingBag className="h-4 w-4 mr-1 text-fridge-500" />
+                  Items to Buy ({groupedItems.unchecked.length})
+                </h4>
+                <motion.ul 
+                  className="space-y-2.5"
+                  variants={containerVariants}
+                  initial="hidden"
+                  animate="visible"
                 >
-                  <div className="flex items-center flex-1">
-                    <button
-                      onClick={() => toggleShoppingItem(item.id)}
-                      className={cn(
-                        "flex items-center justify-center h-6 w-6 rounded-full mr-3 transition-colors",
-                        item.isChecked 
-                          ? "bg-green-500 text-white" 
-                          : "border-2 border-fridge-300 hover:border-fridge-400"
-                      )}
-                    >
-                      {item.isChecked && <Check className="h-4 w-4" />}
-                    </button>
-                    <span className={`transition-all ${item.isChecked ? "line-through text-gray-500" : "text-gray-700"}`}>
-                      {item.name}
-                    </span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="text-sm bg-fridge-50 px-2.5 py-1 rounded-full text-fridge-600 mr-3 font-medium">{item.quantity}</span>
-                    <Button
-                      onClick={() => removeFromShoppingList(item.id)}
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 rounded-full hover:bg-red-50 hover:text-red-500 transition-colors"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </motion.li>
-              ))}
-            </AnimatePresence>
-          </motion.ul>
+                  <AnimatePresence>
+                    {groupedItems.unchecked.map((item) => (
+                      <ShoppingListItem 
+                        key={item.id} 
+                        item={item} 
+                        onToggle={() => toggleShoppingItem(item.id)}
+                        onRemove={() => removeFromShoppingList(item.id)}
+                      />
+                    ))}
+                  </AnimatePresence>
+                </motion.ul>
+              </div>
+            )}
+            
+            {/* Checked items */}
+            {groupedItems.checked.length > 0 && (
+              <div>
+                <h4 className="text-sm font-medium text-gray-500 mb-2 flex items-center">
+                  <ListChecks className="h-4 w-4 mr-1 text-green-500" />
+                  Purchased Items ({groupedItems.checked.length})
+                </h4>
+                <motion.ul 
+                  className="space-y-2.5"
+                  variants={containerVariants}
+                  initial="hidden"
+                  animate="visible"
+                >
+                  <AnimatePresence>
+                    {groupedItems.checked.map((item) => (
+                      <ShoppingListItem 
+                        key={item.id} 
+                        item={item} 
+                        onToggle={() => toggleShoppingItem(item.id)}
+                        onRemove={() => removeFromShoppingList(item.id)}
+                      />
+                    ))}
+                  </AnimatePresence>
+                </motion.ul>
+              </div>
+            )}
+          </div>
         )}
       </div>
     </div>
+  );
+};
+
+// Extracted shopping list item component
+const ShoppingListItem = ({ 
+  item, 
+  onToggle, 
+  onRemove 
+}: { 
+  item: ShoppingItem; 
+  onToggle: () => void; 
+  onRemove: () => void;
+}) => {
+  return (
+    <motion.li 
+      variants={itemVariants}
+      exit="exit"
+      className={cn(
+        "flex items-center justify-between py-3 px-4 rounded-xl shadow-sm border transform transition-all duration-200 hover:shadow",
+        item.isChecked 
+          ? "border-green-200 bg-gradient-to-r from-green-50 to-green-50/60" 
+          : "border-fridge-100 bg-white"
+      )}
+    >
+      <div className="flex items-center flex-1">
+        <button
+          onClick={onToggle}
+          className={cn(
+            "flex items-center justify-center h-6 w-6 rounded-full mr-3 transition-colors",
+            item.isChecked 
+              ? "bg-green-500 text-white" 
+              : "border-2 border-fridge-300 hover:border-fridge-400"
+          )}
+        >
+          {item.isChecked && <Check className="h-4 w-4" />}
+        </button>
+        <span className={`transition-all ${item.isChecked ? "line-through text-gray-500" : "text-gray-700"}`}>
+          {item.name}
+        </span>
+      </div>
+      <div className="flex items-center">
+        <span className="text-sm bg-fridge-50 px-2.5 py-1 rounded-full text-fridge-600 mr-3 font-medium">{item.quantity}</span>
+        <Button
+          onClick={onRemove}
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 rounded-full hover:bg-red-50 hover:text-red-500 transition-colors"
+        >
+          <X className="h-4 w-4" />
+        </Button>
+      </div>
+    </motion.li>
   );
 };
 
