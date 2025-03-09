@@ -7,7 +7,8 @@ import {
   FlipHorizontal, 
   Barcode, 
   Lightbulb,
-  Refrigerator 
+  Refrigerator,
+  ScanLine
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -51,12 +52,25 @@ export const CameraViewfinder: React.FC<{
       {/* Mode-specific guide overlay */}
       {mode === "barcode" ? (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className="w-4/5 h-20 border-2 border-white rounded-lg flex items-center justify-center">
-            <Barcode className="h-8 w-8 text-white/80" />
+          <div className="w-4/5 h-24 border-2 border-white rounded-lg flex items-center justify-center">
+            <ScanLine className="h-16 w-full text-white/80 animate-pulse" />
           </div>
-          <div className="absolute bottom-40 text-white text-center text-sm px-4">
-            Align barcode within the frame
+          <div className="absolute bottom-40 text-white text-center text-sm px-4 py-2 bg-black/50 rounded-full">
+            Align barcode within the frame and hold steady
           </div>
+          
+          {/* Animated scanner line */}
+          <motion.div 
+            className="absolute w-4/5 h-0.5 bg-fridge-400"
+            initial={{ top: "40%" }}
+            animate={{ top: "60%" }}
+            transition={{
+              repeat: Infinity,
+              repeatType: "reverse",
+              duration: 1.5,
+              ease: "linear"
+            }}
+          />
         </div>
       ) : (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
@@ -70,7 +84,7 @@ export const CameraViewfinder: React.FC<{
               </svg>
             </div>
           </div>
-          <div className="absolute bottom-40 text-white text-center text-sm px-4 bg-black/30 py-2 rounded-full">
+          <div className="absolute bottom-40 text-white text-center text-sm px-4 py-2 bg-black/50 rounded-full">
             Position food items clearly in the frame
           </div>
         </div>
@@ -79,9 +93,45 @@ export const CameraViewfinder: React.FC<{
       {/* Helper tooltip */}
       <div className="absolute top-32 left-1/2 transform -translate-x-1/2 bg-black/70 text-white text-sm py-2 px-4 rounded-full flex items-center">
         <Refrigerator className="h-4 w-4 mr-2 text-fridge-400" />
-        <span>{mode === "photo" ? "Capture all visible items for best results" : "Hold phone steady"}</span>
+        <span>
+          {mode === "photo" 
+            ? "Capture all visible items for best results" 
+            : "Scan product barcode to add to inventory"
+          }
+        </span>
       </div>
     </div>
+  </div>
+);
+
+// Mode selector component
+export const CameraModeSelector: React.FC<{
+  mode: "photo" | "barcode";
+  toggleMode: () => void;
+}> = ({ mode, toggleMode }) => (
+  <div className="absolute bottom-28 left-1/2 transform -translate-x-1/2 flex bg-black/60 rounded-full p-1 z-10">
+    <Button
+      onClick={toggleMode}
+      variant={mode === "photo" ? "default" : "ghost"}
+      size="sm"
+      className={`rounded-full px-4 flex items-center gap-2 ${
+        mode === "photo" ? "bg-fridge-600 text-white" : "text-white/70"
+      }`}
+    >
+      <CameraIcon className="h-4 w-4" />
+      <span className="text-xs font-medium">Food</span>
+    </Button>
+    <Button
+      onClick={toggleMode}
+      variant={mode === "barcode" ? "default" : "ghost"}
+      size="sm"
+      className={`rounded-full px-4 flex items-center gap-2 ${
+        mode === "barcode" ? "bg-fridge-600 text-white" : "text-white/70"
+      }`}
+    >
+      <Barcode className="h-4 w-4" />
+      <span className="text-xs font-medium">Barcode</span>
+    </Button>
   </div>
 );
 
@@ -93,17 +143,14 @@ export const CameraControls: React.FC<{
   mode: "photo" | "barcode";
   countdown: number | null;
   onClose: () => void;
-  toggleMode: () => void;
   toggleCamera: () => void;
   toggleTorch: () => void;
 }> = ({ 
   facingMode, 
   torchActive, 
   torchSupported, 
-  mode, 
   countdown, 
   onClose, 
-  toggleMode, 
   toggleCamera, 
   toggleTorch 
 }) => (
@@ -112,31 +159,17 @@ export const CameraControls: React.FC<{
       onClick={onClose} 
       variant="ghost" 
       size="icon" 
-      className="bg-black/20 text-white hover:bg-black/40 rounded-full h-12 w-12"
+      className="bg-black/20 text-white hover:bg-black/40 backdrop-blur-md rounded-full h-12 w-12"
     >
       <XCircle className="h-8 w-8" />
     </Button>
     
     <div className="flex space-x-2">
       <Button
-        onClick={toggleMode}
-        variant="ghost"
-        size="icon"
-        className="bg-black/20 text-white hover:bg-black/40 rounded-full h-12 w-12"
-        disabled={countdown !== null}
-      >
-        {mode === "photo" ? (
-          <Barcode className="h-6 w-6" />
-        ) : (
-          <CameraIcon className="h-6 w-6" />
-        )}
-      </Button>
-      
-      <Button
         onClick={toggleCamera}
         variant="ghost"
         size="icon"
-        className="bg-black/20 text-white hover:bg-black/40 rounded-full h-12 w-12"
+        className="bg-black/20 text-white hover:bg-black/40 backdrop-blur-md rounded-full h-12 w-12"
         disabled={countdown !== null}
       >
         <FlipHorizontal className="h-6 w-6" />
@@ -147,8 +180,8 @@ export const CameraControls: React.FC<{
           onClick={toggleTorch}
           variant="ghost"
           size="icon"
-          className={`${torchActive ? 'bg-yellow-500/70' : 'bg-black/20'} text-white hover:bg-black/40 rounded-full h-12 w-12`}
-          disabled={countdown !== null}
+          className={`${torchActive ? 'bg-yellow-500/70' : 'bg-black/20'} text-white hover:bg-black/40 backdrop-blur-md rounded-full h-12 w-12`}
+          disabled={countdown !== null || !torchSupported}
         >
           <Lightbulb className="h-6 w-6" />
         </Button>
@@ -171,20 +204,24 @@ export const CaptureButton: React.FC<{
   captureWithCountdown, 
   capturePhoto 
 }) => (
-  <div className="bg-black p-6 flex justify-center">
-    <Button 
-      onClick={mode === "photo" ? captureWithCountdown : capturePhoto} 
-      variant="ghost" 
-      size="icon" 
-      className="bg-white h-16 w-16 rounded-full hover:bg-gray-200 shadow-lg"
-      disabled={!cameraActive || countdown !== null}
-    >
-      {mode === "photo" ? (
-        <CameraIcon className="h-8 w-8 text-black" />
-      ) : (
-        <Barcode className="h-8 w-8 text-black" />
-      )}
-    </Button>
+  <div className="bg-black/80 p-6 flex justify-center items-center backdrop-blur-md">
+    <div className="flex-1 flex justify-center">
+      <Button 
+        onClick={mode === "photo" ? captureWithCountdown : capturePhoto} 
+        variant="ghost" 
+        size="icon" 
+        className="bg-white h-16 w-16 rounded-full hover:bg-gray-200 shadow-lg relative"
+        disabled={!cameraActive || countdown !== null}
+      >
+        {mode === "photo" ? (
+          <CameraIcon className="h-8 w-8 text-black" />
+        ) : (
+          <Barcode className="h-8 w-8 text-black" />
+        )}
+        {/* Pulsing ring for active state */}
+        <span className="absolute -inset-1 rounded-full border-2 border-white/30 animate-ping" />
+      </Button>
+    </div>
   </div>
 );
 
@@ -201,7 +238,7 @@ export const CameraOverlays: React.FC<{
     
     {/* Countdown display */}
     {countdown && (
-      <div className="absolute inset-0 flex items-center justify-center">
+      <div className="absolute inset-0 flex items-center justify-center bg-black/40 z-10">
         <motion.div 
           key={countdown}
           initial={{ scale: 1.5, opacity: 0 }}
@@ -261,6 +298,9 @@ const CameraUI: React.FC<CameraUIProps> = ({
       {/* Canvas for capturing photos (hidden) */}
       <canvas ref={canvasRef} className="hidden" />
       
+      {/* Mode selector */}
+      <CameraModeSelector mode={mode} toggleMode={toggleMode} />
+      
       {/* Flash and countdown overlays */}
       <CameraOverlays flash={flash} countdown={countdown} />
       
@@ -277,4 +317,3 @@ const CameraUI: React.FC<CameraUIProps> = ({
 };
 
 export default CameraUI;
-

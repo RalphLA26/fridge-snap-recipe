@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import Camera from "@/components/camera";
 import { toast } from "sonner";
-import { ChevronLeft, Camera as CameraIcon, ImageIcon } from "lucide-react";
+import { ChevronLeft, Camera as CameraIcon, ImageIcon, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { detectIngredientsFromImage, IngredientDetectionResult } from "@/lib/imageRecognition";
 
@@ -126,14 +126,15 @@ const CameraView = () => {
               {isAnalyzing && (
                 <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                   <div className="text-white text-center">
-                    <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-white mx-auto mb-4"></div>
+                    <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-fridge-400 mx-auto mb-4"></div>
                     <p className="text-lg">Analyzing image...</p>
+                    <p className="text-sm text-gray-300 mt-2">Identifying ingredients...</p>
                   </div>
                 </div>
               )}
             </div>
             
-            <div className="bg-white p-4 rounded-t-2xl -mt-6 pt-8 min-h-64 z-10">
+            <div className="bg-white p-4 rounded-t-2xl -mt-6 pt-8 min-h-64 z-10 shadow-[0_-10px_20px_-5px_rgba(0,0,0,0.1)]">
               <h2 className="text-xl font-semibold mb-2">
                 {detectedIngredients.length > 0 
                   ? `Detected Ingredients (${detectedIngredients.length})` 
@@ -142,14 +143,19 @@ const CameraView = () => {
               
               {detectedIngredients.length > 0 ? (
                 <div className="mb-6">
-                  <ul className="space-y-2 max-h-60 overflow-y-auto">
+                  <ul className="space-y-2 max-h-60 overflow-y-auto px-1">
                     {detectedIngredients.map((ingredient, index) => (
                       <li 
                         key={index}
-                        className="px-3 py-2 bg-gray-50 rounded-md text-sm flex items-center"
+                        className="px-3 py-2.5 bg-fridge-50 rounded-md text-sm flex items-center justify-between border border-fridge-100"
                       >
-                        <span className="h-2 w-2 bg-green-500 rounded-full mr-2"></span>
-                        {ingredient}
+                        <div className="flex items-center">
+                          <span className="h-2 w-2 bg-fridge-500 rounded-full mr-2"></span>
+                          <span className="font-medium text-fridge-900">{ingredient}</span>
+                        </div>
+                        <div className="flex space-x-1">
+                          <Check className="h-4 w-4 text-fridge-500" />
+                        </div>
                       </li>
                     ))}
                   </ul>
@@ -165,14 +171,18 @@ const CameraView = () => {
                 <Button 
                   variant="outline"
                   onClick={handleBack}
+                  className="border-fridge-200 hover:bg-fridge-50"
                 >
+                  <X className="h-4 w-4 mr-2" />
                   Retake Photo
                 </Button>
                 <Button 
                   onClick={handleConfirmIngredients}
                   disabled={detectedIngredients.length === 0 || isAnalyzing}
+                  className="bg-fridge-600 hover:bg-fridge-700"
                 >
-                  Confirm
+                  <Check className="h-4 w-4 mr-2" />
+                  Save to Fridge
                 </Button>
               </div>
             </div>
