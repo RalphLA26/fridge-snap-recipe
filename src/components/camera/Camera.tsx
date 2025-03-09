@@ -1,6 +1,7 @@
+
 import { useState, useCallback, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Camera as CameraIcon, SwitchCamera, Scan, X, Check } from "lucide-react";
+import { Camera as CameraIcon, SwitchCamera, Scan, X, Check, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import CameraError from "@/components/CameraError";
@@ -83,9 +84,10 @@ const Camera = ({ onClose }: CameraProps) => {
   const handleConfirm = () => {
     if (ingredients.length > 0) {
       saveIngredientsToInventory(ingredients);
+      toast.success("Items added to your inventory");
+      onClose();
     } else {
       toast.error("No ingredients detected");
-      onClose();
     }
   };
 
@@ -97,6 +99,7 @@ const Camera = ({ onClose }: CameraProps) => {
       if (videoRef.current) {
         setShowBarcodeUI(true);
         startBarcodeScanning(videoRef.current);
+        toast.info("Scanning for barcodes...", { duration: 3000 });
       }
     }
   };
@@ -136,12 +139,17 @@ const Camera = ({ onClose }: CameraProps) => {
       {/* Camera viewfinder */}
       {!capturedImage ? (
         <div className="relative h-full w-full">
+          {/* Loading state */}
           {isLoading && (
-            <div className="absolute inset-0 flex items-center justify-center z-10">
+            <div className="absolute inset-0 flex flex-col items-center justify-center z-10 bg-black/95">
               <LoadingSpinner size="lg" color="fridge" text="Initializing camera..." />
+              <p className="text-white/70 text-sm mt-4 max-w-xs text-center">
+                Please allow camera access when prompted
+              </p>
             </div>
           )}
           
+          {/* Camera preview */}
           <video
             ref={videoRef}
             autoPlay
@@ -151,16 +159,46 @@ const Camera = ({ onClose }: CameraProps) => {
             style={{ display: isLoading ? "none" : "block" }}
           />
           
+          {/* Header UI */}
+          <div className="absolute top-0 left-0 right-0 p-4 flex items-center justify-between bg-gradient-to-b from-black/70 to-transparent">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onClose}
+              className="rounded-full h-10 w-10 bg-black/30 text-white backdrop-blur-sm hover:bg-black/40"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </Button>
+            
+            <div className="text-white text-sm font-medium backdrop-blur-sm bg-black/30 px-3 py-1 rounded-full">
+              {showBarcodeUI ? "Barcode Scanner" : "Fridge Scanner"}
+            </div>
+            
+            <div className="w-10" />  {/* Empty space for alignment */}
+          </div>
+          
           {/* Scanning overlay for barcode mode */}
           {showBarcodeUI && (
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <div className="w-64 h-64 border-2 border-fridge-500 rounded-lg relative">
-                <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-fridge-500"></div>
-                <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-fridge-500"></div>
-                <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-fridge-500"></div>
-                <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-fridge-500"></div>
-              </div>
-              <p className="text-white mt-4 text-center bg-black/50 px-4 py-2 rounded-full">
+              <motion.div 
+                className="w-64 h-64 border-2 border-fridge-500 rounded-lg relative"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.3 }}
+              >
+                <div className="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-fridge-500"></div>
+                <div className="absolute top-0 right-0 w-6 h-6 border-t-2 border-r-2 border-fridge-500"></div>
+                <div className="absolute bottom-0 left-0 w-6 h-6 border-b-2 border-l-2 border-fridge-500"></div>
+                <div className="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 border-fridge-500"></div>
+                <motion.div 
+                  className="absolute inset-0 border-fridge-500"
+                  animate={{ 
+                    boxShadow: ["inset 0 0 0px rgba(42, 157, 143, 0)", "inset 0 0 20px rgba(42, 157, 143, 0.5)", "inset 0 0 0px rgba(42, 157, 143, 0)"] 
+                  }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                />
+              </motion.div>
+              <p className="text-white mt-6 text-center bg-black/50 px-4 py-2 rounded-full text-sm">
                 Center the barcode in the box
               </p>
             </div>
@@ -169,13 +207,21 @@ const Camera = ({ onClose }: CameraProps) => {
           <canvas ref={canvasRef} className="hidden" />
           
           {/* Camera controls */}
-          <div className="absolute bottom-0 left-0 right-0 pb-10 flex flex-col items-center">
-            <div className="flex items-center justify-center gap-8 mb-4">
+          <motion.div 
+            className="absolute bottom-0 left-0 right-0 pb-10 flex flex-col items-center bg-gradient-to-t from-black/70 via-black/40 to-transparent pt-20"
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.2 }}
+          >
+            <div className="flex items-center justify-center gap-8 mb-6">
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={toggleBarcodeScanner}
-                className={`rounded-full p-3 bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 ${isScanningBarcode ? 'bg-fridge-600 hover:bg-fridge-700' : ''}`}
+                className={`rounded-full p-3 backdrop-blur-sm text-white 
+                  ${isScanningBarcode 
+                    ? 'bg-fridge-600 hover:bg-fridge-700 ring-2 ring-fridge-400' 
+                    : 'bg-black/40 hover:bg-black/60'}`}
               >
                 <Scan className="h-6 w-6" />
               </Button>
@@ -183,9 +229,9 @@ const Camera = ({ onClose }: CameraProps) => {
               <Button
                 onClick={handleTakePhoto}
                 disabled={isLoading || isScanningBarcode}
-                className="rounded-full h-16 w-16 bg-white flex items-center justify-center p-0 hover:bg-gray-200"
+                className="rounded-full h-18 w-18 bg-white flex items-center justify-center p-0 hover:bg-gray-100 disabled:opacity-50 disabled:bg-gray-400 shadow-lg transition-transform duration-200 hover:scale-105"
               >
-                <div className="rounded-full h-14 w-14 border-2 border-gray-300"></div>
+                <div className="rounded-full h-16 w-16 border-2 border-gray-300"></div>
               </Button>
               
               <Button
@@ -193,18 +239,23 @@ const Camera = ({ onClose }: CameraProps) => {
                 size="icon"
                 onClick={switchCamera}
                 disabled={isLoading || isScanningBarcode}
-                className="rounded-full p-3 bg-white/10 backdrop-blur-sm text-white hover:bg-white/20"
+                className="rounded-full p-3 bg-black/40 backdrop-blur-sm text-white hover:bg-black/60 disabled:opacity-50"
               >
                 <SwitchCamera className="h-6 w-6" />
               </Button>
             </div>
             
-            <p className="text-white text-sm bg-black/50 px-4 py-2 rounded-full">
+            <motion.div 
+              className="text-white text-sm bg-black/50 px-4 py-2 rounded-full max-w-xs text-center"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+            >
               {showBarcodeUI
-                ? "Scanning for barcodes..."
+                ? "Scanning for barcodes... Hold steady!"
                 : "Take a photo of your fridge contents"}
-            </p>
-          </div>
+            </motion.div>
+          </motion.div>
         </div>
       ) : (
         /* Image review and results */
@@ -213,35 +264,54 @@ const Camera = ({ onClose }: CameraProps) => {
           animate={{ opacity: 1 }}
           className="h-full w-full flex flex-col"
         >
-          {capturedImage && (
-            <div className="relative h-2/3 bg-black">
+          {/* Image preview area */}
+          <div className="relative h-3/5 bg-black">
+            {capturedImage && (
               <img
                 src={capturedImage}
                 alt="Captured"
                 className="h-full w-full object-contain"
               />
+            )}
+            <div className="absolute top-0 left-0 right-0 p-4 flex items-center justify-between bg-gradient-to-b from-black/70 to-transparent">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleRetake}
+                className="rounded-full h-10 w-10 bg-black/30 text-white backdrop-blur-sm hover:bg-black/40"
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </Button>
+              
+              <div className="text-white text-sm font-medium backdrop-blur-sm bg-black/30 px-3 py-1 rounded-full">
+                Review Results
+              </div>
+              
+              <div className="w-10" />  {/* Empty space for alignment */}
             </div>
-          )}
+          </div>
           
+          {/* Results display */}
           <div className="flex-1 bg-gray-900 p-5 flex flex-col">
-            <h3 className="text-white text-lg font-medium mb-2">
+            <h3 className="text-white text-lg font-medium mb-4">
               {ingredients.length > 0
-                ? "We detected these items:"
+                ? "Items detected in your fridge:"
                 : "Analyzing items..."}
             </h3>
             
+            {/* Detected items list */}
             {ingredients.length > 0 ? (
-              <ul className="mb-4 flex-1 overflow-y-auto">
+              <ul className="mb-6 flex-1 overflow-y-auto space-y-3">
                 {ingredients.map((item, index) => (
                   <motion.li
                     key={index}
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.1 }}
-                    className="text-white bg-gray-800 p-3 rounded-md mb-2 flex items-center"
+                    className="text-white bg-gray-800 p-4 rounded-lg flex items-center shadow-sm"
                   >
-                    <div className="h-2 w-2 bg-fridge-500 rounded-full mr-2"></div>
-                    {item}
+                    <div className="h-3 w-3 bg-fridge-500 rounded-full mr-3 flex-shrink-0"></div>
+                    <span className="font-medium">{item}</span>
                   </motion.li>
                 ))}
               </ul>
@@ -251,11 +321,12 @@ const Camera = ({ onClose }: CameraProps) => {
               </div>
             )}
             
-            <div className="flex gap-3 justify-end mt-auto">
+            {/* Action buttons */}
+            <div className="flex gap-3 justify-between mt-auto">
               <Button
                 onClick={handleRetake}
                 variant="outline"
-                className="border-gray-700 text-white hover:bg-gray-800"
+                className="border-gray-700 text-white hover:bg-gray-800 flex-1"
               >
                 <X className="h-4 w-4 mr-2" />
                 Retake
@@ -265,24 +336,15 @@ const Camera = ({ onClose }: CameraProps) => {
                 onClick={handleConfirm}
                 variant="fridge"
                 disabled={ingredients.length === 0}
+                className="flex-1"
               >
                 <Check className="h-4 w-4 mr-2" />
-                Confirm
+                Add to Inventory
               </Button>
             </div>
           </div>
         </motion.div>
       )}
-      
-      {/* Close button */}
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={onClose}
-        className="absolute top-4 left-4 rounded-full h-10 w-10 bg-black/30 text-white backdrop-blur-sm hover:bg-black/40 z-50"
-      >
-        <X className="h-5 w-5" />
-      </Button>
     </div>
   );
 };

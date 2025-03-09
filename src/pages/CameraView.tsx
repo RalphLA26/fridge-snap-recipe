@@ -2,8 +2,6 @@
 import { useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ChevronLeft } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Camera } from "@/components/camera";
 
 const CameraView = () => {
@@ -19,6 +17,7 @@ const CameraView = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
+      transition={{ duration: 0.3 }}
     >
       <Camera onClose={handleBack} />
     </motion.div>
