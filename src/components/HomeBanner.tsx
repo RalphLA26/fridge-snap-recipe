@@ -5,7 +5,7 @@ import { UtensilsCrossed } from "lucide-react";
 const HomeBanner = () => {
   return (
     <motion.div
-      className="overflow-hidden relative rounded-xl shadow-md"
+      className="overflow-hidden relative rounded-xl shadow-lg"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
@@ -28,7 +28,7 @@ const HomeBanner = () => {
         >
           <div className="flex items-center mb-6">
             <motion.div 
-              className="bg-white/20 p-3.5 rounded-full mr-4 shadow-inner backdrop-blur-sm"
+              className="bg-white/20 p-3.5 rounded-full mr-4 shadow-lg backdrop-blur-sm"
               whileHover={{ scale: 1.05, rotate: 5 }}
               transition={{ type: "spring", stiffness: 400, damping: 10 }}
             >
@@ -38,7 +38,7 @@ const HomeBanner = () => {
           </div>
           
           <p className="text-white/90 text-xl font-light leading-snug ml-1 mb-5">
-            Turn your ingredients into<br /><span className="font-medium">delicious meals</span> with ease
+            Turn your ingredients into<br /><span className="font-semibold">delicious meals</span> with ease
           </p>
           
           <motion.div 
@@ -47,7 +47,7 @@ const HomeBanner = () => {
             transition={{ delay: 0.5, duration: 0.5 }}
             className="mt-3 ml-1"
           >
-            <span className="inline-block bg-white/20 text-white text-sm px-4 py-1.5 rounded-full backdrop-blur-sm shadow-sm">
+            <span className="inline-block bg-white/20 text-white text-sm px-4 py-1.5 rounded-full backdrop-blur-sm shadow-md">
               Scan • Discover • Cook
             </span>
           </motion.div>
