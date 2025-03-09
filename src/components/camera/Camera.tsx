@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useCamera } from "@/hooks/useCamera";
 import CameraLoading from "./CameraLoading";
@@ -23,6 +23,15 @@ const Camera: React.FC<CameraProps> = ({ onCapture, onClose }) => {
     toggleCamera,
     capturePhoto
   } = useCamera();
+  
+  // Ensure the video element gets focus
+  useEffect(() => {
+    if (videoRef.current) {
+      console.log("Video ref is available:", videoRef.current);
+    } else {
+      console.warn("Video ref is not available");
+    }
+  }, [videoRef.current]);
   
   // Handle photo capture
   const handleCapturePhoto = async () => {
@@ -60,18 +69,18 @@ const Camera: React.FC<CameraProps> = ({ onCapture, onClose }) => {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
     >
-      {/* Camera view */}
+      {/* Camera view - Important: z-index needs to be appropriate */}
       <div className="relative flex-1 overflow-hidden">
         <video 
           ref={videoRef}
-          className="absolute inset-0 w-full h-full object-cover" 
+          className="absolute inset-0 w-full h-full object-cover z-10" 
           autoPlay 
           playsInline 
           muted
         />
         
         {/* Focus guides */}
-        <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute inset-0 pointer-events-none z-20">
           <div className="w-full h-full border-[40px] border-black/50 box-border"></div>
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="w-4/5 h-4/5 border-2 border-white/60 rounded-lg"></div>
@@ -79,7 +88,7 @@ const Camera: React.FC<CameraProps> = ({ onCapture, onClose }) => {
         </div>
         
         {/* Hidden canvas for capture */}
-        <canvas ref={canvasRef} className="hidden" />
+        <canvas ref={canvasRef} className="hidden" width="1280" height="720" />
       </div>
       
       <CameraControls

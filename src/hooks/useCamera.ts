@@ -18,7 +18,6 @@ export const useCamera = ({ initialFacingMode = "environment" }: UseCameraOption
   // Initialize camera when component mounts or facingMode changes
   useEffect(() => {
     let mounted = true;
-    let timer: ReturnType<typeof setTimeout>;
     
     const initCamera = async () => {
       try {
@@ -78,27 +77,25 @@ export const useCamera = ({ initialFacingMode = "environment" }: UseCameraOption
         if (mounted) {
           setStream(newStream);
           
-          // Wait for the video element to be connected to the stream
+          // Important: We need to make sure the video element is available
+          // before setting srcObject
           if (videoRef.current) {
+            // Set the stream to the video element
             videoRef.current.srcObject = newStream;
-            await new Promise<void>((resolve) => {
-              if (!videoRef.current) return resolve();
-              
-              const onCanPlay = () => {
-                resolve();
-                videoRef.current?.removeEventListener('canplay', onCanPlay);
-              };
-              
-              if (videoRef.current.readyState >= 2) {
-                resolve();
-              } else {
-                videoRef.current.addEventListener('canplay', onCanPlay);
-              }
-            });
             
-            videoRef.current.play();
-            setIsLoading(false);
+            // Wait for the video to be ready
+            videoRef.current.onloadedmetadata = () => {
+              if (mounted && videoRef.current) {
+                videoRef.current.play().catch(err => {
+                  console.error("Error playing video:", err);
+                  setError("Failed to play video stream");
+                });
+                setIsLoading(false);
+              }
+            };
           } else {
+            console.warn("Video element not available yet, will retry");
+            // Set a flag to retry but don't throw error immediately
             throw new Error("Video element not available");
           }
         }
@@ -130,21 +127,18 @@ export const useCamera = ({ initialFacingMode = "environment" }: UseCameraOption
       }
     };
     
-    // Small delay to ensure DOM is ready
-    timer = setTimeout(() => {
-      initCamera();
-    }, 500);
+    // Initialize camera immediately (no delay)
+    initCamera();
     
     return () => {
       mounted = false;
-      clearTimeout(timer);
       
       // Clean up stream when component unmounts
       if (stream) {
         stream.getTracks().forEach(track => track.stop());
       }
     };
-  }, [facingMode, stream]);
+  }, [facingMode]);
   
   // Toggle between front and back camera
   const toggleCamera = () => {
