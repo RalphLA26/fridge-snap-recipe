@@ -1,6 +1,6 @@
 
 import { motion } from "framer-motion";
-import { Refrigerator, Utensils } from "lucide-react";
+import { Refrigerator, Utensils, Sparkles } from "lucide-react";
 
 const HomeBanner = () => {
   return (
@@ -15,23 +15,36 @@ const HomeBanner = () => {
           <div className="w-full h-full bg-white rounded-bl-full"></div>
         </div>
         
-        <div className="relative z-10 max-w-md">
+        <motion.div 
+          className="relative z-10 max-w-md"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.3, duration: 0.5 }}
+        >
           <div className="flex items-center mb-4">
-            <div className="bg-white/20 p-2 rounded-xl mr-3">
+            <div className="bg-white/20 p-2 rounded-xl mr-3 backdrop-blur-sm">
               <Refrigerator className="h-6 w-6 text-white" />
             </div>
             <h1 className="text-3xl font-bold">FridgeSnap</h1>
+            <motion.div
+              initial={{ rotate: -20, opacity: 0 }}
+              animate={{ rotate: 0, opacity: 1 }}
+              transition={{ delay: 0.5, duration: 0.5 }}
+              className="ml-2"
+            >
+              <Sparkles className="h-5 w-5 text-yellow-300" />
+            </motion.div>
           </div>
           
-          <p className="text-white/90 text-lg">
+          <p className="text-white/90 text-lg font-light">
             Turn your ingredients into delicious recipes with just a few clicks.
           </p>
           
-          <div className="flex items-center mt-4 text-white/80 text-sm">
+          <div className="flex items-center mt-4 text-white/80 text-sm backdrop-blur-sm bg-white/10 px-3 py-2 rounded-full w-fit">
             <Utensils className="h-4 w-4 mr-2" />
             <span>Quick and easy meal planning</span>
           </div>
-        </div>
+        </motion.div>
         
         {/* Decorative elements */}
         <div className="absolute -right-10 -bottom-10 opacity-10">

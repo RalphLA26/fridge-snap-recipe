@@ -6,6 +6,7 @@ import Header from "@/components/Header";
 import HomeBanner from "@/components/HomeBanner";
 import IngredientManager from "@/components/IngredientManager";
 import QuickActions from "@/components/QuickActions";
+import { motion } from "framer-motion";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -42,26 +43,37 @@ const Index = () => {
   };
   
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col">
       <Header />
       
-      <main className="flex-1 container max-w-3xl mx-auto px-4 py-6">
-        <HomeBanner />
-        
-        <QuickActions 
-          ingredientsCount={ingredients.length}
-          onCameraClick={handleCameraClick}
-          onFindRecipes={handleFindRecipes}
-        />
-        
-        <div className="bg-white rounded-xl shadow-sm p-6 mt-6">
-          <IngredientManager
-            ingredients={ingredients}
-            onAddIngredient={handleAddIngredient}
-            onRemoveIngredient={handleRemoveIngredient}
+      <main className="flex-1 container max-w-3xl mx-auto px-4 py-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <HomeBanner />
+          
+          <QuickActions 
+            ingredientsCount={ingredients.length}
+            onCameraClick={handleCameraClick}
             onFindRecipes={handleFindRecipes}
           />
-        </div>
+          
+          <motion.div 
+            className="bg-white rounded-xl shadow-sm p-6 mt-6 border border-gray-100"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
+            <IngredientManager
+              ingredients={ingredients}
+              onAddIngredient={handleAddIngredient}
+              onRemoveIngredient={handleRemoveIngredient}
+              onFindRecipes={handleFindRecipes}
+            />
+          </motion.div>
+        </motion.div>
       </main>
     </div>
   );
