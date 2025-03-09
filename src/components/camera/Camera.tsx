@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Camera as CameraIcon, SwitchCamera, Check, ChevronLeft, Barcode, ZoomIn, Aperture, Focus } from "lucide-react";
@@ -18,7 +17,7 @@ const Camera = ({ onClose }: CameraProps) => {
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [ingredients, setIngredients] = useState<string[]>([]);
   const [showBarcodeUI, setShowBarcodeUI] = useState(false);
-  canvasRef = useRef<HTMLCanvasElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const { saveIngredientsToInventory } = useInventory();
   
   // Camera hook initialization
