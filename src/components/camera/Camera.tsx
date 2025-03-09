@@ -199,36 +199,27 @@ const Camera = ({ onClose }: CameraProps) => {
           {isBarcodeMode ? "Scan Barcode" : capturedImage ? "Review" : "Camera"}
         </h2>
         
-        {!capturedImage && (
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={toggleBarcodeMode}
-            className={`rounded-full ${isBarcodeMode ? "bg-fridge-600 text-white" : "text-white hover:bg-white/10"}`}
-          >
-            {isBarcodeMode ? <CameraIcon className="h-5 w-5" /> : <Barcode className="h-5 w-5" />}
-          </Button>
-        )}
+        <div className="w-10" />
       </div>
       
       {/* Bottom controls */}
       <div className="absolute bottom-0 left-0 right-0 p-6 flex items-center justify-center bg-black/60 z-10">
         {!capturedImage ? (
           // Camera controls
-          <div className="flex items-center justify-center gap-12">
+          <div className="flex items-center justify-center gap-8">
             {/* Camera switch button */}
             <Button
               variant="outline"
               size="icon"
               onClick={switchCamera}
-              disabled={isLoading || isBarcodeMode}
+              disabled={isLoading}
               className="rounded-full h-12 w-12 bg-black/50 text-white hover:bg-black/70 border border-white/20"
             >
               <SwitchCamera className="h-5 w-5" />
             </Button>
             
-            {/* Shutter button */}
-            {!isBarcodeMode && (
+            {/* Capture button (photo or barcode) */}
+            {!isBarcodeMode ? (
               <button
                 onClick={handleTakePhoto}
                 disabled={isLoading}
@@ -236,7 +227,22 @@ const Camera = ({ onClose }: CameraProps) => {
               >
                 <div className="rounded-full h-14 w-14 border-2 border-gray-300" />
               </button>
+            ) : (
+              <div className="rounded-full h-16 w-16 bg-white/20 border-2 border-white/40 flex items-center justify-center">
+                <Barcode className="h-8 w-8 text-white" />
+              </div>
             )}
+            
+            {/* Mode toggle button */}
+            <Button
+              variant={isBarcodeMode ? "fridge" : "outline"}
+              size="icon"
+              onClick={toggleBarcodeMode}
+              disabled={isLoading}
+              className={`rounded-full h-12 w-12 ${isBarcodeMode ? "" : "bg-black/50 text-white hover:bg-black/70 border border-white/20"}`}
+            >
+              {isBarcodeMode ? <CameraIcon className="h-5 w-5" /> : <Barcode className="h-5 w-5" />}
+            </Button>
           </div>
         ) : (
           // Review controls
