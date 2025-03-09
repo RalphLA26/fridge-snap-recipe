@@ -76,35 +76,35 @@ const Index = () => {
                   <p className="text-sm text-white/90 mt-1">Add ingredients to your inventory</p>
                 </div>
                 
-                {/* Card Actions - Side by Side with improved layout */}
+                {/* Card Actions - Side by Side */}
                 <div className="p-5">
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-3">
                     {/* Scan Food Option */}
                     <motion.div
                       whileHover={{ scale: 0.98 }}
                       whileTap={{ scale: 0.95 }}
-                      className="flex flex-col items-center p-5 rounded-xl bg-gradient-to-r from-fridge-50 to-fridge-100 cursor-pointer border border-fridge-200 shadow-sm hover:shadow-md transition-all duration-300 h-full"
+                      className="p-4 rounded-xl bg-gradient-to-r from-fridge-50 to-fridge-100 cursor-pointer border border-fridge-200 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col items-center text-center h-full"
                       onClick={handleCameraClick}
                     >
-                      <div className="w-14 h-14 rounded-full bg-gradient-to-br from-fridge-500 to-fridge-600 flex items-center justify-center shadow-md mb-4">
-                        <Camera className="h-7 w-7 text-white" />
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-fridge-500 to-fridge-600 flex items-center justify-center shadow-md mb-3">
+                        <Camera className="h-6 w-6 text-white" />
                       </div>
-                      <h3 className="font-semibold text-fridge-900 text-center">Scan Food</h3>
-                      <p className="text-sm text-fridge-700 mt-1.5 text-center leading-snug">Use your camera to identify ingredients</p>
+                      <h3 className="font-semibold text-fridge-900">Scan Food</h3>
+                      <p className="text-sm text-fridge-700 mt-1">Use camera to identify</p>
                     </motion.div>
                     
                     {/* Add Manually Option */}
                     <motion.div
                       whileHover={{ scale: 0.98 }}
                       whileTap={{ scale: 0.95 }}
-                      className="flex flex-col items-center p-5 rounded-xl bg-gradient-to-r from-fridge-50 to-fridge-100 cursor-pointer border border-fridge-200 shadow-sm hover:shadow-md transition-all duration-300 h-full"
+                      className="p-4 rounded-xl bg-gradient-to-r from-fridge-50 to-fridge-100 cursor-pointer border border-fridge-200 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col items-center text-center h-full"
                       onClick={() => setShowIngredients(true)}
                     >
-                      <div className="w-14 h-14 rounded-full bg-gradient-to-br from-fridge-500 to-fridge-600 flex items-center justify-center shadow-md mb-4">
-                        <Plus className="h-7 w-7 text-white" />
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-fridge-500 to-fridge-600 flex items-center justify-center shadow-md mb-3">
+                        <Plus className="h-6 w-6 text-white" />
                       </div>
-                      <h3 className="font-semibold text-fridge-900 text-center">Add Manually</h3>
-                      <p className="text-sm text-fridge-700 mt-1.5 text-center leading-snug">Type your ingredients into the app</p>
+                      <h3 className="font-semibold text-fridge-900">Add Manually</h3>
+                      <p className="text-sm text-fridge-700 mt-1">Type in your ingredients</p>
                     </motion.div>
                   </div>
                 </div>
