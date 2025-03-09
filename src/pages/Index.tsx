@@ -38,15 +38,15 @@ const Index = () => {
   };
   
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-50 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex flex-col">
       <Header />
       
-      <main className="flex-1 container max-w-md mx-auto px-4 py-6">
+      <main className="flex-1 container max-w-lg mx-auto px-5 py-8">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
-          className="space-y-6"
+          className="space-y-8"
         >
           <HomeBanner />
           
@@ -59,9 +59,11 @@ const Index = () => {
         </motion.div>
       </main>
       
-      {/* Enhanced footer with gradients */}
-      <div className="h-1 bg-gradient-to-r from-fridge-300/50 via-fridge-500/60 to-fridge-300/50" />
-      <div className="h-0.5 bg-gradient-to-r from-fridge-100 via-fridge-200 to-fridge-100" />
+      {/* Enhanced footer with multi-layer gradients */}
+      <div className="mt-auto">
+        <div className="h-1.5 bg-gradient-to-r from-fridge-300/40 via-fridge-500/70 to-fridge-300/40" />
+        <div className="h-0.5 bg-gradient-to-r from-fridge-100 via-fridge-200 to-fridge-100" />
+      </div>
     </div>
   );
 };
