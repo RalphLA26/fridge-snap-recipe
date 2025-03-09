@@ -6,7 +6,6 @@ import Header from "@/components/Header";
 import HomeBanner from "@/components/HomeBanner";
 import IngredientManager from "@/components/IngredientManager";
 import QuickActions from "@/components/QuickActions";
-import { ShoppingBag, Clock, ChefHat } from "lucide-react";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -41,17 +40,13 @@ const Index = () => {
   const handleFindRecipes = () => {
     navigate("/recipes");
   };
-
-  const handleNavigate = (path: string) => {
-    navigate(path);
-  };
   
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
       
-      <main className="container max-w-md mx-auto px-4 py-4">
-        <div className="space-y-4">
+      <main className="container max-w-md mx-auto px-4 py-6">
+        <div className="space-y-5">
           <HomeBanner />
           
           <QuickActions 
@@ -60,35 +55,26 @@ const Index = () => {
             onFindRecipes={handleFindRecipes}
           />
           
-          <div className="grid grid-cols-3 gap-3">
+          <div className="flex justify-between">
             <button 
-              onClick={() => handleNavigate("/shopping-list")}
-              className="flex flex-col items-center justify-center p-3 bg-white rounded-lg border border-gray-100 shadow-sm"
+              onClick={() => navigate("/shopping-list")}
+              className="flex-1 py-3 text-center bg-white rounded-lg border border-gray-100 shadow-sm mx-1"
             >
-              <div className="w-8 h-8 bg-fridge-50 rounded-full flex items-center justify-center mb-1">
-                <ShoppingBag className="w-4 h-4 text-fridge-600" />
-              </div>
-              <span className="text-xs font-medium">Shopping</span>
+              <span className="text-sm font-medium">Shopping</span>
             </button>
             
             <button 
-              onClick={() => handleNavigate("/inventory")}
-              className="flex flex-col items-center justify-center p-3 bg-white rounded-lg border border-gray-100 shadow-sm"
+              onClick={() => navigate("/inventory")}
+              className="flex-1 py-3 text-center bg-white rounded-lg border border-gray-100 shadow-sm mx-1"
             >
-              <div className="w-8 h-8 bg-fridge-50 rounded-full flex items-center justify-center mb-1">
-                <Clock className="w-4 h-4 text-fridge-600" />
-              </div>
-              <span className="text-xs font-medium">Inventory</span>
+              <span className="text-sm font-medium">Inventory</span>
             </button>
             
             <button 
-              onClick={() => handleNavigate("/recipes")}
-              className="flex flex-col items-center justify-center p-3 bg-white rounded-lg border border-gray-100 shadow-sm"
+              onClick={() => navigate("/recipes")}
+              className="flex-1 py-3 text-center bg-white rounded-lg border border-gray-100 shadow-sm mx-1"
             >
-              <div className="w-8 h-8 bg-fridge-50 rounded-full flex items-center justify-center mb-1">
-                <ChefHat className="w-4 h-4 text-fridge-600" />
-              </div>
-              <span className="text-xs font-medium">Recipes</span>
+              <span className="text-sm font-medium">Recipes</span>
             </button>
           </div>
           
