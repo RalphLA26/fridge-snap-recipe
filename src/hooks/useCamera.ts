@@ -32,20 +32,35 @@ export function useCamera({
       const constraints = {
         video: {
           facingMode: currentFacingMode,
+          // Request high quality for better results
           width: { ideal: 1920 },
           height: { ideal: 1080 },
         },
       };
+
+      // Stop any existing streams
+      if (stream) {
+        stream.getTracks().forEach((track) => track.stop());
+      }
 
       const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
       setStream(mediaStream);
       
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
+        
+        // Wait for video to be ready
+        videoRef.current.onloadedmetadata = () => {
+          if (videoRef.current) {
+            videoRef.current.play().catch(e => {
+              console.error("Error playing video:", e);
+            });
+          }
+        };
       }
       
       setError(null);
-      console.log("Camera initialized successfully");
+      console.log("Camera initialized with facing mode:", currentFacingMode);
     } catch (err) {
       console.error("Camera initialization error:", err);
       const cameraError = err instanceof Error ? err : new Error("Failed to access camera");
@@ -60,11 +75,6 @@ export function useCamera({
   };
 
   const switchCamera = () => {
-    // Stop current stream
-    if (stream) {
-      stream.getTracks().forEach((track) => track.stop());
-    }
-    
     // Toggle facing mode
     setCurrentFacingMode(prev => prev === "environment" ? "user" : "environment");
   };
@@ -78,6 +88,8 @@ export function useCamera({
     try {
       const video = videoRef.current;
       const canvas = document.createElement("canvas");
+      
+      // Use the actual video dimensions for best quality
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
       
@@ -90,8 +102,7 @@ export function useCamera({
       context.drawImage(video, 0, 0, canvas.width, canvas.height);
       
       // Get the image as a data URL
-      const dataUrl = canvas.toDataURL("image/jpeg");
-      console.log("Photo taken successfully");
+      const dataUrl = canvas.toDataURL("image/jpeg", 0.85); // Good quality but not too large
       
       return dataUrl;
     } catch (err) {

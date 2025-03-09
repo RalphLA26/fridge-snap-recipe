@@ -1,5 +1,5 @@
 
-import { useCallback, useState, useRef } from "react";
+import { useCallback, useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
 
 interface UseBarcodeReturn {
@@ -11,70 +11,62 @@ interface UseBarcodeReturn {
 
 export function useBarcode(): UseBarcodeReturn {
   const [isScanningBarcode, setIsScanningBarcode] = useState(false);
-  const [scanInterval, setScanInterval] = useState<number | null>(null);
   const [lastScannedBarcode, setLastScannedBarcode] = useState<string | null>(null);
+  const scanIntervalRef = useRef<number | null>(null);
+  const scanTimeoutRef = useRef<number | null>(null);
   
-  // Track scan attempts to prevent fake scans from being too frequent
-  const scanAttempts = useRef(0);
-  
-  // Process video frames to detect barcodes
-  const processVideoFrame = useCallback((videoElement: HTMLVideoElement) => {
-    // In a real implementation, this would analyze the video frame for barcodes
-    // For demo purposes, we're simulating barcode detection
-    console.log("Processing video frame for barcode");
+  // Cleanup function to stop scanning
+  const cleanupScanning = useCallback(() => {
+    if (scanIntervalRef.current) {
+      clearInterval(scanIntervalRef.current);
+      scanIntervalRef.current = null;
+    }
+    
+    if (scanTimeoutRef.current) {
+      clearTimeout(scanTimeoutRef.current);
+      scanTimeoutRef.current = null;
+    }
   }, []);
-
+  
+  // Start scanning for barcodes
   const startBarcodeScanning = useCallback((videoElement: HTMLVideoElement) => {
     setIsScanningBarcode(true);
     setLastScannedBarcode(null);
     
-    // Clear any existing interval
-    if (scanInterval) {
-      clearInterval(scanInterval);
-    }
+    // Clean up any existing intervals
+    cleanupScanning();
     
-    // Set new interval to check for barcodes
-    const interval = window.setInterval(() => {
-      processVideoFrame(videoElement);
-    }, 200);
+    // Real barcode formats for simulation
+    const realBarcodes = [
+      "5901234123457", // EAN-13
+      "0123456789012", // UPC-A
+      "7350053850149", // Swedish product
+      "8410700624307", // Spanish product
+    ];
     
-    setScanInterval(interval);
-    
-    // For demo purposes only - simulate finding a barcode after a few seconds
-    const scanSimulation = setTimeout(() => {
+    // Simulate finding a barcode after a short delay
+    scanTimeoutRef.current = window.setTimeout(() => {
+      // Only proceed if we're still scanning
       if (isScanningBarcode) {
-        scanAttempts.current += 1;
-        
-        // Simulate successful scan after a couple of attempts
-        if (scanAttempts.current >= 2) {
-          // Real barcode formats 
-          const realBarcodes = [
-            "5901234123457", // EAN-13
-            "0123456789012", // UPC-A
-            "7350053850149", // Swedish product
-            "8410700624307", // Spanish product
-          ];
-          
-          const selectedBarcode = realBarcodes[Math.floor(Math.random() * realBarcodes.length)];
-          
-          setLastScannedBarcode(selectedBarcode);
-          stopBarcodeScanning();
-          toast.success("Barcode detected!");
-        }
+        // Randomly select a barcode
+        const selectedBarcode = realBarcodes[Math.floor(Math.random() * realBarcodes.length)];
+        setLastScannedBarcode(selectedBarcode);
       }
-    }, 2000 + Math.random() * 1000);
-    
-    // Remember to clear the timeout on cleanup
-    return () => clearTimeout(scanSimulation);
-  }, [scanInterval, processVideoFrame, isScanningBarcode]);
+    }, 1500 + Math.random() * 1000); // Random delay for realism
+  }, [isScanningBarcode, cleanupScanning]);
 
+  // Stop scanning
   const stopBarcodeScanning = useCallback(() => {
-    if (scanInterval) {
-      clearInterval(scanInterval);
-      setScanInterval(null);
-    }
+    cleanupScanning();
     setIsScanningBarcode(false);
-  }, [scanInterval]);
+  }, [cleanupScanning]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      cleanupScanning();
+    };
+  }, [cleanupScanning]);
 
   return {
     isScanningBarcode,

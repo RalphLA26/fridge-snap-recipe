@@ -13,7 +13,7 @@ const CameraView = () => {
   
   return (
     <motion.div 
-      className="h-screen w-full fixed inset-0 bg-black overflow-hidden"
+      className="h-full w-full fixed inset-0 bg-black overflow-hidden"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}

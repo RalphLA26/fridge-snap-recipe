@@ -1,6 +1,7 @@
+
 import { useState, useCallback, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Camera as CameraIcon, SwitchCamera, Check, ChevronLeft, Barcode, ZoomIn, Aperture, Focus } from "lucide-react";
+import { Camera as CameraIcon, SwitchCamera, ChevronLeft, Barcode, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import CameraError from "@/components/CameraError";
@@ -15,8 +16,8 @@ interface CameraProps {
 
 const Camera = ({ onClose }: CameraProps) => {
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
-  const [ingredients, setIngredients] = useState<string[]>([]);
-  const [showBarcodeUI, setShowBarcodeUI] = useState(false);
+  const [productInfo, setProductInfo] = useState<string | null>(null);
+  const [isBarcodeMode, setIsBarcodeMode] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { saveIngredientsToInventory } = useInventory();
   
@@ -40,94 +41,86 @@ const Camera = ({ onClose }: CameraProps) => {
     lastScannedBarcode
   } = useBarcode();
 
-  // For demo purposes - simulate detecting items in a fridge image
-  const analyzeImage = useCallback(async () => {
-    if (!capturedImage) return;
+  // Toggle between barcode mode and regular camera mode
+  const toggleBarcodeMode = useCallback(() => {
+    const newMode = !isBarcodeMode;
+    setIsBarcodeMode(newMode);
     
-    toast.info("Analyzing image...");
-    
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    // Mock detection results
-    const mockIngredients = [
-      "Milk",
-      "Eggs",
-      "Cheese",
-      "Butter",
-      "Yogurt",
-      "Spinach",
-      "Carrots",
-      "Bread",
-      "Chicken",
-      "Apples"
-    ];
-    
-    // Randomly select 2-4 ingredients from the mock list
-    const numIngredients = Math.floor(Math.random() * 3) + 2;
-    const shuffled = [...mockIngredients].sort(() => 0.5 - Math.random());
-    const detected = shuffled.slice(0, numIngredients);
-    
-    setIngredients(detected);
-    toast.success(`Detected ${detected.length} items in your fridge!`);
-  }, [capturedImage]);
-
-  const handleTakePhoto = async () => {
-    const photoData = await takePhoto();
-    if (photoData) {
-      setCapturedImage(photoData);
-      analyzeImage();
-    }
-  };
-
-  const handleRetake = () => {
-    setCapturedImage(null);
-    setIngredients([]);
-  };
-
-  const handleConfirm = () => {
-    if (ingredients.length > 0) {
-      saveIngredientsToInventory(ingredients);
-      toast.success("Items added to your inventory");
-      onClose();
-    } else {
-      toast.error("No ingredients detected");
-    }
-  };
-
-  const toggleBarcodeMode = (enabled: boolean) => {
-    if (enabled) {
+    if (newMode) {
       if (videoRef.current) {
-        setShowBarcodeUI(true);
         startBarcodeScanning(videoRef.current);
-        toast.info("Point camera at barcode");
+        toast.info("Scan a barcode");
       }
     } else {
       stopBarcodeScanning();
-      setShowBarcodeUI(false);
     }
-  };
+  }, [isBarcodeMode, videoRef, startBarcodeScanning, stopBarcodeScanning]);
 
-  // When a barcode is detected
+  // Handle barcode detection result
   useEffect(() => {
     if (lastScannedBarcode) {
-      // Simulate looking up a product by barcode
-      const mockProducts = {
+      // Simulate product lookup by barcode
+      const mockProducts: Record<string, string> = {
         "5901234123457": "Milk (1L)",
         "0123456789012": "Free-Range Eggs (12 pack)",
         "7350053850149": "Organic Spinach (200g)",
         "8410700624307": "Cheddar Cheese (250g)",
       };
       
-      const product = mockProducts[lastScannedBarcode as keyof typeof mockProducts] || "Unknown Product";
+      const product = mockProducts[lastScannedBarcode] || "Unknown Product";
+      setProductInfo(product);
       
-      setIngredients([product]);
-      setCapturedImage(""); // Just to trigger the review screen
-      setShowBarcodeUI(false);
+      // Create a blank image to represent barcode scan
+      const canvas = document.createElement("canvas");
+      canvas.width = 600;
+      canvas.height = 400;
+      const ctx = canvas.getContext("2d");
+      if (ctx) {
+        ctx.fillStyle = "#f0f0f0";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.font = "bold 24px Arial";
+        ctx.fillStyle = "#333";
+        ctx.textAlign = "center";
+        ctx.fillText(`Barcode: ${lastScannedBarcode}`, canvas.width/2, canvas.height/2 - 20);
+        ctx.fillText(`Product: ${product}`, canvas.width/2, canvas.height/2 + 20);
+        setCapturedImage(canvas.toDataURL());
+      }
       
-      toast.success(`Scanned product: ${product}`);
+      stopBarcodeScanning();
+      setIsBarcodeMode(false);
+      toast.success(`Product identified: ${product}`);
     }
-  }, [lastScannedBarcode]);
+  }, [lastScannedBarcode, stopBarcodeScanning]);
+
+  const handleTakePhoto = async () => {
+    const photoData = await takePhoto();
+    if (photoData) {
+      setCapturedImage(photoData);
+      
+      // For regular photos, we don't set any product info
+      setProductInfo(null);
+      
+      toast.success("Photo captured!");
+    }
+  };
+
+  const handleRetake = () => {
+    setCapturedImage(null);
+    setProductInfo(null);
+  };
+
+  const handleSave = () => {
+    if (productInfo) {
+      // If we have a product (from barcode), add it to inventory
+      saveIngredientsToInventory([productInfo]);
+      toast.success(`${productInfo} added to your inventory`);
+    } else if (capturedImage) {
+      // Just save the photo if there's no product info
+      // You could add more functionality here
+      toast.success("Photo saved");
+    }
+    onClose();
+  };
 
   // Retry camera access
   const handleRetry = useCallback(() => {
@@ -140,20 +133,17 @@ const Camera = ({ onClose }: CameraProps) => {
 
   return (
     <div className="relative h-full w-full bg-black overflow-hidden">
-      {/* Camera viewfinder */}
-      {!capturedImage ? (
-        <div className="relative h-full w-full">
-          {/* Loading state */}
-          {isLoading && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center z-10 bg-black/95">
-              <LoadingSpinner size="lg" color="fridge" text="Initializing camera..." />
-              <p className="text-white/70 text-sm mt-4 max-w-xs text-center">
-                Please allow camera access when prompted
-              </p>
-            </div>
-          )}
-          
-          {/* Camera preview */}
+      {/* Camera viewfinder or captured image */}
+      <div className="relative h-full w-full flex items-center justify-center">
+        {/* Loading state */}
+        {isLoading && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center z-10 bg-black/95">
+            <LoadingSpinner size="lg" color="fridge" text="Starting camera..." />
+          </div>
+        )}
+        
+        {/* Camera feed */}
+        {!capturedImage ? (
           <div className="relative h-full w-full">
             <video
               ref={videoRef}
@@ -161,198 +151,125 @@ const Camera = ({ onClose }: CameraProps) => {
               playsInline
               muted
               className="h-full w-full object-cover"
-              style={{ display: isLoading ? "none" : "block" }}
             />
             
-            {/* Barcode UI overlay */}
-            {showBarcodeUI && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
-                <div className="p-4 bg-black/80 rounded-lg max-w-xs w-full text-center">
-                  <div className="mb-4">
-                    <div className="w-full aspect-video border-2 border-fridge-400 rounded-md mb-4 relative overflow-hidden">
-                      {/* Scanner line animation */}
-                      <motion.div 
-                        className="absolute left-0 right-0 h-0.5 bg-fridge-500"
-                        initial={{ top: "10%" }}
-                        animate={{ top: "90%" }}
-                        transition={{ 
-                          duration: 1.5, 
-                          repeat: Infinity,
-                          repeatType: "reverse"
-                        }}
-                      />
-                    </div>
-                    <p className="text-white font-medium">Point camera at barcode</p>
-                  </div>
-                  <Button
-                    variant="outline"
-                    onClick={() => toggleBarcodeMode(false)}
-                    className="w-full border-white/20 text-white hover:bg-white/10"
-                  >
-                    Cancel
-                  </Button>
+            {/* Barcode scanning overlay */}
+            {isBarcodeMode && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-4/5 max-w-xs aspect-[3/2] border-2 border-white/80 rounded-md">
+                  <motion.div 
+                    className="w-full h-0.5 bg-fridge-500"
+                    initial={{ top: "20%" }}
+                    animate={{ top: "80%" }}
+                    transition={{ 
+                      duration: 1.5, 
+                      repeat: Infinity,
+                      repeatType: "reverse"
+                    }}
+                    style={{ position: "relative" }}
+                  />
                 </div>
               </div>
             )}
           </div>
-          
-          {/* Header UI */}
-          <div className="absolute top-0 left-0 right-0 p-4 flex items-center justify-between bg-black/60 z-10">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onClose}
-              className="rounded-full text-white hover:bg-white/10"
-            >
-              <ChevronLeft className="h-5 w-5" />
-            </Button>
-            
-            <h2 className="text-white text-lg font-medium">
-              {showBarcodeUI ? "Barcode Scanner" : "Camera"}
-            </h2>
-            
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => toggleBarcodeMode(!showBarcodeUI)}
-              className="rounded-full text-white hover:bg-white/10"
-            >
-              {showBarcodeUI ? <CameraIcon className="h-5 w-5" /> : <Barcode className="h-5 w-5" />}
-            </Button>
+        ) : (
+          // Show captured image
+          <div className="h-full w-full flex items-center justify-center bg-black">
+            <img 
+              src={capturedImage} 
+              alt="Captured" 
+              className="max-h-full max-w-full object-contain"
+            />
           </div>
-          
-          <canvas ref={canvasRef} className="hidden" />
-          
-          {/* Camera controls */}
-          {!showBarcodeUI && (
-            <div className="absolute bottom-0 left-0 right-0 flex flex-col items-center bg-black/60 py-6 z-10">
-              <div className="flex items-center justify-center gap-10 mb-4">
-                {/* Camera switch button */}
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={switchCamera}
-                  disabled={isLoading}
-                  className="rounded-full h-12 w-12 bg-black/50 text-white hover:bg-black/70 border border-white/20"
-                >
-                  <SwitchCamera className="h-5 w-5" />
-                </Button>
-                
-                {/* Shutter button */}
-                <button
-                  onClick={handleTakePhoto}
-                  disabled={isLoading}
-                  className="rounded-full h-16 w-16 bg-white disabled:bg-gray-400 flex items-center justify-center shadow-lg border-4 border-white/90"
-                >
-                  <div className="absolute inset-2 rounded-full border-2 border-gray-300" />
-                </button>
-                
-                {/* Barcode button */}
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => toggleBarcodeMode(true)}
-                  disabled={isLoading}
-                  className="rounded-full h-12 w-12 bg-black/50 text-white hover:bg-black/70 border border-white/20"
-                >
-                  <Barcode className="h-5 w-5" />
-                </Button>
-              </div>
-              
-              {/* Instruction */}
-              <div className="text-white text-sm bg-black/50 px-4 py-2 rounded-full">
-                Take a photo of your fridge
-              </div>
-            </div>
-          )}
-        </div>
-      ) : (
-        /* Review captured image and results */
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="h-full w-full flex flex-col"
+        )}
+      </div>
+      
+      {/* Header bar */}
+      <div className="absolute top-0 left-0 right-0 p-4 flex items-center justify-between bg-black/60 z-10">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onClose}
+          className="rounded-full text-white hover:bg-white/10"
         >
-          {/* Header with glass morphism */}
-          <div className="p-4 flex items-center justify-between backdrop-blur-md bg-black/50 border-b border-white/10 z-10">
+          <ChevronLeft className="h-5 w-5" />
+        </Button>
+        
+        <h2 className="text-white text-lg font-medium">
+          {isBarcodeMode ? "Scan Barcode" : capturedImage ? "Review" : "Camera"}
+        </h2>
+        
+        {!capturedImage && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleBarcodeMode}
+            className={`rounded-full ${isBarcodeMode ? "bg-fridge-600 text-white" : "text-white hover:bg-white/10"}`}
+          >
+            {isBarcodeMode ? <CameraIcon className="h-5 w-5" /> : <Barcode className="h-5 w-5" />}
+          </Button>
+        )}
+      </div>
+      
+      {/* Bottom controls */}
+      <div className="absolute bottom-0 left-0 right-0 p-6 flex items-center justify-center bg-black/60 z-10">
+        {!capturedImage ? (
+          // Camera controls
+          <div className="flex items-center justify-center gap-12">
+            {/* Camera switch button */}
             <Button
-              variant="ghost"
+              variant="outline"
               size="icon"
-              onClick={handleRetake}
-              className="rounded-full h-10 w-10 flex items-center justify-center text-white hover:bg-white/10"
+              onClick={switchCamera}
+              disabled={isLoading || isBarcodeMode}
+              className="rounded-full h-12 w-12 bg-black/50 text-white hover:bg-black/70 border border-white/20"
             >
-              <ChevronLeft className="h-5 w-5" />
+              <SwitchCamera className="h-5 w-5" />
             </Button>
             
-            <h2 className="text-white text-lg font-medium">Review</h2>
-            
-            <div className="w-10" /> {/* Empty space for balance */}
-          </div>
-          
-          {/* Image preview */}
-          <div className="relative flex-1 bg-black flex items-center justify-center">
-            {capturedImage && (
-              <img
-                src={capturedImage}
-                alt="Captured"
-                className="max-h-full max-w-full object-contain"
-              />
+            {/* Shutter button */}
+            {!isBarcodeMode && (
+              <button
+                onClick={handleTakePhoto}
+                disabled={isLoading}
+                className="rounded-full h-16 w-16 bg-white disabled:bg-gray-400 flex items-center justify-center shadow-lg"
+              >
+                <div className="rounded-full h-14 w-14 border-2 border-gray-300" />
+              </button>
             )}
           </div>
-          
-          {/* Results panel with glass morphism */}
-          <div className="bg-black/90 backdrop-blur-md border-t border-white/10 p-5 flex flex-col">
-            <h3 className="text-white text-lg font-medium mb-4">
-              {ingredients.length > 0
-                ? "Detected Items:"
-                : "Analyzing..."}
-            </h3>
+        ) : (
+          // Review controls
+          <div className="w-full flex justify-between gap-4">
+            <Button
+              variant="outline"
+              onClick={handleRetake}
+              className="flex-1 bg-black/50 text-white border-white/20 hover:bg-black/70"
+            >
+              Retake
+            </Button>
             
-            {/* Items list */}
-            {ingredients.length > 0 ? (
-              <ul className="space-y-2 mb-6 max-h-40 overflow-y-auto">
-                {ingredients.map((item, index) => (
-                  <motion.li
-                    key={index}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    className="text-white bg-white/10 backdrop-blur-sm p-3 rounded-lg flex items-center border border-white/5 shadow-md"
-                  >
-                    <div className="h-2.5 w-2.5 bg-fridge-500 rounded-full mr-3" />
-                    <span>{item}</span>
-                  </motion.li>
-                ))}
-              </ul>
-            ) : (
-              <div className="py-6 flex items-center justify-center">
-                <LoadingSpinner color="fridge" text="Analyzing image..." />
-              </div>
-            )}
-            
-            {/* Action buttons */}
-            <div className="flex gap-3 mt-2">
-              <Button
-                onClick={handleRetake}
-                variant="outline"
-                className="flex-1 border-white/20 text-white bg-black/30 hover:bg-black/50"
-              >
-                Retake
-              </Button>
-              
-              <Button
-                onClick={handleConfirm}
-                variant="fridge"
-                disabled={ingredients.length === 0}
-                className="flex-1"
-              >
-                <Check className="mr-2 h-4 w-4" />
-                Add to Inventory
-              </Button>
-            </div>
+            <Button
+              variant="fridge"
+              onClick={handleSave}
+              className="flex-1"
+            >
+              <Check className="mr-1 h-4 w-4" />
+              {productInfo ? "Add to Inventory" : "Save Photo"}
+            </Button>
           </div>
-        </motion.div>
+        )}
+      </div>
+      
+      {/* Product info overlay */}
+      {capturedImage && productInfo && (
+        <div className="absolute top-20 left-0 right-0 mx-auto bg-black/80 backdrop-blur-md p-4 rounded-lg max-w-xs text-center text-white">
+          <h3 className="font-medium mb-1">Product Identified:</h3>
+          <p className="text-lg">{productInfo}</p>
+        </div>
       )}
+      
+      <canvas ref={canvasRef} className="hidden" />
     </div>
   );
 };
