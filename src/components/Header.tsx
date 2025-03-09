@@ -1,7 +1,7 @@
 
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { BookOpen, ShoppingBag, User, Package, Home } from "lucide-react";
+import { BookOpen, ShoppingBag, User, Home } from "lucide-react";
 import { useUser } from "@/contexts/UserContext";
 
 const Header = () => {
@@ -42,15 +42,6 @@ const Header = () => {
             title="Home"
           >
             <Home className="h-5 w-5" />
-          </Button>
-          <Button
-            variant="ghost" 
-            size="icon"
-            onClick={() => navigate("/inventory")}
-            className={`hover:bg-transparent ${isActive("/inventory") ? "text-fridge-600" : "text-gray-400"}`}
-            title="Inventory"
-          >
-            <Package className="h-5 w-5" />
           </Button>
           <Button
             variant="ghost" 
