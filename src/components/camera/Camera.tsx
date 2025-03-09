@@ -96,7 +96,7 @@ const Camera = ({ onClose }: CameraProps) => {
       if (videoRef.current) {
         setShowBarcodeUI(true);
         startBarcodeScanning(videoRef.current);
-        toast.info("Scanning for barcodes...", { duration: 3000 });
+        toast.info("Position barcode in the scanner area", { duration: 3000 });
       }
     } else {
       stopBarcodeScanning();
@@ -203,7 +203,7 @@ const Camera = ({ onClose }: CameraProps) => {
             <div className="w-10" />  {/* Empty space for alignment */}
           </div>
           
-          {/* Scanning overlay for barcode mode - improved UI */}
+          {/* Improved barcode scanning overlay */}
           {showBarcodeUI && (
             <div className="absolute inset-0 flex flex-col items-center justify-center">
               <motion.div 
@@ -212,42 +212,68 @@ const Camera = ({ onClose }: CameraProps) => {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.3 }}
               >
-                {/* Inner scanning area */}
-                <div className="w-64 h-64 relative">
-                  {/* Scanner frame with animated gradient border */}
-                  <div className="absolute inset-0 rounded-lg overflow-hidden">
-                    <div className="absolute inset-0 bg-transparent border-2 border-fridge-500/80 rounded-lg"></div>
+                {/* Inner scanning area with barcode pattern */}
+                <div className="w-72 h-56 relative">
+                  {/* Scanner frame */}
+                  <div className="absolute inset-0 rounded-md overflow-hidden">
+                    {/* Barcode pattern top & bottom */}
+                    <div className="absolute top-0 left-0 right-0 h-8 bg-black/20 backdrop-blur-sm flex items-center overflow-hidden">
+                      {Array.from({ length: 30 }).map((_, i) => (
+                        <div 
+                          key={`top-${i}`} 
+                          className="h-full w-1.5 bg-white/80" 
+                          style={{ marginRight: '2px' }}
+                        />
+                      ))}
+                    </div>
+                    <div className="absolute bottom-0 left-0 right-0 h-8 bg-black/20 backdrop-blur-sm flex items-center overflow-hidden">
+                      {Array.from({ length: 30 }).map((_, i) => (
+                        <div 
+                          key={`bottom-${i}`} 
+                          className="h-full w-1.5 bg-white/80" 
+                          style={{ marginRight: '2px' }}
+                        />
+                      ))}
+                    </div>
                     
-                    {/* Animated scanner line */}
+                    {/* Main scan area */}
+                    <div className="absolute top-8 left-0 right-0 bottom-8 border-2 border-fridge-500/80 rounded-md bg-transparent">
+                      {/* Barcode marker indicators */}
+                      <div className="absolute top-0 left-6 bottom-0 border-l-2 border-fridge-300/30"></div>
+                      <div className="absolute top-0 right-6 bottom-0 border-l-2 border-fridge-300/30"></div>
+                    </div>
+                    
+                    {/* Animated scanner laser */}
                     <motion.div 
-                      className="absolute left-0 right-0 h-0.5 bg-fridge-500 z-10 shadow-[0_0_8px_rgba(56,189,248,0.8)]"
-                      initial={{ top: 0 }}
-                      animate={{ top: "100%" }}
+                      className="absolute left-0 right-0 h-0.5 bg-red-500 z-10 shadow-[0_0_8px_rgba(239,68,68,0.8)]"
+                      initial={{ top: "10%" }}
+                      animate={{ top: "90%" }}
                       transition={{ 
-                        duration: 2, 
-                        ease: "linear",
+                        duration: 1.8, 
+                        ease: "easeInOut",
                         repeat: Infinity,
+                        repeatType: "reverse"
                       }}
                     />
                     
-                    {/* Corner elements */}
-                    <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-fridge-500 rounded-tl-lg"></div>
-                    <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-fridge-500 rounded-tr-lg"></div>
-                    <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-fridge-500 rounded-bl-lg"></div>
-                    <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-fridge-500 rounded-br-lg"></div>
+                    {/* Corner elements - targeting indicators */}
+                    <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-fridge-500 rounded-tl-md"></div>
+                    <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-fridge-500 rounded-tr-md"></div>
+                    <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-fridge-500 rounded-bl-md"></div>
+                    <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-fridge-500 rounded-br-md"></div>
                   </div>
                   
-                  {/* Subtle scanner effect */}
+                  {/* Scanner effect glow */}
                   <motion.div 
-                    className="absolute inset-0 rounded-lg"
+                    className="absolute inset-0 rounded-md"
                     animate={{ 
-                      boxShadow: ["inset 0 0 0px rgba(56, 189, 248, 0)", "inset 0 0 25px rgba(56, 189, 248, 0.4)", "inset 0 0 0px rgba(56, 189, 248, 0)"] 
+                      boxShadow: ["inset 0 0 0px rgba(56, 189, 248, 0)", "inset 0 0 25px rgba(56, 189, 248, 0.3)", "inset 0 0 0px rgba(56, 189, 248, 0)"] 
                     }}
                     transition={{ duration: 2.5, repeat: Infinity }}
                   />
                 </div>
                 
-                {/* Scanning indicator */}
+                {/* Scanning status indicator */}
                 <motion.div 
                   className="mt-8 flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-black/60 backdrop-blur-md border border-white/10 shadow-lg"
                   initial={{ opacity: 0, y: 10 }}
@@ -255,11 +281,11 @@ const Camera = ({ onClose }: CameraProps) => {
                   transition={{ delay: 0.3 }}
                 >
                   <div className="relative flex-shrink-0">
-                    <div className="absolute inset-0 rounded-full bg-fridge-500/30 animate-pulse"></div>
-                    <div className="relative h-2 w-2 rounded-full bg-fridge-500"></div>
+                    <div className="absolute inset-0 rounded-full bg-red-500/30 animate-pulse"></div>
+                    <div className="relative h-2 w-2 rounded-full bg-red-500"></div>
                   </div>
                   <p className="text-white text-sm font-medium">
-                    Center the barcode
+                    Position barcode in scanner
                   </p>
                 </motion.div>
               </motion.div>
@@ -268,7 +294,7 @@ const Camera = ({ onClose }: CameraProps) => {
           
           <canvas ref={canvasRef} className="hidden" />
           
-          {/* Camera controls - improved UI */}
+          {/* Camera controls */}
           <motion.div 
             className="absolute bottom-0 left-0 right-0 pb-10 flex flex-col items-center bg-gradient-to-t from-black/80 via-black/50 to-transparent pt-24"
             initial={{ y: 20, opacity: 0 }}
