@@ -51,15 +51,21 @@ const IngredientManager = ({
   };
 
   return (
-    <Card className="mt-5 border-fridge-100 shadow-md overflow-hidden bg-white">
+    <Card className="mt-6 border-fridge-100/80 shadow-md overflow-hidden bg-white">
       <CardHeader className="bg-gradient-to-r from-fridge-50 to-white pb-3 border-b border-fridge-100/60">
         <CardTitle className="text-xl font-medium text-gray-800 flex items-center">
-          <ListChecks className="mr-2 h-5 w-5 text-fridge-600" />
+          <div className="bg-fridge-100 p-1.5 rounded-full mr-2.5">
+            <ListChecks className="h-5 w-5 text-fridge-700" />
+          </div>
           My Ingredients
           {ingredients.length > 0 && (
-            <span className="ml-2 text-sm bg-fridge-100 text-fridge-800 py-0.5 px-2.5 rounded-full">
+            <motion.span 
+              initial={{ scale: 0.8 }}
+              animate={{ scale: 1 }}
+              className="ml-2 text-sm bg-fridge-500 text-white py-0.5 px-2.5 rounded-full"
+            >
               {ingredients.length}
-            </span>
+            </motion.span>
           )}
         </CardTitle>
       </CardHeader>
@@ -74,13 +80,13 @@ const IngredientManager = ({
                 value={newIngredient}
                 onChange={(e) => setNewIngredient(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleAddIngredient()}
-                className="flex h-11 w-full rounded-lg border border-gray-200 bg-white pl-4 pr-10 py-2 text-sm ring-offset-background placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fridge-400 focus-visible:ring-offset-2"
+                className="flex h-12 w-full rounded-lg border border-gray-200 bg-white pl-4 pr-12 py-2 text-sm ring-offset-background placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fridge-400 focus-visible:ring-offset-2"
                 placeholder="Add an ingredient..."
               />
               <Button 
                 onClick={handleAddIngredient}
                 size="sm"
-                className="absolute right-1 top-1/2 transform -translate-y-1/2 h-9 w-9 rounded-md bg-fridge-500 hover:bg-fridge-600 text-white p-0"
+                className="absolute right-1.5 top-1/2 transform -translate-y-1/2 h-9 w-9 rounded-md bg-fridge-500 hover:bg-fridge-600 text-white p-0"
                 type="button"
                 aria-label="Add ingredient"
               >
@@ -93,16 +99,16 @@ const IngredientManager = ({
             <AnimatePresence>
               {ingredients.length === 0 ? (
                 <motion.div 
-                  className="text-center py-10 bg-gradient-to-b from-gray-50 to-white rounded-lg border border-gray-100"
+                  className="text-center py-12 bg-gradient-to-b from-gray-50 to-white rounded-lg border border-gray-100"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                 >
                   <div className="flex flex-col items-center">
-                    <div className="bg-gray-100 rounded-full p-3 mb-3 shadow-sm">
-                      <PlusCircle className="h-6 w-6 text-gray-400" />
+                    <div className="bg-fridge-100 rounded-full p-4 mb-3 shadow-sm">
+                      <PlusCircle className="h-6 w-6 text-fridge-600" />
                     </div>
-                    <p className="text-gray-500 max-w-[220px] mx-auto">No ingredients yet. Add ingredients to get started.</p>
+                    <p className="text-gray-500 max-w-[220px] mx-auto">Add ingredients to get started with recipe suggestions.</p>
                   </div>
                 </motion.div>
               ) : (
@@ -116,7 +122,7 @@ const IngredientManager = ({
                     {ingredients.map((ingredient, index) => (
                       <motion.li 
                         key={ingredient}
-                        className="flex items-center justify-between py-3 px-4 bg-gradient-to-r from-white to-fridge-50 rounded-lg border border-fridge-100 group hover:from-fridge-50 hover:to-fridge-100 transition-colors duration-200 shadow-sm"
+                        className="flex items-center justify-between py-3.5 px-4 bg-gradient-to-r from-white to-fridge-50 rounded-lg border border-fridge-100/80 group hover:from-fridge-50 hover:to-fridge-100/90 transition-all duration-200 shadow-sm"
                         variants={item}
                         layout
                         initial={{ opacity: 0, y: 10 }}
@@ -124,8 +130,8 @@ const IngredientManager = ({
                         transition={{ delay: index * 0.05 }}
                       >
                         <div className="flex items-center">
-                          <div className="bg-gradient-to-br from-fridge-100 to-fridge-50 rounded-full p-1.5 mr-3 shadow-sm">
-                            <Check className="h-3 w-3 text-fridge-700" />
+                          <div className="bg-gradient-to-br from-fridge-100 to-fridge-50 rounded-full p-1.5 mr-3.5 shadow-sm">
+                            <Check className="h-3.5 w-3.5 text-fridge-700" />
                           </div>
                           <span className="text-gray-700 font-medium">{ingredient}</span>
                         </div>
@@ -133,7 +139,7 @@ const IngredientManager = ({
                           onClick={() => onRemoveIngredient(ingredient)}
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 rounded-full hover:bg-fridge-200 opacity-70 group-hover:opacity-100"
+                          className="h-8 w-8 rounded-full hover:bg-fridge-200/80 opacity-70 group-hover:opacity-100"
                           type="button"
                         >
                           <X className="h-4 w-4 text-gray-500" />
