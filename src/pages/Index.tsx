@@ -56,9 +56,7 @@ const Index = () => {
           <HomeBanner />
           
           <QuickActions 
-            ingredientsCount={ingredients.length}
             onCameraClick={handleCameraClick}
-            onFindRecipes={handleFindRecipes}
           />
           
           <IngredientManager
