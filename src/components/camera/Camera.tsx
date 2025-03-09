@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { useCamera } from "@/hooks/useCamera";
 import CameraLoading from "./CameraLoading";
@@ -23,15 +23,6 @@ const Camera: React.FC<CameraProps> = ({ onCapture, onClose }) => {
     toggleCamera,
     capturePhoto
   } = useCamera();
-  
-  // Ensure the video element gets focus
-  useEffect(() => {
-    if (videoRef.current) {
-      console.log("Video ref is available:", videoRef.current);
-    } else {
-      console.warn("Video ref is not available");
-    }
-  }, [videoRef.current]);
   
   // Handle photo capture
   const handleCapturePhoto = async () => {
@@ -69,8 +60,9 @@ const Camera: React.FC<CameraProps> = ({ onCapture, onClose }) => {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
     >
-      {/* Camera view - Important: z-index needs to be appropriate */}
+      {/* Camera view */}
       <div className="relative flex-1 overflow-hidden">
+        {/* Video element */}
         <video 
           ref={videoRef}
           className="absolute inset-0 w-full h-full object-cover z-10" 
@@ -88,7 +80,12 @@ const Camera: React.FC<CameraProps> = ({ onCapture, onClose }) => {
         </div>
         
         {/* Hidden canvas for capture */}
-        <canvas ref={canvasRef} className="hidden" width="1280" height="720" />
+        <canvas 
+          ref={canvasRef} 
+          className="hidden" 
+          width="1280" 
+          height="720" 
+        />
       </div>
       
       <CameraControls
