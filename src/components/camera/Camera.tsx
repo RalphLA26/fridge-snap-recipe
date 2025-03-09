@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { memo } from "react";
 import useCameraControl from "./useCameraControl";
 import CameraUI from "./CameraUI";
 import { CameraProps } from "./types";
@@ -43,4 +43,4 @@ const Camera: React.FC<CameraProps> = ({ onCapture, onClose }) => {
   );
 };
 
-export default Camera;
+export default memo(Camera);
