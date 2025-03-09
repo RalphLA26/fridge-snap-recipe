@@ -62,7 +62,7 @@ const Index = () => {
         >
           <HomeBanner />
           
-          {/* Enhanced Action Cards with Improved Layout */}
+          {/* Enhanced Action Cards */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -76,40 +76,40 @@ const Index = () => {
                   <p className="text-sm text-white/90 mt-1">Add ingredients to your inventory</p>
                 </div>
                 
-                {/* Card Actions with Improved Layout */}
+                {/* Card Actions */}
                 <div className="p-5 space-y-3">
-                  {/* Scan Food Option - Now with gradient and enhanced styling */}
+                  {/* Scan Food Option */}
                   <motion.div
                     whileHover={{ scale: 0.98 }}
                     whileTap={{ scale: 0.95 }}
-                    className="p-5 rounded-xl bg-gradient-to-r from-fridge-50 to-fridge-100 cursor-pointer border border-fridge-200 shadow-sm hover:shadow-md transition-all duration-300"
+                    className="p-4 rounded-xl bg-gradient-to-r from-fridge-50 to-fridge-100 cursor-pointer border border-fridge-200 shadow-sm hover:shadow-md transition-all duration-300"
                     onClick={handleCameraClick}
                   >
                     <div className="flex items-center space-x-4">
-                      <div className="w-14 h-14 rounded-full bg-gradient-to-br from-fridge-500 to-fridge-600 flex items-center justify-center shadow-md flex-shrink-0">
-                        <Camera className="h-7 w-7 text-white" />
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-fridge-500 to-fridge-600 flex items-center justify-center shadow-md flex-shrink-0">
+                        <Camera className="h-6 w-6 text-white" />
                       </div>
                       <div>
-                        <h3 className="font-semibold text-fridge-900 text-lg">Scan Food</h3>
-                        <p className="text-sm text-fridge-700">Use your camera to identify ingredients automatically</p>
+                        <h3 className="font-semibold text-fridge-900">Scan Food</h3>
+                        <p className="text-sm text-fridge-700">Use camera to identify ingredients</p>
                       </div>
                     </div>
                   </motion.div>
                   
-                  {/* Add Manually Option - Now with gradient and enhanced styling */}
+                  {/* Add Manually Option */}
                   <motion.div
                     whileHover={{ scale: 0.98 }}
                     whileTap={{ scale: 0.95 }}
-                    className="p-5 rounded-xl bg-gradient-to-r from-fridge-50 to-fridge-100 cursor-pointer border border-fridge-200 shadow-sm hover:shadow-md transition-all duration-300"
+                    className="p-4 rounded-xl bg-gradient-to-r from-fridge-50 to-fridge-100 cursor-pointer border border-fridge-200 shadow-sm hover:shadow-md transition-all duration-300"
                     onClick={() => setShowIngredients(true)}
                   >
                     <div className="flex items-center space-x-4">
-                      <div className="w-14 h-14 rounded-full bg-gradient-to-br from-fridge-500 to-fridge-600 flex items-center justify-center shadow-md flex-shrink-0">
-                        <Plus className="h-7 w-7 text-white" />
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-fridge-500 to-fridge-600 flex items-center justify-center shadow-md flex-shrink-0">
+                        <Plus className="h-6 w-6 text-white" />
                       </div>
                       <div>
-                        <h3 className="font-semibold text-fridge-900 text-lg">Add Manually</h3>
-                        <p className="text-sm text-fridge-700">Type in your ingredients to track them</p>
+                        <h3 className="font-semibold text-fridge-900">Add Manually</h3>
+                        <p className="text-sm text-fridge-700">Type in your ingredients</p>
                       </div>
                     </div>
                   </motion.div>
@@ -118,7 +118,7 @@ const Index = () => {
             </Card>
           </motion.div>
           
-          {/* Ingredients Counter Button - Enhanced with gradient and better shadows */}
+          {/* Ingredients Counter Button */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -170,7 +170,7 @@ const Index = () => {
         </motion.div>
       </main>
       
-      {/* Enhanced footer with multi-layer gradients */}
+      {/* Footer */}
       <div className="mt-auto">
         <div className="h-1.5 bg-gradient-to-r from-fridge-300/40 via-fridge-500/70 to-fridge-300/40" />
         <div className="h-0.5 bg-gradient-to-r from-fridge-100 via-fridge-200 to-fridge-100" />

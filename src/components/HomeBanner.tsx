@@ -10,7 +10,7 @@ const HomeBanner = () => {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
     >
-      <div className="bg-gradient-to-br from-fridge-600 via-fridge-500 to-fridge-400 p-8 text-white rounded-2xl relative overflow-hidden">
+      <div className="bg-gradient-to-br from-fridge-600 via-fridge-500 to-fridge-400 p-6 text-white rounded-2xl relative overflow-hidden">
         {/* Decorative elements */}
         <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -mr-16 -mt-10 animate-pulse-subtle" />
         <div className="absolute bottom-0 left-0 w-28 h-28 bg-white/10 rounded-full -ml-10 -mb-8 animate-pulse-subtle" 
@@ -26,18 +26,18 @@ const HomeBanner = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, duration: 0.5 }}
         >
-          <div className="flex items-center mb-6">
+          <div className="flex items-center mb-4">
             <motion.div 
-              className="bg-white/20 p-3.5 rounded-full mr-4 shadow-lg backdrop-blur-sm"
+              className="bg-white/20 p-3 rounded-full mr-4 shadow-lg backdrop-blur-sm"
               whileHover={{ scale: 1.05, rotate: 5 }}
               transition={{ type: "spring", stiffness: 400, damping: 10 }}
             >
-              <UtensilsCrossed className="h-8 w-8 text-white" />
+              <UtensilsCrossed className="h-7 w-7 text-white" />
             </motion.div>
-            <h1 className="text-3xl font-bold tracking-tight">FridgeSnap</h1>
+            <h1 className="text-2xl font-bold tracking-tight">FridgeSnap</h1>
           </div>
           
-          <p className="text-white/90 text-xl font-light leading-snug ml-1 mb-5">
+          <p className="text-white/90 text-lg font-light leading-snug mb-4">
             Turn your ingredients into<br /><span className="font-semibold">delicious meals</span> with ease
           </p>
           
@@ -45,7 +45,6 @@ const HomeBanner = () => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5, duration: 0.5 }}
-            className="mt-3 ml-1"
           >
             <span className="inline-block bg-white/20 text-white text-sm px-4 py-1.5 rounded-full backdrop-blur-sm shadow-md">
               Scan • Discover • Cook
