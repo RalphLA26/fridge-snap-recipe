@@ -62,7 +62,7 @@ const Index = () => {
         >
           <HomeBanner />
           
-          {/* Unified Action Card with improved styling */}
+          {/* Unified Action Card with improved styling - Camera first */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -72,25 +72,7 @@ const Index = () => {
             <Card className="overflow-hidden border-none shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-white to-fridge-50">
               <CardContent className="p-0">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
-                  {/* Add Ingredient Card */}
-                  <motion.div
-                    whileHover={{ scale: 0.98 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="p-6 border-b md:border-b-0 md:border-r border-fridge-100/50 cursor-pointer"
-                    onClick={() => setShowIngredients(true)}
-                  >
-                    <div className="flex flex-col items-center justify-center text-center space-y-4">
-                      <div className="w-16 h-16 rounded-full bg-gradient-to-br from-fridge-100 to-fridge-200 flex items-center justify-center shadow-md">
-                        <Plus className="h-8 w-8 text-fridge-600" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-lg text-gray-800 mb-1">Add Ingredient</h3>
-                        <p className="text-sm text-gray-500">Manually add items to your inventory</p>
-                      </div>
-                    </div>
-                  </motion.div>
-                  
-                  {/* Scan Ingredient Card */}
+                  {/* Scan Ingredient Card - Now First */}
                   <motion.div
                     whileHover={{ scale: 0.98 }}
                     whileTap={{ scale: 0.95 }}
@@ -104,6 +86,24 @@ const Index = () => {
                       <div>
                         <h3 className="font-semibold text-lg text-white mb-1">Scan Food</h3>
                         <p className="text-sm text-white/80">Use camera to identify ingredients</p>
+                      </div>
+                    </div>
+                  </motion.div>
+                  
+                  {/* Add Ingredient Card - Now Second */}
+                  <motion.div
+                    whileHover={{ scale: 0.98 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="p-6 border-t md:border-t-0 md:border-l border-fridge-100/50 cursor-pointer"
+                    onClick={() => setShowIngredients(true)}
+                  >
+                    <div className="flex flex-col items-center justify-center text-center space-y-4">
+                      <div className="w-16 h-16 rounded-full bg-gradient-to-br from-fridge-100 to-fridge-200 flex items-center justify-center shadow-md">
+                        <Plus className="h-8 w-8 text-fridge-600" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-lg text-gray-800 mb-1">Add Ingredient</h3>
+                        <p className="text-sm text-gray-500">Manually add items to your inventory</p>
                       </div>
                     </div>
                   </motion.div>
