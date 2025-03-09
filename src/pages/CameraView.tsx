@@ -1,8 +1,7 @@
-
 import { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import Camera from "@/components/camera";
+import Camera from "@/components/camera/Camera";
 import { toast } from "sonner";
 import { ChevronLeft, Camera as CameraIcon, ImageIcon, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -80,13 +79,6 @@ const CameraView = () => {
       toast.error("Failed to save ingredients");
     }
   }, [detectedIngredients, navigate]);
-  
-  // Clean up on unmount
-  useEffect(() => {
-    return () => {
-      // Any cleanup needed when leaving the camera view
-    };
-  }, []);
   
   return (
     <motion.div 
