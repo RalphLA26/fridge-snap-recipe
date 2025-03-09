@@ -5,7 +5,7 @@ import { useUser } from "@/contexts/UserContext";
 import Header from "@/components/Header";
 import HomeBanner from "@/components/HomeBanner";
 import IngredientManager from "@/components/IngredientManager";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChevronDown, ChevronUp, Camera, Plus } from "lucide-react";
