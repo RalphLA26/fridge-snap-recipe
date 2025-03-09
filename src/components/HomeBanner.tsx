@@ -1,15 +1,8 @@
 
 import { motion } from "framer-motion";
-import { Camera, UtensilsCrossed } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { UtensilsCrossed } from "lucide-react";
 
 const HomeBanner = () => {
-  const navigate = useNavigate();
-  
-  const handleCameraClick = () => {
-    navigate("/camera");
-  };
-
   return (
     <motion.div
       className="overflow-hidden relative rounded-xl shadow-lg"
@@ -54,44 +47,9 @@ const HomeBanner = () => {
             transition={{ delay: 0.5, duration: 0.5 }}
             className="mt-3 ml-1"
           >
-            <span className="inline-block bg-white/20 text-white text-sm px-4 py-1.5 rounded-full backdrop-blur-sm shadow-sm mb-8">
+            <span className="inline-block bg-white/20 text-white text-sm px-4 py-1.5 rounded-full backdrop-blur-sm shadow-sm">
               Scan • Discover • Cook
             </span>
-          </motion.div>
-
-          {/* Enhanced Camera Button */}
-          <motion.div 
-            className="bg-white/20 backdrop-blur-sm rounded-xl p-5 mt-4 cursor-pointer relative overflow-hidden group hover:bg-white/30 transition-all"
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={handleCameraClick}
-          >
-            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-10 -mt-10 group-hover:rotate-45 transition-transform duration-500" />
-            
-            <div className="flex items-center relative z-10">
-              <div className="w-14 h-14 rounded-full bg-gradient-to-br from-fridge-400 to-fridge-600 flex items-center justify-center mr-5 shadow-lg">
-                <Camera className="w-7 h-7 text-white" />
-              </div>
-              
-              <div>
-                <h3 className="font-semibold text-white text-lg mb-1">Scan Food</h3>
-                <p className="text-white/80 text-sm leading-tight mb-3">
-                  Identify ingredients instantly
-                </p>
-                <motion.div 
-                  initial={{ opacity: 0.9 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ 
-                    repeat: Infinity, 
-                    repeatType: "reverse", 
-                    duration: 1.5 
-                  }}
-                  className="inline-block text-xs px-3.5 py-1.5 rounded-full bg-white/25 text-white font-medium"
-                >
-                  Tap to Scan
-                </motion.div>
-              </div>
-            </div>
           </motion.div>
         </motion.div>
       </div>
