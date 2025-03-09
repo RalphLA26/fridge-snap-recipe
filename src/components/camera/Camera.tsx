@@ -1,7 +1,7 @@
 
 import { useState, useCallback, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Camera as CameraIcon, SwitchCamera, X, Check, ChevronLeft, Barcode, ZoomIn } from "lucide-react";
+import { Camera as CameraIcon, SwitchCamera, Check, ChevronLeft, Barcode, ZoomIn, Aperture, Focus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import CameraError from "@/components/CameraError";
@@ -18,7 +18,7 @@ const Camera = ({ onClose }: CameraProps) => {
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [ingredients, setIngredients] = useState<string[]>([]);
   const [showBarcodeUI, setShowBarcodeUI] = useState(false);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  canvasRef = useRef<HTMLCanvasElement>(null);
   const { saveIngredientsToInventory } = useInventory();
   
   // Camera hook initialization
@@ -38,7 +38,8 @@ const Camera = ({ onClose }: CameraProps) => {
     isScanningBarcode, 
     startBarcodeScanning, 
     stopBarcodeScanning,
-    lastScannedBarcode 
+    lastScannedBarcode,
+    scanProgress
   } = useBarcode();
 
   // For demo purposes - simulate detecting items in a fridge image
@@ -56,7 +57,12 @@ const Camera = ({ onClose }: CameraProps) => {
       "Eggs",
       "Cheese",
       "Butter",
-      "Yogurt"
+      "Yogurt",
+      "Spinach",
+      "Carrots",
+      "Bread",
+      "Chicken",
+      "Apples"
     ];
     
     // Randomly select 2-4 ingredients from the mock list
@@ -96,7 +102,7 @@ const Camera = ({ onClose }: CameraProps) => {
       if (videoRef.current) {
         setShowBarcodeUI(true);
         startBarcodeScanning(videoRef.current);
-        toast.info("Position barcode in the scanner", { duration: 3000 });
+        toast.info("Point camera at the barcode", { duration: 3000 });
       }
     } else {
       stopBarcodeScanning();
@@ -109,10 +115,10 @@ const Camera = ({ onClose }: CameraProps) => {
     if (lastScannedBarcode) {
       // Simulate looking up a product by barcode
       const mockProducts = {
-        "5901234123457": "Milk",
-        "0123456789012": "Eggs",
-        "9781234567897": "Yogurt",
-        "2345678901234": "Cheese",
+        "5901234123457": "Milk (1L)",
+        "0123456789012": "Free-Range Eggs (12 pack)",
+        "7350053850149": "Organic Spinach (200g)",
+        "8410700624307": "Cheddar Cheese (250g)",
       };
       
       const product = mockProducts[lastScannedBarcode as keyof typeof mockProducts] || "Unknown Product";
@@ -150,14 +156,27 @@ const Camera = ({ onClose }: CameraProps) => {
           )}
           
           {/* Camera preview */}
-          <video
-            ref={videoRef}
-            autoPlay
-            playsInline
-            muted
-            className="h-full w-full object-cover"
-            style={{ display: isLoading ? "none" : "block" }}
-          />
+          <div className="relative h-full w-full">
+            <video
+              ref={videoRef}
+              autoPlay
+              playsInline
+              muted
+              className="h-full w-full object-cover"
+              style={{ display: isLoading ? "none" : "block" }}
+            />
+            
+            {/* Camera grid overlay */}
+            <div 
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                backgroundImage: !showBarcodeUI ? 
+                  `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
+                   linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)` : 'none',
+                backgroundSize: '33.33% 33.33%'
+              }}
+            />
+          </div>
           
           {/* Header UI with glass morphism effect */}
           <div className="absolute top-0 left-0 right-0 p-4 flex items-center justify-between backdrop-blur-md bg-black/40 border-b border-white/10 z-10">
@@ -194,76 +213,92 @@ const Camera = ({ onClose }: CameraProps) => {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.2 }}
-                className="absolute inset-0 flex flex-col items-center justify-center z-10 bg-black/70"
+                className="absolute inset-0 flex flex-col items-center justify-center z-10"
               >
-                {/* Barcode scanner window */}
-                <div className="relative">
-                  {/* Scanner housing */}
-                  <div className="relative w-72 h-40 rounded-lg overflow-hidden bg-black border-2 border-fridge-500 shadow-[0_0_15px_rgba(0,0,0,0.3)]">
-                    {/* Scanner window - transparent area */}
+                {/* Improved Barcode scanner UI */}
+                <div className="relative w-full max-w-md">
+                  {/* Camera exposure darkening */}
+                  <div className="absolute -inset-px -z-10 bg-black/60" />
+                  
+                  {/* Scanner viewport with realistic design */}
+                  <div className="relative aspect-video mx-6 rounded-lg overflow-hidden">
+                    {/* Transparent scanner viewport */}
+                    <div className="absolute inset-0 border-2 border-fridge-400/80" />
+                    
+                    {/* Scanner Corners */}
+                    <div className="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-fridge-400" />
+                    <div className="absolute top-0 right-0 w-6 h-6 border-t-2 border-r-2 border-fridge-400" />
+                    <div className="absolute bottom-0 left-0 w-6 h-6 border-b-2 border-l-2 border-fridge-400" />
+                    <div className="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 border-fridge-400" />
+                    
+                    {/* Scan area indicator */}
                     <div className="absolute inset-0 flex items-center justify-center">
-                      {/* Barcode pattern background */}
-                      <div className="absolute inset-0 flex flex-col justify-center opacity-10">
-                        {Array.from({ length: 30 }).map((_, i) => (
-                          <div 
-                            key={i} 
-                            className="h-0.5 my-[2px] bg-white"
-                            style={{ 
-                              width: `${Math.floor(Math.random() * 40) + 60}%`,
-                              marginLeft: `${Math.floor(Math.random() * 20)}%`
-                            }}
-                          ></div>
-                        ))}
-                      </div>
-
-                      {/* Corner brackets for aiming */}
-                      <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-fridge-400 opacity-80" />
-                      <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-fridge-400 opacity-80" />
-                      <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-fridge-400 opacity-80" />
-                      <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-fridge-400 opacity-80" />
+                      <motion.div 
+                        initial={{ opacity: 0.5, scale: 0.8 }}
+                        animate={{ opacity: [0.5, 0.8, 0.5], scale: [0.8, 1, 0.8] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                        className="w-2/3 h-1/3 border border-fridge-300/50 rounded"
+                      />
                     </div>
-
-                    {/* Scanning animation: laser line */}
+                    
+                    {/* Scanning laser animation */}
                     <motion.div 
-                      className="absolute left-0 right-0 h-0.5 bg-red-500 shadow-[0_0_10px_red]"
-                      initial={{ top: "5%" }}
-                      animate={{ top: "95%" }}
+                      className="absolute left-0 right-0 h-0.5 bg-fridge-500/80 shadow-[0_0_8px_#22c55e]"
+                      initial={{ top: "10%" }}
+                      animate={{ top: "90%" }}
                       transition={{ 
-                        duration: 1.5, 
+                        duration: 1.2, 
                         repeat: Infinity,
-                        repeatType: "reverse",
+                        repeatType: "mirror",
                         ease: "easeInOut" 
                       }}
                     />
+                    
+                    {/* Processing indicators */}
+                    <div className="absolute inset-x-0 top-3 flex justify-center">
+                      <div className="px-3 py-1 bg-black/70 rounded-full flex items-center">
+                        <div className={`w-2 h-2 rounded-full ${isScanningBarcode ? "bg-fridge-500 animate-pulse" : "bg-red-500"} mr-2`} />
+                        <span className="text-xs text-white/90 font-medium tracking-wide">
+                          {isScanningBarcode ? "SCANNING" : "READY"}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-
-                  {/* Status indicator light */}
-                  <div className="absolute -right-1 -top-1 flex items-center justify-center">
-                    <div className="w-3 h-3 rounded-full bg-red-500 animate-pulse shadow-[0_0_5px_red]" />
+                  
+                  {/* Progress indicator */}
+                  <div className="mt-6 mx-8">
+                    <div className="w-full h-1 bg-white/20 rounded-full overflow-hidden">
+                      <motion.div 
+                        className="h-full bg-fridge-500"
+                        initial={{ width: "0%" }}
+                        animate={{ width: `${scanProgress}%` }}
+                        transition={{ duration: 0.3 }}
+                      />
+                    </div>
+                    <div className="flex justify-between mt-1 text-xs text-white/60">
+                      <span>Detecting</span>
+                      <span>Processing</span>
+                      <span>Complete</span>
+                    </div>
                   </div>
-
-                  {/* Scanner model number */}
-                  <div className="absolute -left-2 -top-2 bg-black/80 rounded px-2 py-0.5 text-[10px] text-white/70 tracking-wider border border-white/10">
-                    SR-2000
+                  
+                  {/* Help text */}
+                  <div className="mt-6 text-center">
+                    <p className="text-white/90 font-medium">Align barcode within frame</p>
+                    <p className="text-white/60 text-sm mt-1">Hold steady for best results</p>
+                  </div>
+                  
+                  {/* Cancel button */}
+                  <div className="mt-8 flex justify-center">
+                    <Button
+                      variant="outline"
+                      onClick={() => toggleBarcodeMode(false)}
+                      className="px-6 py-2 rounded-full text-white bg-black/30 border-white/20 hover:bg-black/50"
+                    >
+                      Cancel
+                    </Button>
                   </div>
                 </div>
-
-                {/* Instruction card with glass morphism */}
-                <div className="mt-8 backdrop-blur-md bg-white/10 border border-white/20 rounded-lg px-5 py-3 max-w-xs text-center shadow-lg">
-                  <h4 className="font-medium text-white mb-1">Scanning Instructions</h4>
-                  <p className="text-white/80 text-sm">
-                    Hold the barcode steady and center it within the frame
-                  </p>
-                </div>
-                
-                {/* Cancel button */}
-                <Button
-                  variant="ghost"
-                  onClick={() => toggleBarcodeMode(false)}
-                  className="mt-8 px-6 py-2 rounded-full text-white bg-black/50 hover:bg-black/70 backdrop-blur-sm border border-white/10"
-                >
-                  Cancel
-                </Button>
               </motion.div>
             )}
           </AnimatePresence>
@@ -272,7 +307,28 @@ const Camera = ({ onClose }: CameraProps) => {
           
           {/* Camera controls with glass morphism */}
           {!showBarcodeUI && (
-            <div className="absolute bottom-0 left-0 right-0 flex flex-col items-center justify-center backdrop-blur-md bg-black/40 border-t border-white/10 py-8 z-10">
+            <div className="absolute bottom-0 left-0 right-0 flex flex-col items-center backdrop-blur-md bg-black/40 border-t border-white/10 py-6 z-10">
+              {/* Camera mode selector */}
+              <div className="mb-6">
+                <div className="flex space-x-1 bg-black/40 backdrop-blur-sm rounded-full p-1 border border-white/10">
+                  <Button 
+                    variant="ghost"
+                    size="sm"
+                    className="rounded-full px-4 py-1.5 text-sm text-white bg-fridge-500/90 shadow-sm"
+                  >
+                    Fridge
+                  </Button>
+                  <Button 
+                    variant="ghost"
+                    size="sm"
+                    className="rounded-full px-4 py-1.5 text-sm text-white/70 hover:text-white hover:bg-white/10"
+                    onClick={() => toggleBarcodeMode(true)}
+                  >
+                    Barcode
+                  </Button>
+                </div>
+              </div>
+              
               <div className="flex items-center justify-center gap-10 mb-4">
                 {/* Camera switch button */}
                 <Button
@@ -295,8 +351,15 @@ const Camera = ({ onClose }: CameraProps) => {
                   <div className="absolute inset-2 rounded-full border-2 border-gray-300" />
                 </motion.button>
                 
-                {/* Empty space for balance */}
-                <div className="w-12 h-12" />
+                {/* Focus button */}
+                <Button
+                  variant="outline"
+                  size="icon"
+                  disabled={isLoading}
+                  className="rounded-full h-12 w-12 flex items-center justify-center bg-black/50 text-white hover:bg-black/70 border border-white/20 disabled:opacity-50"
+                >
+                  <Focus className="h-5 w-5" />
+                </Button>
               </div>
               
               {/* Instruction pill */}
