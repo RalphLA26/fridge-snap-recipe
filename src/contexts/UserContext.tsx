@@ -14,6 +14,7 @@ interface UserProfile {
   id: string;
   name: string;
   email: string;
+  bio?: string;
   favoriteRecipes: string[];
   shoppingList: ShoppingItem[];
   reviews: {
@@ -88,6 +89,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
           id: "user-" + Date.now().toString(),
           name: "Guest User",
           email: "",
+          bio: "Food enthusiast exploring new flavors and recipes!",
           favoriteRecipes: [],
           shoppingList: [],
           reviews: {},
