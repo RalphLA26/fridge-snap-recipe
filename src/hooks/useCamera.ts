@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 
@@ -123,17 +122,16 @@ export function useCamera({
     // Check if torch is supported by attempting to read capabilities
     try {
       const capabilities = videoTrack.getCapabilities();
-      // Some browsers/devices might not support the torch capability
-      // We'll try to apply the constraint anyway but catch any errors
       
       try {
-        // We use the 'advanced' approach which is more widely supported
+        // Fix the type error by using a direct constraint approach
+        // This is more widely supported across browsers
         videoTrack.applyConstraints({
-          advanced: [{ 
-            // This works on many Android devices even if torch isn't in capabilities
-            advanced: [{ ['torch']: on }] as any 
-          }]
-        });
+          // Use 'torch' directly as a constraint
+          // TypeScript doesn't recognize 'torch' as a standard constraint,
+          // but it's supported by many mobile browsers
+          torch: on
+        } as MediaTrackConstraints);
         
         toast.success(on ? "Flash turned on" : "Flash turned off");
       } catch (constraintErr) {
