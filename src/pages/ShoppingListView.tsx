@@ -115,7 +115,7 @@ const ShoppingListView = () => {
   
   return (
     <motion.div 
-      className="min-h-screen bg-gray-50"
+      className="min-h-screen bg-gradient-to-b from-gray-50 to-white"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -127,15 +127,17 @@ const ShoppingListView = () => {
             variant="ghost" 
             size="icon" 
             onClick={() => navigate(-1)}
-            className="hover:bg-gray-100 rounded-full"
+            className="hover:bg-fridge-50 rounded-full"
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <h1 className="text-lg font-medium flex items-center">
-            <ShoppingBag className="h-5 w-5 mr-2 text-fridge-600" />
+            <div className="bg-fridge-100 p-1 rounded-full mr-2">
+              <ShoppingBag className="h-5 w-5 text-fridge-700" />
+            </div>
             Shopping List
             {totalItems > 0 && (
-              <span className="ml-2 text-sm bg-fridge-100 text-fridge-800 px-2.5 py-0.5 rounded-full font-normal">
+              <span className="ml-2 text-sm bg-fridge-100 text-fridge-700 px-2.5 py-0.5 rounded-full font-medium shadow-sm">
                 {checkedItems}/{totalItems}
               </span>
             )}
@@ -145,7 +147,7 @@ const ShoppingListView = () => {
               variant="ghost"
               size="icon"
               onClick={handleShareList}
-              className="hover:bg-gray-100 rounded-full"
+              className="hover:bg-fridge-50 rounded-full"
               title="Share list"
             >
               <Share2 className="h-5 w-5 text-gray-600" />
@@ -156,19 +158,19 @@ const ShoppingListView = () => {
       
       <main className="container max-w-xl mx-auto p-4 pb-16">
         <Tabs defaultValue="list" value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-4">
-            <TabsTrigger value="list" className="flex items-center gap-2">
+          <TabsList className="grid w-full grid-cols-2 mb-4 bg-fridge-50 border border-fridge-100">
+            <TabsTrigger value="list" className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:text-fridge-700 data-[state=active]:shadow-sm">
               <ShoppingCart className="h-4 w-4" />
               My List
             </TabsTrigger>
-            <TabsTrigger value="stores" className="flex items-center gap-2">
+            <TabsTrigger value="stores" className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:text-fridge-700 data-[state=active]:shadow-sm">
               <Store className="h-4 w-4" />
               Nearby Stores
             </TabsTrigger>
           </TabsList>
           
           <TabsContent value="list" className="mt-0">
-            <Card className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <Card className="bg-white rounded-2xl shadow-md border border-fridge-100/80 overflow-hidden">
               <div className="px-5 pt-5 pb-6">
                 <ShoppingList hideDeliveryButton={true} />
               </div>
@@ -178,9 +180,11 @@ const ShoppingListView = () => {
               <motion.div 
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="mt-4 bg-green-50 border border-green-100 rounded-lg p-4 text-sm text-green-800 flex items-start"
+                className="mt-4 bg-gradient-to-r from-green-50 to-white border border-green-100 rounded-lg p-4 text-sm text-green-800 flex items-start shadow-sm"
               >
-                <ListChecks className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                <div className="bg-green-100 p-1.5 rounded-full mr-2 flex-shrink-0 shadow-sm">
+                  <ListChecks className="h-4 w-4 text-green-600" />
+                </div>
                 <div>
                   <p className="font-medium">All items are purchased!</p>
                   <p className="text-green-600 text-xs mt-1">Your shopping list is complete. Add more items or uncheck items to use delivery services.</p>
@@ -191,10 +195,12 @@ const ShoppingListView = () => {
           
           <TabsContent value="stores" className="mt-0 space-y-4">
             {hasUncheckedItems && (
-              <Card className="overflow-hidden">
-                <div className="p-4 border-b border-gray-100 bg-fridge-50/50">
+              <Card className="overflow-hidden shadow-md border border-fridge-100/80">
+                <div className="p-4 border-b border-fridge-100 bg-gradient-to-r from-fridge-50 to-white">
                   <h3 className="font-medium text-fridge-800 flex items-center">
-                    <MapPin className="h-4 w-4 mr-2 text-fridge-600" />
+                    <div className="bg-fridge-100 p-1 rounded-full mr-2 shadow-sm">
+                      <MapPin className="h-4 w-4 text-fridge-700" />
+                    </div>
                     Nearby Grocery Stores
                   </h3>
                 </div>
@@ -216,10 +222,12 @@ const ShoppingListView = () => {
             )}
             
             {hasUncheckedItems && (
-              <Card className="overflow-hidden">
-                <div className="p-4 border-b border-gray-100 bg-fridge-50/50">
+              <Card className="overflow-hidden shadow-md border border-fridge-100/80">
+                <div className="p-4 border-b border-fridge-100 bg-gradient-to-r from-fridge-50 to-white">
                   <h3 className="font-medium text-fridge-800 flex items-center">
-                    <Truck className="h-4 w-4 mr-2 text-fridge-600" />
+                    <div className="bg-fridge-100 p-1 rounded-full mr-2 shadow-sm">
+                      <Truck className="h-4 w-4 text-fridge-700" />
+                    </div>
                     Delivery Options
                   </h3>
                   <p className="text-sm text-gray-600 mt-1">
@@ -255,8 +263,8 @@ const ShoppingListView = () => {
                     />
                   </div>
                   
-                  <div className="flex items-center mt-4 text-xs text-gray-500 bg-gray-50 p-2 rounded-lg border border-gray-200">
-                    <Tag className="h-3 w-3 mr-1 text-fridge-400 flex-shrink-0" />
+                  <div className="flex items-center mt-4 text-xs text-gray-500 bg-gray-50 p-3 rounded-lg border border-gray-200">
+                    <Tag className="h-3 w-3 mr-2 text-fridge-400 flex-shrink-0" />
                     Only unchecked items will be included in your delivery
                   </div>
                 </div>
@@ -265,7 +273,7 @@ const ShoppingListView = () => {
             
             {!hasUncheckedItems && user?.shoppingList.length > 0 && (
               <div className="flex flex-col items-center justify-center text-center py-12">
-                <div className="bg-green-100 p-4 rounded-full mb-4">
+                <div className="bg-gradient-to-r from-green-100 to-green-50 p-5 rounded-full mb-4 shadow-md">
                   <ListChecks className="h-10 w-10 text-green-600" />
                 </div>
                 <h3 className="text-lg font-medium text-green-800 mb-2">All Done Shopping!</h3>
@@ -273,11 +281,11 @@ const ShoppingListView = () => {
                   You've purchased all items on your list. Great job!
                 </p>
                 <div className="flex gap-4">
-                  <Button onClick={() => navigate(-1)} variant="outline" className="flex items-center gap-2">
+                  <Button onClick={() => navigate(-1)} variant="outline" className="flex items-center gap-2 shadow-sm">
                     <Home className="h-4 w-4" />
                     Go Home
                   </Button>
-                  <Button onClick={() => setActiveTab("list")} className="bg-fridge-600 hover:bg-fridge-700 flex items-center gap-2">
+                  <Button onClick={() => setActiveTab("list")} className="bg-gradient-to-r from-fridge-600 to-fridge-700 hover:from-fridge-700 hover:to-fridge-800 text-white flex items-center gap-2 shadow-sm">
                     <Receipt className="h-4 w-4" />
                     View List
                   </Button>
@@ -287,14 +295,14 @@ const ShoppingListView = () => {
             
             {!user?.shoppingList.length && (
               <div className="flex flex-col items-center justify-center text-center py-12">
-                <div className="bg-fridge-100 p-4 rounded-full mb-4">
+                <div className="bg-gradient-to-r from-fridge-100 to-fridge-50 p-5 rounded-full mb-4 shadow-md">
                   <ShoppingBag className="h-10 w-10 text-fridge-600" />
                 </div>
                 <h3 className="text-lg font-medium text-gray-800 mb-2">Your Shopping List is Empty</h3>
                 <p className="text-sm text-gray-600 max-w-md mb-6">
                   Add items to your list to see nearby stores and delivery options.
                 </p>
-                <Button onClick={() => setActiveTab("list")} className="bg-fridge-600 hover:bg-fridge-700">
+                <Button onClick={() => setActiveTab("list")} className="bg-gradient-to-r from-fridge-600 to-fridge-700 hover:from-fridge-700 hover:to-fridge-800 text-white shadow-sm">
                   Start Shopping List
                 </Button>
               </div>
@@ -308,16 +316,18 @@ const ShoppingListView = () => {
 
 // Loading state for stores
 const StoresLoadingState = () => (
-  <div className="text-center py-6">
-    <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-solid border-fridge-500 border-r-transparent"></div>
+  <div className="text-center py-8">
+    <div className="inline-block h-7 w-7 animate-spin rounded-full border-2 border-solid border-fridge-500 border-r-transparent"></div>
     <p className="mt-3 text-sm text-gray-500">Finding stores near you...</p>
   </div>
 );
 
 // Empty state for stores
 const EmptyStoresState = () => (
-  <div className="text-center py-6">
-    <Store className="h-10 w-10 mx-auto text-gray-300 mb-2" />
+  <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-100">
+    <div className="bg-white p-3 rounded-full inline-flex items-center justify-center shadow-sm mb-3">
+      <Store className="h-8 w-8 text-gray-300" />
+    </div>
     <p className="text-gray-600 font-medium">No stores found nearby</p>
     <p className="text-sm text-gray-500 mt-1">Try again later or use a delivery service</p>
   </div>
@@ -329,15 +339,15 @@ const StoreCard = ({ store }: { store: GroceryStore }) => (
     initial={{ opacity: 0, y: 10 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.2 }}
-    className="bg-white rounded-lg p-3 border border-gray-200 shadow-sm hover:shadow-md transition-all cursor-pointer"
+    className="bg-gradient-to-r from-white to-fridge-50/30 rounded-lg p-3.5 border border-fridge-100 shadow-sm hover:shadow-md transition-all cursor-pointer"
   >
     <div className="flex justify-between items-center">
       <div>
-        <h4 className="font-medium">{store.name}</h4>
+        <h4 className="font-medium text-gray-800">{store.name}</h4>
         <p className="text-xs text-gray-500 mt-0.5">{store.address}</p>
       </div>
       <div className="flex flex-col items-end">
-        <span className="text-sm bg-fridge-50 px-2 py-0.5 rounded-full text-fridge-600 font-medium">
+        <span className="text-sm bg-fridge-100 px-2.5 py-0.5 rounded-full text-fridge-700 font-medium shadow-sm">
           {store.distance} mi
         </span>
         <span className="text-xs text-gray-400 mt-1">Open now</span>
@@ -361,7 +371,7 @@ const DeliveryButton = ({
   return (
     <Button 
       onClick={onClick}
-      className="flex flex-col items-center justify-center gap-1 bg-white border border-gray-200 text-gray-800 hover:bg-fridge-50 hover:border-fridge-200 hover:text-fridge-800 transition-all shadow-sm hover:shadow-md rounded-xl h-auto py-3"
+      className="flex flex-col items-center justify-center gap-1 bg-gradient-to-r from-white to-fridge-50/30 border border-fridge-100 text-gray-800 hover:bg-fridge-50 hover:border-fridge-200 hover:text-fridge-800 transition-all shadow-sm hover:shadow-md rounded-xl h-auto py-3.5"
       variant="outline"
     >
       <span className="text-2xl mb-1">{icon}</span>
