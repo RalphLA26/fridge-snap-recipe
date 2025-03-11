@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import { Plus, X, Check, ShoppingBag, Trash2, ListFilter, Search, ListChecks, SlidersHorizontal, CheckCircle2, Tag, Circle } from "lucide-react";
+import { Plus, X, Check, ShoppingBag, Trash2, ListFilter, Search, ListChecks, SlidersHorizontal, CheckCircle2, Tag, Circle, ShoppingCart, ChevronDown, ChevronUp, CheckSquare, Square } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -60,6 +60,7 @@ const ShoppingList = ({ hideDeliveryButton = false }: ShoppingListProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [collapsedCategories, setCollapsedCategories] = useState<string[]>([]);
 
   // Update isMobile state when window resizes
   useEffect(() => {
@@ -163,6 +164,14 @@ const ShoppingList = ({ hideDeliveryButton = false }: ShoppingListProps) => {
     );
   };
 
+  const toggleCategoryCollapse = (categoryKey: string) => {
+    setCollapsedCategories(prev => 
+      prev.includes(categoryKey)
+        ? prev.filter(key => key !== categoryKey)
+        : [...prev, categoryKey]
+    );
+  };
+
   const sortedItems = user?.shoppingList ? sortItems(user.shoppingList) : [];
   const filteredItems = filterItems(sortedItems);
   const hasItems = sortedItems.length > 0;
@@ -204,14 +213,14 @@ const ShoppingList = ({ hideDeliveryButton = false }: ShoppingListProps) => {
       {isMobile && !showForm && (
         <Button 
           onClick={() => setShowForm(true)}
-          className="w-full rounded-xl bg-gradient-to-r from-fridge-600 to-fridge-700 hover:from-fridge-700 hover:to-fridge-800 text-white transition-all duration-200 shadow-md hover:shadow-lg"
+          className="w-full rounded-xl bg-gradient-to-r from-fridge-600 to-fridge-700 hover:from-fridge-700 hover:to-fridge-800 text-white transition-all duration-200 shadow-lg hover:shadow-xl"
         >
           <Plus className="h-5 w-5 mr-2" />
           <span>Add Item to Shopping List</span>
         </Button>
       )}
       
-      {/* Input area with improved styling - removed category dropdown */}
+      {/* Input area with improved styling */}
       <AnimatePresence>
         {(showForm || !isMobile) && (
           <motion.div
@@ -221,7 +230,7 @@ const ShoppingList = ({ hideDeliveryButton = false }: ShoppingListProps) => {
             transition={{ duration: 0.3 }}
             className="overflow-hidden"
           >
-            <Card className="p-4 border border-fridge-100 shadow-md bg-gradient-to-r from-white to-fridge-50/40">
+            <Card className="p-4 border border-fridge-100 shadow-lg bg-gradient-to-r from-white to-fridge-50/40 rounded-xl overflow-hidden">
               <div className="flex flex-col gap-3">
                 <div className="flex justify-between items-center mb-1">
                   <h3 className="text-sm font-medium text-gray-700 flex items-center">
@@ -247,7 +256,7 @@ const ShoppingList = ({ hideDeliveryButton = false }: ShoppingListProps) => {
                       value={newItem}
                       onChange={(e) => setNewItem(e.target.value)}
                       onKeyDown={handleKeyPress}
-                      className="border-fridge-100 focus:border-fridge-400 focus-ring shadow-sm"
+                      className="border-fridge-100 focus:border-fridge-400 focus-ring shadow-md h-11 rounded-lg"
                       placeholder="Enter item name..."
                     />
                   </div>
@@ -257,14 +266,14 @@ const ShoppingList = ({ hideDeliveryButton = false }: ShoppingListProps) => {
                       value={newQuantity}
                       onChange={(e) => setNewQuantity(e.target.value)}
                       onKeyDown={handleKeyPress}
-                      className="border-fridge-100 focus:border-fridge-400 focus-ring shadow-sm"
+                      className="border-fridge-100 focus:border-fridge-400 focus-ring shadow-md h-11 rounded-lg"
                       placeholder="Qty"
                     />
                   </div>
                   
                   <Button 
                     onClick={handleAddItem}
-                    className="h-10 rounded-lg bg-gradient-to-r from-fridge-600 to-fridge-700 hover:from-fridge-700 hover:to-fridge-800 text-white w-full md:w-auto transition-all duration-200 shadow-sm hover:shadow-md"
+                    className="h-11 rounded-lg bg-gradient-to-r from-fridge-600 to-fridge-700 hover:from-fridge-700 hover:to-fridge-800 text-white w-full md:w-auto transition-all duration-200 shadow-md hover:shadow-lg"
                   >
                     <Plus className="h-5 w-5 mr-1" />
                     <span>Add Item</span>
@@ -278,14 +287,18 @@ const ShoppingList = ({ hideDeliveryButton = false }: ShoppingListProps) => {
       
       {/* Shopping list area */}
       <div className="mt-2">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="text-lg font-medium flex items-center">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold flex items-center text-gray-800">
             <ShoppingBag className="h-5 w-5 mr-2 text-fridge-600" />
             Your Shopping List 
             {hasItems && (
-              <span className="ml-2 px-2.5 py-0.5 text-sm bg-gradient-to-r from-fridge-50 to-fridge-100 text-fridge-700 rounded-full font-medium shadow-sm">
+              <motion.span 
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                className="ml-2 px-2.5 py-0.5 text-sm bg-gradient-to-r from-fridge-50 to-fridge-100 text-fridge-700 rounded-full font-medium shadow-sm"
+              >
                 {itemsLeft} left, {completedItems} purchased
-              </span>
+              </motion.span>
             )}
           </h3>
           <div className="flex items-center space-x-2">
@@ -296,28 +309,28 @@ const ShoppingList = ({ hideDeliveryButton = false }: ShoppingListProps) => {
                   <span className="hidden sm:inline">Sort</span>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bg-white shadow-md border border-fridge-100">
+              <DropdownMenuContent align="end" className="bg-white shadow-lg border border-fridge-100 rounded-lg">
                 <DropdownMenuItem 
                   onClick={() => setSortOption("category")} 
-                  className={cn("hover:bg-fridge-50", sortOption === "category" && "bg-fridge-50 text-fridge-700")}
+                  className={cn("hover:bg-fridge-50 rounded-md my-0.5", sortOption === "category" && "bg-fridge-50 text-fridge-700")}
                 >
                   By Category
                 </DropdownMenuItem>
                 <DropdownMenuItem 
                   onClick={() => setSortOption("alphabetical")} 
-                  className={cn("hover:bg-fridge-50", sortOption === "alphabetical" && "bg-fridge-50 text-fridge-700")}
+                  className={cn("hover:bg-fridge-50 rounded-md my-0.5", sortOption === "alphabetical" && "bg-fridge-50 text-fridge-700")}
                 >
                   Alphabetical
                 </DropdownMenuItem>
                 <DropdownMenuItem 
                   onClick={() => setSortOption("checked")} 
-                  className={cn("hover:bg-fridge-50", sortOption === "checked" && "bg-fridge-50 text-fridge-700")}
+                  className={cn("hover:bg-fridge-50 rounded-md my-0.5", sortOption === "checked" && "bg-fridge-50 text-fridge-700")}
                 >
                   Unchecked First
                 </DropdownMenuItem>
                 <DropdownMenuItem 
                   onClick={() => setSortOption("added")} 
-                  className={cn("hover:bg-fridge-50", sortOption === "added" && "bg-fridge-50 text-fridge-700")}
+                  className={cn("hover:bg-fridge-50 rounded-md my-0.5", sortOption === "added" && "bg-fridge-50 text-fridge-700")}
                 >
                   Most Recently Added
                 </DropdownMenuItem>
@@ -343,7 +356,7 @@ const ShoppingList = ({ hideDeliveryButton = false }: ShoppingListProps) => {
         
         {/* Search bar - only show when there are items */}
         {hasItems && (
-          <div className="mb-4 relative">
+          <div className="mb-5 relative">
             <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
               <Search className="h-4 w-4 text-gray-400" />
             </div>
@@ -352,7 +365,7 @@ const ShoppingList = ({ hideDeliveryButton = false }: ShoppingListProps) => {
               placeholder="Search items..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 bg-gray-50 border-fridge-100 focus-ring shadow-sm"
+              className="pl-10 bg-gray-50 border-fridge-100 focus-ring shadow-md rounded-lg h-11"
             />
           </div>
         )}
@@ -374,47 +387,69 @@ const ShoppingList = ({ hideDeliveryButton = false }: ShoppingListProps) => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
+                className="bg-white rounded-xl p-4 border border-fridge-100 shadow-md"
               >
-                <h4 className="text-sm font-medium text-gray-600 mb-2 flex items-center">
-                  <ShoppingBag className="h-4 w-4 mr-1.5 text-fridge-600" />
+                <h4 className="text-sm font-medium text-gray-700 mb-3 flex items-center">
+                  <ShoppingCart className="h-4 w-4 mr-1.5 text-fridge-600" />
                   Items to Purchase ({itemsLeft})
                 </h4>
                 
-                <div className="space-y-5">
+                <div className="space-y-4">
                   {uncheckedGroups.map(([key, items]) => {
                     const categoryId = key.split('-')[1];
                     const { name, emoji } = getCategoryInfo(categoryId);
+                    const isCollapsed = collapsedCategories.includes(key);
                     
                     return (
-                      <div key={key} className="space-y-3">
-                        <div className="flex items-center text-sm font-medium text-gray-600 mb-1">
-                          <div className="flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-br from-fridge-50 to-fridge-100 shadow-sm mr-2">
-                            <span className="text-base">{emoji}</span>
+                      <div key={key} className="space-y-3 bg-fridge-50/30 rounded-lg p-3">
+                        <div 
+                          className="flex items-center justify-between cursor-pointer"
+                          onClick={() => toggleCategoryCollapse(key)}
+                        >
+                          <div className="flex items-center text-sm font-medium text-gray-700">
+                            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-fridge-50 to-fridge-100 shadow-sm mr-2.5">
+                              <span className="text-base">{emoji}</span>
+                            </div>
+                            <span>{name}</span>
+                            <span className="ml-2 text-xs bg-fridge-100 text-fridge-700 px-2 py-0.5 rounded-full font-medium shadow-sm">
+                              {items.length}
+                            </span>
                           </div>
-                          <span>{name}</span>
-                          <span className="ml-2 text-xs bg-fridge-100 text-fridge-700 px-2 py-0.5 rounded-full font-medium shadow-sm">
-                            {items.length}
-                          </span>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-7 w-7 p-1.5 rounded-full hover:bg-fridge-100"
+                          >
+                            {isCollapsed ? 
+                              <ChevronDown className="h-4 w-4 text-gray-500" /> : 
+                              <ChevronUp className="h-4 w-4 text-gray-500" />
+                            }
+                          </Button>
                         </div>
                         
-                        <motion.ul 
-                          className="space-y-2.5"
-                          variants={containerVariants}
-                          initial="hidden"
-                          animate="visible"
-                        >
-                          <AnimatePresence>
-                            {items.map((item) => (
-                              <ShoppingListItem 
-                                key={item.id} 
-                                item={item} 
-                                onToggle={() => toggleShoppingItem(item.id)}
-                                onRemove={() => removeFromShoppingList(item.id)}
-                                categoryEmoji={emoji}
-                              />
-                            ))}
-                          </AnimatePresence>
-                        </motion.ul>
+                        <AnimatePresence>
+                          {!isCollapsed && (
+                            <motion.ul 
+                              className="space-y-2.5"
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: "auto" }}
+                              exit={{ opacity: 0, height: 0 }}
+                              transition={{ duration: 0.2 }}
+                            >
+                              <AnimatePresence>
+                                {items.map((item) => (
+                                  <ShoppingListItem 
+                                    key={item.id} 
+                                    item={item} 
+                                    onToggle={() => toggleShoppingItem(item.id)}
+                                    onRemove={() => removeFromShoppingList(item.id)}
+                                    categoryEmoji={emoji}
+                                  />
+                                ))}
+                              </AnimatePresence>
+                            </motion.ul>
+                          )}
+                        </AnimatePresence>
                       </div>
                     );
                   })}
@@ -428,48 +463,69 @@ const ShoppingList = ({ hideDeliveryButton = false }: ShoppingListProps) => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: 0.1 }}
-                className="pt-3 border-t border-fridge-100"
+                className="bg-white rounded-xl p-4 border border-gray-100 shadow-md"
               >
-                <h4 className="text-sm font-medium text-gray-600 mb-2 flex items-center">
+                <h4 className="text-sm font-medium text-gray-600 mb-3 flex items-center">
                   <CheckCircle2 className="h-4 w-4 mr-1.5 text-green-500" />
                   Purchased Items ({completedItems})
                 </h4>
                 
-                <div className="space-y-5">
+                <div className="space-y-4">
                   {checkedGroups.map(([key, items]) => {
                     const categoryId = key.split('-')[1];
                     const { name, emoji } = getCategoryInfo(categoryId);
+                    const isCollapsed = collapsedCategories.includes(key);
                     
                     return (
-                      <div key={key} className="space-y-3">
-                        <div className="flex items-center text-sm font-medium text-gray-400 mb-1">
-                          <div className="flex items-center justify-center w-7 h-7 rounded-full bg-gray-100 mr-2">
-                            <span className="text-base">{emoji}</span>
+                      <div key={key} className="space-y-3 bg-gray-50 rounded-lg p-3">
+                        <div 
+                          className="flex items-center justify-between cursor-pointer"
+                          onClick={() => toggleCategoryCollapse(key)}
+                        >
+                          <div className="flex items-center text-sm font-medium text-gray-500">
+                            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 mr-2.5">
+                              <span className="text-base">{emoji}</span>
+                            </div>
+                            <span>{name}</span>
+                            <span className="ml-2 text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-medium">
+                              {items.length}
+                            </span>
                           </div>
-                          <span>{name}</span>
-                          <span className="ml-2 text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-medium">
-                            {items.length}
-                          </span>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-7 w-7 p-1.5 rounded-full hover:bg-gray-100"
+                          >
+                            {isCollapsed ? 
+                              <ChevronDown className="h-4 w-4 text-gray-400" /> : 
+                              <ChevronUp className="h-4 w-4 text-gray-400" />
+                            }
+                          </Button>
                         </div>
                         
-                        <motion.ul 
-                          className="space-y-2.5"
-                          variants={containerVariants}
-                          initial="hidden"
-                          animate="visible"
-                        >
-                          <AnimatePresence>
-                            {items.map((item) => (
-                              <ShoppingListItem 
-                                key={item.id} 
-                                item={item} 
-                                onToggle={() => toggleShoppingItem(item.id)}
-                                onRemove={() => removeFromShoppingList(item.id)}
-                                categoryEmoji={emoji}
-                              />
-                            ))}
-                          </AnimatePresence>
-                        </motion.ul>
+                        <AnimatePresence>
+                          {!isCollapsed && (
+                            <motion.ul 
+                              className="space-y-2.5"
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: "auto" }}
+                              exit={{ opacity: 0, height: 0 }}
+                              transition={{ duration: 0.2 }}
+                            >
+                              <AnimatePresence>
+                                {items.map((item) => (
+                                  <ShoppingListItem 
+                                    key={item.id} 
+                                    item={item} 
+                                    onToggle={() => toggleShoppingItem(item.id)}
+                                    onRemove={() => removeFromShoppingList(item.id)}
+                                    categoryEmoji={emoji}
+                                  />
+                                ))}
+                              </AnimatePresence>
+                            </motion.ul>
+                          )}
+                        </AnimatePresence>
                       </div>
                     );
                   })}
@@ -499,6 +555,7 @@ const ShoppingListItem = ({
     <motion.li 
       variants={itemVariants}
       exit="exit"
+      whileHover={{ scale: 1.02 }}
       className={cn(
         "flex items-center justify-between py-3.5 px-4 rounded-xl shadow-sm border transform transition-all duration-300 hover:shadow group",
         item.isChecked 
@@ -510,17 +567,17 @@ const ShoppingListItem = ({
         <button
           onClick={onToggle}
           className={cn(
-            "flex items-center justify-center h-7 w-7 rounded-full mr-3.5 flex-shrink-0 transition-all duration-300",
+            "flex items-center justify-center h-7 w-7 rounded-md mr-3.5 flex-shrink-0 transition-all duration-300",
             item.isChecked 
-              ? "bg-green-500 text-white shadow-sm" 
-              : "border-2 border-fridge-300 hover:border-fridge-400 group-hover:border-fridge-500"
+              ? "bg-green-500 text-white shadow-sm hover:bg-green-600" 
+              : "border-2 border-fridge-300 hover:border-fridge-500 text-transparent hover:text-fridge-300"
           )}
           aria-label={item.isChecked ? "Mark as not purchased" : "Mark as purchased"}
         >
           {item.isChecked ? (
             <Check className="h-4 w-4" />
           ) : (
-            <Circle className="h-4 w-4 text-transparent" /> 
+            <CheckSquare className="h-4 w-4" /> 
           )}
         </button>
         <div className="flex flex-col min-w-0">
@@ -538,7 +595,7 @@ const ShoppingListItem = ({
         </div>
       </div>
       <div className="flex items-center ml-2">
-        <span className={cn("text-sm px-2.5 py-0.5 rounded-full font-medium transition-all",
+        <span className={cn("text-sm px-2.5 py-1 rounded-full font-medium transition-all",
           item.isChecked ? "bg-gray-100 text-gray-500" : "bg-fridge-100 text-fridge-700"
         )}>{item.quantity}</span>
         <Button
@@ -557,10 +614,15 @@ const ShoppingListItem = ({
 
 // Empty state component
 const EmptyListState = () => (
-  <div className="text-center py-12 bg-gradient-to-b from-fridge-50/80 to-white rounded-xl border border-fridge-100/80 shadow-sm">
-    <div className="bg-white p-4 rounded-full inline-flex items-center justify-center shadow-md mb-4">
+  <div className="text-center py-12 bg-gradient-to-b from-fridge-50/80 to-white rounded-xl border border-fridge-100/80 shadow-md">
+    <motion.div 
+      initial={{ scale: 0.8, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+      className="bg-white p-4 rounded-full inline-flex items-center justify-center shadow-md mb-4"
+    >
       <ShoppingBag className="h-12 w-12 text-fridge-300" />
-    </div>
+    </motion.div>
     <p className="text-gray-700 mb-2 font-medium text-lg">Your shopping list is empty</p>
     <p className="text-sm text-gray-500 max-w-xs mx-auto">Add items above to start building your shopping list</p>
   </div>
@@ -568,7 +630,7 @@ const EmptyListState = () => (
 
 // Empty search state component
 const EmptySearchState = () => (
-  <div className="text-center py-10 bg-gradient-to-b from-fridge-50/80 to-white rounded-xl border border-fridge-100/80 shadow-sm">
+  <div className="text-center py-10 bg-gradient-to-b from-fridge-50/80 to-white rounded-xl border border-fridge-100/80 shadow-md">
     <div className="bg-white p-3 rounded-full inline-flex items-center justify-center shadow-md mb-3">
       <Search className="h-8 w-8 text-gray-300" />
     </div>
