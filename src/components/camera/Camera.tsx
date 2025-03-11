@@ -1,3 +1,4 @@
+
 import { useState, useCallback, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
@@ -11,9 +12,9 @@ import {
   Zap,
   ZapOff,
   Grid3x3,
-  GridIcon,
   Scan,
-  Aperture
+  Aperture,
+  Settings
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
@@ -202,6 +203,14 @@ const Camera = ({ onClose }: CameraProps) => {
               className="absolute inset-0 flex flex-col items-center justify-center z-10 bg-black/95"
             >
               <LoadingSpinner size="lg" color="fridge" text="Starting camera..." />
+              <motion.p 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="text-white/70 text-sm mt-4"
+              >
+                Please allow camera access when prompted
+              </motion.p>
             </motion.div>
           )}
         </AnimatePresence>
@@ -226,27 +235,30 @@ const Camera = ({ onClose }: CameraProps) => {
               alt="Captured" 
               className="max-h-full max-w-full object-contain"
             />
+            
+            {/* Subtle vignette overlay */}
+            <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/40 via-transparent to-black/20" />
           </motion.div>
         )}
       </div>
       
-      {/* Header bar */}
+      {/* Header bar with glassmorphism */}
       <motion.div 
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.2 }}
-        className="absolute top-0 left-0 right-0 p-4 flex items-center justify-between bg-gradient-to-b from-black/80 to-transparent z-10"
+        className="absolute top-0 left-0 right-0 p-4 flex items-center justify-between bg-gradient-to-b from-black/80 via-black/40 to-transparent backdrop-blur-sm z-10"
       >
         <Button
           variant="ghost"
           size="icon"
           onClick={onClose}
-          className="rounded-full text-white hover:bg-white/10"
+          className="rounded-full text-white hover:bg-white/10 shadow-md"
         >
           <ChevronLeft className="h-5 w-5" />
         </Button>
         
-        <h2 className="text-white text-lg font-medium">
+        <h2 className="text-white text-lg font-medium tracking-wide">
           {isBarcodeMode ? "Scan Barcode" : capturedImage ? "Review" : "Camera"}
         </h2>
         
@@ -255,10 +267,10 @@ const Camera = ({ onClose }: CameraProps) => {
             variant="ghost"
             size="icon"
             onClick={handleToggleFlash}
-            className="rounded-full text-white hover:bg-white/10"
+            className="rounded-full text-white hover:bg-white/10 shadow-md"
           >
             {flashMode === 'on' ? (
-              <Zap className="h-5 w-5" />
+              <Zap className="h-5 w-5 text-yellow-300" />
             ) : (
               <ZapOff className="h-5 w-5" />
             )}
@@ -266,12 +278,12 @@ const Camera = ({ onClose }: CameraProps) => {
         )}
       </motion.div>
       
-      {/* Bottom controls */}
+      {/* Bottom controls with glassmorphism */}
       <motion.div 
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.3 }}
-        className="absolute bottom-0 left-0 right-0 p-6 flex items-center justify-center bg-gradient-to-t from-black/80 to-transparent z-10"
+        className="absolute bottom-0 left-0 right-0 p-6 flex items-center justify-center bg-gradient-to-t from-black/80 via-black/40 to-transparent backdrop-blur-sm z-10"
       >
         <AnimatePresence mode="wait">
           {!capturedImage ? (
@@ -313,7 +325,7 @@ const Camera = ({ onClose }: CameraProps) => {
                 size="icon"
                 onClick={toggleBarcodeMode}
                 disabled={isLoading}
-                className={`rounded-full h-12 w-12 transition-colors duration-300 ${isBarcodeMode ? "" : "bg-black/50 text-white hover:bg-black/70 border border-white/20"}`}
+                className={`rounded-full h-12 w-12 transition-colors duration-300 ${isBarcodeMode ? "shadow-lg" : "bg-black/50 text-white hover:bg-black/70 border border-white/20 shadow-lg"}`}
               >
                 {isBarcodeMode ? <CameraIcon className="h-5 w-5" /> : <Scan className="h-5 w-5" />}
               </Button>
@@ -336,21 +348,21 @@ const Camera = ({ onClose }: CameraProps) => {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="absolute top-20 left-0 right-0 mx-auto bg-black/80 backdrop-blur-md p-4 rounded-lg max-w-xs text-center text-white shadow-lg"
+            className="absolute top-20 left-0 right-0 mx-auto bg-black/70 backdrop-blur-md p-4 rounded-lg max-w-xs text-center text-white shadow-lg border border-white/10"
           >
             <h3 className="font-medium mb-1">Product Identified:</h3>
-            <p className="text-lg">{productInfo}</p>
+            <p className="text-lg font-semibold">{productInfo}</p>
           </motion.div>
         )}
       </AnimatePresence>
       
-      {/* Mode indicator */}
+      {/* Mode indicator with pill design */}
       {!capturedImage && (
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
-          className={`absolute top-20 left-5 px-3 py-1.5 rounded-full ${isBarcodeMode ? 'bg-fridge-600' : 'bg-white/20'} text-white text-xs font-medium`}
+          className={`absolute top-20 left-5 px-3 py-1.5 rounded-full ${isBarcodeMode ? 'bg-fridge-600 shadow-lg shadow-fridge-600/30' : 'bg-black/50 backdrop-blur-sm border border-white/20'} text-white text-xs font-medium`}
         >
           {isBarcodeMode ? 'Barcode Mode' : `Photo Mode (${quality})`}
         </motion.div>

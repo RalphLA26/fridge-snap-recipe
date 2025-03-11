@@ -23,7 +23,7 @@ const ReviewControls = ({ onRetake, onSave, hasProductInfo }: ReviewControlsProp
       <Button
         variant="outline"
         onClick={onRetake}
-        className="flex-1 bg-black/50 text-white border-white/20 hover:bg-black/70 backdrop-blur-sm"
+        className="flex-1 bg-black/50 text-white border-white/20 hover:bg-black/70 backdrop-blur-sm shadow-md"
       >
         <X className="mr-2 h-4 w-4" />
         Retake
@@ -35,7 +35,7 @@ const ReviewControls = ({ onRetake, onSave, hasProductInfo }: ReviewControlsProp
         className="flex-1 relative overflow-hidden group shadow-lg"
       >
         <motion.div 
-          className="absolute inset-0 bg-green-400/20"
+          className="absolute inset-0 bg-green-400/10"
           initial={{ x: "-100%" }}
           animate={{ x: "100%" }}
           transition={{ 
