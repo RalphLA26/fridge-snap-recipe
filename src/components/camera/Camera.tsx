@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
@@ -9,8 +8,8 @@ import {
   Check, 
   X, 
   Image as ImageIcon,
-  FlashIcon,
-  FlashOff,
+  Zap,
+  ZapOff,
   Grid3x3,
   GridIcon,
   Scan,
@@ -259,9 +258,9 @@ const Camera = ({ onClose }: CameraProps) => {
             className="rounded-full text-white hover:bg-white/10"
           >
             {flashMode === 'on' ? (
-              <FlashIcon className="h-5 w-5" />
+              <Zap className="h-5 w-5" />
             ) : (
-              <FlashOff className="h-5 w-5" />
+              <ZapOff className="h-5 w-5" />
             )}
           </Button>
         )}

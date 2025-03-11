@@ -120,22 +120,29 @@ export function useCamera({
     const videoTrack = stream.getVideoTracks()[0];
     if (!videoTrack) return;
     
-    // Check if torch is supported
-    const capabilities = videoTrack.getCapabilities();
-    if (!capabilities.torch) {
-      toast.error("Torch not supported on this device");
-      return;
-    }
-    
+    // Check if torch is supported by attempting to read capabilities
     try {
-      videoTrack.applyConstraints({
-        advanced: [{ torch: on }],
-      });
+      const capabilities = videoTrack.getCapabilities();
+      // Some browsers/devices might not support the torch capability
+      // We'll try to apply the constraint anyway but catch any errors
       
-      toast.success(on ? "Flash turned on" : "Flash turned off");
+      try {
+        // We use the 'advanced' approach which is more widely supported
+        videoTrack.applyConstraints({
+          advanced: [{ 
+            // This works on many Android devices even if torch isn't in capabilities
+            advanced: [{ ['torch']: on }] as any 
+          }]
+        });
+        
+        toast.success(on ? "Flash turned on" : "Flash turned off");
+      } catch (constraintErr) {
+        console.error("Error setting torch constraint:", constraintErr);
+        toast.error("Flash control is not supported on this device");
+      }
     } catch (err) {
-      console.error("Error setting torch mode:", err);
-      toast.error("Could not control flash");
+      console.error("Error checking torch capabilities:", err);
+      toast.error("Flash control is not available");
     }
   };
 
