@@ -6,7 +6,8 @@ import {
   ArrowLeft, Search, Clock, 
   ListFilter, Grid3X3, List, Heart,
   ArrowUpDown, X, BookOpen, Flame,
-  ChevronDown, SlidersHorizontal, GaugeCircle
+  ChevronDown, SlidersHorizontal, GaugeCircle,
+  Tag, BookMarked, Filter
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +17,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import RecipeCard from "@/components/RecipeCard";
 import { findRecipesByIngredients } from "@/lib/recipeData";
 import { useUser } from "@/contexts/UserContext";
@@ -105,6 +107,7 @@ const RecipesView = () => {
     setFilteredRecipes(result);
   }, [recipes, searchQuery, cookTimeFilter, sortOrder, showFavoritesOnly, isFavorite]);
   
+  // Animation variants
   const container = {
     hidden: { opacity: 0 },
     show: {
@@ -197,7 +200,7 @@ const RecipesView = () => {
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
     >
-      {/* Header with improved styling */}
+      {/* Streamlined header */}
       <header className="sticky top-0 z-10 bg-white border-b border-gray-100 shadow-sm">
         <div className="container max-w-5xl mx-auto flex items-center justify-between h-14 px-4">
           <div className="flex items-center gap-2">
@@ -220,8 +223,8 @@ const RecipesView = () => {
                 exit={{ opacity: 0, scale: 0.9 }}
               >
                 <Badge 
-                  variant="outline" 
-                  className="bg-recipe-50 text-recipe-700 border-recipe-200 font-medium px-2.5 py-1"
+                  variant="blue" 
+                  className="font-medium px-2.5 py-1"
                 >
                   <Flame className="w-3.5 h-3.5 mr-1" />
                   {ingredients.length} ingredients
@@ -233,14 +236,14 @@ const RecipesView = () => {
       </header>
       
       <div className="container max-w-5xl mx-auto px-4 py-6">
-        {/* Improved search section with integrated filters */}
-        <div className="mb-8 space-y-5">
-          {/* Tabs for view selection placed above search */}
+        {/* Main content area */}
+        <div className="mb-6">
+          {/* Simplified view tabs that stand out more */}
           <Tabs defaultValue="matching" className="w-full mb-4">
-            <TabsList className="w-full mb-4 bg-white border border-gray-200 rounded-xl p-1.5 shadow-sm">
+            <TabsList className="w-full mb-5 grid grid-cols-2 bg-white border border-gray-200 rounded-xl p-1.5 shadow-sm">
               <TabsTrigger 
                 value="matching" 
-                className="flex-1 py-3 data-[state=active]:bg-recipe-600 data-[state=active]:text-white rounded-lg"
+                className="py-3 data-[state=active]:bg-fridge-600 data-[state=active]:text-white rounded-lg"
               >
                 <span className="flex items-center justify-center gap-2">
                   <GaugeCircle className="h-4 w-4" />
@@ -249,7 +252,7 @@ const RecipesView = () => {
               </TabsTrigger>
               <TabsTrigger 
                 value="all" 
-                className="flex-1 py-3 data-[state=active]:bg-recipe-600 data-[state=active]:text-white rounded-lg"
+                className="py-3 data-[state=active]:bg-fridge-600 data-[state=active]:text-white rounded-lg"
               >
                 <span className="flex items-center justify-center gap-2">
                   <BookOpen className="h-4 w-4" />
@@ -258,60 +261,61 @@ const RecipesView = () => {
               </TabsTrigger>
             </TabsList>
             
-            {/* Glass-like search card with integrated filters */}
-            <div className="bg-white/90 backdrop-blur-sm border border-gray-200 shadow-md rounded-xl overflow-hidden">
-              {/* Search input row */}
-              <div className="relative flex items-center p-2">
-                <div className="absolute left-4 text-gray-400">
-                  <Search className="h-5 w-5" />
+            {/* Enhanced search and filter card */}
+            <Card className="mb-5 border-gray-200 shadow-md overflow-hidden">
+              <div className="bg-fridge-50 border-b border-fridge-100 p-3">
+                <div className="relative flex items-center">
+                  <div className="absolute left-3 text-fridge-500">
+                    <Search className="h-5 w-5" />
+                  </div>
+                  <Input
+                    className="pl-10 py-5 border-0 shadow-none focus-visible:ring-0 bg-white rounded-lg placeholder:text-gray-400"
+                    placeholder="Search recipes..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                  {searchQuery && (
+                    <button 
+                      className="absolute right-3 text-gray-400 hover:text-gray-600 bg-gray-100 p-1 rounded-full"
+                      onClick={() => setSearchQuery("")}
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  )}
                 </div>
-                <Input
-                  className="pl-10 py-6 border-0 shadow-none focus-visible:ring-0 bg-transparent placeholder:text-gray-400 text-base"
-                  placeholder="Search recipes..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-                {searchQuery && (
-                  <button 
-                    className="absolute right-4 text-gray-400 hover:text-gray-600 bg-gray-100 p-1 rounded-full"
-                    onClick={() => setSearchQuery("")}
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                )}
               </div>
               
-              {/* Filter controls in a nice scrollable row */}
-              <div className="flex items-center gap-2 px-4 py-3 border-t border-gray-100 bg-gray-50/80 overflow-x-auto custom-scrollbar">
-                {/* Filters dropdown */}
+              {/* Filter control section with icons and clear styling */}
+              <div className="flex flex-wrap items-center gap-2 p-3 bg-white">
+                {/* Filters button */}
                 <Popover open={filtersVisible} onOpenChange={setFiltersVisible}>
                   <PopoverTrigger asChild>
                     <Button 
                       variant="outline" 
                       size="sm" 
                       className={cn(
-                        "flex items-center gap-2 border-gray-200 shadow-sm h-9 px-4 rounded-full whitespace-nowrap",
-                        activeFilterCount > 0 ? "bg-recipe-50 text-recipe-600 border-recipe-200" : ""
+                        "flex items-center gap-2 border-gray-200 h-9 px-3 rounded-lg",
+                        activeFilterCount > 0 ? "bg-fridge-50 text-fridge-600 border-fridge-200" : ""
                       )}
                     >
-                      <SlidersHorizontal className="h-3.5 w-3.5" />
+                      <Filter className="h-3.5 w-3.5" />
                       <span>Filters</span>
                       {activeFilterCount > 0 && (
-                        <Badge className="h-5 w-5 p-0 flex items-center justify-center bg-recipe-100 text-recipe-700">
+                        <Badge className="ml-1 h-5 w-5 p-0 flex items-center justify-center bg-fridge-100 text-fridge-700">
                           {activeFilterCount}
                         </Badge>
                       )}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="p-5 shadow-xl border-gray-200 rounded-xl">
-                    <div className="space-y-5">
+                  <PopoverContent className="p-4 shadow-xl border-gray-200 rounded-xl w-72">
+                    <div className="space-y-4">
                       <div className="flex items-center justify-between">
                         <h3 className="font-medium text-lg text-gray-900">Filters</h3>
                         {activeFilterCount > 0 && (
                           <Button 
                             variant="ghost" 
                             size="sm" 
-                            className="h-auto px-2 py-1 text-sm text-recipe-600 hover:text-recipe-800 hover:bg-recipe-50"
+                            className="h-8 px-2 py-1 text-sm text-fridge-600 hover:text-fridge-800 hover:bg-fridge-50"
                             onClick={clearFilters}
                           >
                             Clear all
@@ -319,45 +323,45 @@ const RecipesView = () => {
                         )}
                       </div>
                       
-                      <div className="space-y-4">
+                      <div className="space-y-3">
                         <h4 className="text-sm font-medium text-gray-700">Cook Time</h4>
-                        <div className="grid grid-cols-1 gap-3">
-                          {/* Redesigned filter checkboxes with consistent styling */}
-                          <label className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-100 transition-colors">
+                        <div className="grid grid-cols-1 gap-2">
+                          {/* Simplified filter checkboxes */}
+                          <label className="flex items-center gap-3 p-2.5 bg-gray-50 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-100 transition-colors">
                             <Checkbox 
                               id="quick" 
                               checked={cookTimeFilter.includes("quick")}
                               onCheckedChange={() => handleCookTimeFilterChange("quick")}
-                              className="text-recipe-600 border-gray-300 data-[state=checked]:bg-recipe-600"
+                              className="text-fridge-600 data-[state=checked]:bg-fridge-600"
                             />
                             <div className="flex items-center gap-2">
-                              <Clock className="h-4 w-4 text-recipe-600" />
+                              <Clock className="h-4 w-4 text-fridge-600" />
                               <span>Quick (under 20 mins)</span>
                             </div>
                           </label>
                           
-                          <label className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-100 transition-colors">
+                          <label className="flex items-center gap-3 p-2.5 bg-gray-50 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-100 transition-colors">
                             <Checkbox 
                               id="medium" 
                               checked={cookTimeFilter.includes("medium")}
                               onCheckedChange={() => handleCookTimeFilterChange("medium")}
-                              className="text-recipe-600 border-gray-300 data-[state=checked]:bg-recipe-600"
+                              className="text-fridge-600 data-[state=checked]:bg-fridge-600"
                             />
                             <div className="flex items-center gap-2">
-                              <Clock className="h-4 w-4 text-recipe-600" />
+                              <Clock className="h-4 w-4 text-fridge-600" />
                               <span>Medium (20-40 mins)</span>
                             </div>
                           </label>
                           
-                          <label className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-100 transition-colors">
+                          <label className="flex items-center gap-3 p-2.5 bg-gray-50 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-100 transition-colors">
                             <Checkbox 
                               id="long" 
                               checked={cookTimeFilter.includes("long")}
                               onCheckedChange={() => handleCookTimeFilterChange("long")}
-                              className="text-recipe-600 border-gray-300 data-[state=checked]:bg-recipe-600"
+                              className="text-fridge-600 data-[state=checked]:bg-fridge-600"
                             />
                             <div className="flex items-center gap-2">
-                              <Clock className="h-4 w-4 text-recipe-600" />
+                              <Clock className="h-4 w-4 text-fridge-600" />
                               <span>Long (over 40 mins)</span>
                             </div>
                           </label>
@@ -366,13 +370,13 @@ const RecipesView = () => {
                       
                       <Separator className="bg-gray-200" />
                       
-                      {/* Favorites filter with improved visual design */}
-                      <label className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-100 transition-colors">
+                      {/* Favorites filter */}
+                      <label className="flex items-center gap-3 p-2.5 bg-gray-50 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-100 transition-colors">
                         <Checkbox 
                           id="favorites" 
                           checked={showFavoritesOnly}
                           onCheckedChange={(checked) => setShowFavoritesOnly(checked === true)}
-                          className="text-red-500 border-gray-300 data-[state=checked]:bg-red-500"
+                          className="text-red-500 data-[state=checked]:bg-red-500"
                         />
                         <div className="flex items-center gap-2">
                           <Heart className="h-4 w-4 text-red-500" />
@@ -381,7 +385,7 @@ const RecipesView = () => {
                       </label>
                       
                       <Button 
-                        className="w-full bg-recipe-600 hover:bg-recipe-700 text-white"
+                        className="w-full bg-fridge-600 hover:bg-fridge-700 text-white"
                         onClick={() => setFiltersVisible(false)}
                       >
                         Apply Filters
@@ -390,17 +394,17 @@ const RecipesView = () => {
                   </PopoverContent>
                 </Popover>
                 
-                {/* Time filter chips with improved visual styling */}
-                <div className="flex items-center gap-2">
+                {/* Time filter chips */}
+                <div className="flex flex-wrap items-center gap-2">
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => handleCookTimeFilterChange("quick")}
                     className={cn(
-                      "h-9 rounded-full whitespace-nowrap",
+                      "h-9 rounded-lg border-gray-200",
                       cookTimeFilter.includes("quick")
-                        ? "bg-recipe-50 text-recipe-600 border-recipe-200"
-                        : "border-gray-200"
+                        ? "bg-fridge-50 text-fridge-600 border-fridge-200"
+                        : ""
                     )}
                   >
                     <Clock className="h-3.5 w-3.5 mr-1.5" />
@@ -412,10 +416,10 @@ const RecipesView = () => {
                     size="sm"
                     onClick={() => handleCookTimeFilterChange("medium")}
                     className={cn(
-                      "h-9 rounded-full whitespace-nowrap",
+                      "h-9 rounded-lg border-gray-200",
                       cookTimeFilter.includes("medium")
-                        ? "bg-recipe-50 text-recipe-600 border-recipe-200"
-                        : "border-gray-200"
+                        ? "bg-fridge-50 text-fridge-600 border-fridge-200"
+                        : ""
                     )}
                   >
                     <Clock className="h-3.5 w-3.5 mr-1.5" />
@@ -427,10 +431,10 @@ const RecipesView = () => {
                     size="sm"
                     onClick={() => handleCookTimeFilterChange("long")}
                     className={cn(
-                      "h-9 rounded-full whitespace-nowrap",
+                      "h-9 rounded-lg border-gray-200",
                       cookTimeFilter.includes("long")
-                        ? "bg-recipe-50 text-recipe-600 border-recipe-200"
-                        : "border-gray-200"
+                        ? "bg-fridge-50 text-fridge-600 border-fridge-200"
+                        : ""
                     )}
                   >
                     <Clock className="h-3.5 w-3.5 mr-1.5" />
@@ -444,10 +448,10 @@ const RecipesView = () => {
                   size="sm"
                   onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
                   className={cn(
-                    "h-9 rounded-full whitespace-nowrap",
+                    "h-9 rounded-lg border-gray-200",
                     showFavoritesOnly
                       ? "bg-red-50 text-red-600 border-red-200"
-                      : "border-gray-200"
+                      : ""
                   )}
                 >
                   <Heart className={cn(
@@ -462,7 +466,7 @@ const RecipesView = () => {
                   value={sortOrder}
                   onValueChange={(value) => setSortOrder(value as any)}
                 >
-                  <SelectTrigger className="w-auto h-9 min-w-[160px] border-gray-200 shadow-sm focus:ring-recipe-400 rounded-full">
+                  <SelectTrigger className="w-auto h-9 min-w-[135px] border-gray-200 focus:ring-fridge-400 rounded-lg">
                     <div className="flex items-center gap-2">
                       <ArrowUpDown className="h-3.5 w-3.5 text-gray-500 flex-shrink-0" />
                       <SelectValue placeholder="Sort by" />
@@ -476,14 +480,14 @@ const RecipesView = () => {
                 </Select>
                 
                 {/* View toggle with improved visual design */}
-                <div className="ml-auto flex bg-white rounded-full border border-gray-200 shadow-sm overflow-hidden">
+                <div className="ml-auto flex bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
                   <Button
                     variant="ghost"
                     size="sm"
                     className={cn(
                       "rounded-none border-r border-gray-200 px-3 h-9", 
                       viewMode === "grid" 
-                        ? "bg-recipe-50 text-recipe-700 hover:bg-recipe-100" 
+                        ? "bg-fridge-50 text-fridge-700" 
                         : "hover:bg-gray-50"
                     )}
                     onClick={() => setViewMode("grid")}
@@ -496,7 +500,7 @@ const RecipesView = () => {
                     className={cn(
                       "rounded-none px-3 h-9", 
                       viewMode === "list" 
-                        ? "bg-recipe-50 text-recipe-700 hover:bg-recipe-100" 
+                        ? "bg-fridge-50 text-fridge-700" 
                         : "hover:bg-gray-50"
                     )}
                     onClick={() => setViewMode("list")}
@@ -505,54 +509,51 @@ const RecipesView = () => {
                   </Button>
                 </div>
               </div>
-            </div>
-          
-            {/* Results counter with refined styling */}
-            <motion.div
-              initial={{ opacity: 0, y: 5 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="mt-5 mb-3"
-            >
-              <div className="flex items-center gap-2 px-3 py-2 bg-white/80 backdrop-blur-sm border border-gray-100 rounded-lg shadow-sm">
-                <ListFilter className="h-4 w-4 text-recipe-500" />
-                <p className="text-sm text-gray-700">
-                  {getMatchingMessage()}
-                  {searchQuery && (
-                    <span className="text-gray-500 ml-1">
-                      for "<span className="italic font-medium">{searchQuery}</span>"
-                    </span>
+              
+              {/* Results counter with improved styling */}
+              {(filteredRecipes.length > 0 || searchQuery) && (
+                <div className="bg-gray-50 px-3 py-2 border-t border-gray-100 flex items-center">
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <ListFilter className="h-4 w-4 text-fridge-500" />
+                    <p>
+                      {getMatchingMessage()}
+                      {searchQuery && (
+                        <span className="text-gray-500 ml-1">
+                          for "<span className="font-medium">{searchQuery}</span>"
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                  
+                  {/* Clear filters button - only show if filters are active */}
+                  {(activeFilterCount > 0 || searchQuery) && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={clearFilters}
+                      className="ml-auto h-7 px-2 text-xs text-fridge-600 hover:text-fridge-800 hover:bg-fridge-50"
+                    >
+                      Clear filters
+                    </Button>
                   )}
-                </p>
-                
-                {/* Clear filters button - only show if filters are active */}
-                {(activeFilterCount > 0 || searchQuery) && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={clearFilters}
-                    className="ml-auto h-7 px-2 text-xs text-recipe-600 hover:text-recipe-800 hover:bg-recipe-50"
-                  >
-                    Clear filters
-                  </Button>
-                )}
-              </div>
-            </motion.div>
+                </div>
+              )}
+            </Card>
             
-            <TabsContent value="all" className="mt-5">
-              <motion.div 
-                className={cn(
-                  "w-full",
-                  viewMode === "grid" 
-                    ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5" 
-                    : "flex flex-col gap-4"
-                )}
-                variants={container}
-                initial="hidden"
-                animate="show"
-              >
-                {filteredRecipes.length > 0 ? (
-                  filteredRecipes.map(({ recipe, matchingCount }) => (
+            {/* All Recipes Tab */}
+            <TabsContent value="all" className="mt-6 animate-in fade-in-50">
+              {filteredRecipes.length > 0 ? (
+                <motion.div 
+                  className={cn(
+                    viewMode === "grid" 
+                      ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5" 
+                      : "flex flex-col gap-4"
+                  )}
+                  variants={container}
+                  initial="hidden"
+                  animate="show"
+                >
+                  {filteredRecipes.map(({ recipe, matchingCount }) => (
                     <motion.div 
                       key={recipe.id} 
                       variants={item}
@@ -568,9 +569,11 @@ const RecipesView = () => {
                         listView={viewMode === "list"}
                       />
                     </motion.div>
-                  ))
-                ) : (
-                  <div className="col-span-full text-center py-12 bg-white rounded-xl border border-gray-200 shadow-sm">
+                  ))}
+                </motion.div>
+              ) : (
+                <Card className="text-center py-10 border-gray-200">
+                  <CardContent className="pt-6">
                     <div className="bg-gray-100 inline-flex rounded-full p-3 mb-4">
                       <Search className="h-6 w-6 text-gray-400" />
                     </div>
@@ -585,194 +588,124 @@ const RecipesView = () => {
                     >
                       Clear Filters
                     </Button>
-                  </div>
-                )}
-              </motion.div>
+                  </CardContent>
+                </Card>
+              )}
             </TabsContent>
             
-            <TabsContent value="matching" className="mt-5 space-y-8">
-              {/* Perfect Match recipe group */}
-              {recipeGroups.perfect && recipeGroups.perfect.length > 0 && (
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3 border-l-4 border-green-500 pl-4 py-2 bg-green-50 rounded-r-lg">
-                    <Badge className="bg-green-500 hover:bg-green-600 px-2.5 py-1">
-                      Perfect match
-                    </Badge>
-                    <h3 className="font-medium text-green-800">You have all ingredients</h3>
+            {/* Matching Tab */}
+            <TabsContent value="matching" className="mt-6 space-y-8 animate-in fade-in-50">
+              {/* Better organized recipe groups */}
+              {Object.entries(recipeGroups).map(([group, recipes]) => {
+                if (recipes.length === 0) return null;
+                
+                // Determine group appearance based on match level
+                const groupInfo = {
+                  perfect: {
+                    title: "Perfect match",
+                    subtitle: "You have all ingredients",
+                    border: "border-green-500",
+                    bg: "bg-green-50",
+                    text: "text-green-800",
+                    badge: "bg-green-500 hover:bg-green-600"
+                  },
+                  good: {
+                    title: "Good match",
+                    subtitle: "You have most ingredients",
+                    border: "border-fridge-500",
+                    bg: "bg-fridge-50",
+                    text: "text-fridge-800",
+                    badge: "bg-fridge-500 hover:bg-fridge-600"
+                  },
+                  some: {
+                    title: "Some match",
+                    subtitle: "You have some ingredients",
+                    border: "border-amber-500",
+                    bg: "bg-amber-50",
+                    text: "text-amber-800",
+                    badge: "bg-amber-500 hover:bg-amber-600"
+                  },
+                  few: {
+                    title: "Few match",
+                    subtitle: "Missing most ingredients",
+                    border: "border-gray-500",
+                    bg: "bg-gray-50",
+                    text: "text-gray-800", 
+                    badge: "bg-gray-500 hover:bg-gray-600"
+                  }
+                };
+                
+                const info = groupInfo[group as keyof typeof groupInfo];
+                
+                return (
+                  <div key={group} className="space-y-4">
+                    <div className={cn(
+                      "flex items-center gap-3 border-l-4 pl-3 py-2 rounded-r-lg",
+                      info.border, info.bg
+                    )}>
+                      <Badge className={info.badge}>
+                        {info.title}
+                      </Badge>
+                      <h3 className={cn("font-medium", info.text)}>
+                        {info.subtitle}
+                      </h3>
+                      <Badge variant="outline" className="ml-auto">
+                        {recipes.length} {recipes.length === 1 ? 'recipe' : 'recipes'}
+                      </Badge>
+                    </div>
+                    
+                    <motion.div 
+                      className={cn(
+                        viewMode === "grid" 
+                          ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5" 
+                          : "flex flex-col gap-4"
+                      )}
+                      variants={container}
+                      initial="hidden"
+                      animate="show"
+                    >
+                      {recipes.map(({ recipe, matchingCount }) => (
+                        <motion.div 
+                          key={recipe.id} 
+                          variants={item}
+                          className={viewMode === "list" ? "w-full" : ""}
+                        >
+                          <RecipeCard
+                            id={recipe.id}
+                            title={recipe.title}
+                            image={recipe.image}
+                            cookTime={recipe.cookTime}
+                            matchingIngredients={matchingCount}
+                            totalIngredients={recipe.ingredients.length}
+                            listView={viewMode === "list"}
+                          />
+                        </motion.div>
+                      ))}
+                    </motion.div>
                   </div>
-                  
-                  <motion.div 
-                    className={cn(
-                      viewMode === "grid" 
-                        ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5" 
-                        : "flex flex-col gap-4"
-                    )}
-                    variants={container}
-                    initial="hidden"
-                    animate="show"
-                  >
-                    {recipeGroups.perfect.map(({ recipe, matchingCount }) => (
-                      <motion.div 
-                        key={recipe.id} 
-                        variants={item}
-                        className={viewMode === "list" ? "w-full" : ""}
-                      >
-                        <RecipeCard
-                          id={recipe.id}
-                          title={recipe.title}
-                          image={recipe.image}
-                          cookTime={recipe.cookTime}
-                          matchingIngredients={matchingCount}
-                          totalIngredients={recipe.ingredients.length}
-                          listView={viewMode === "list"}
-                        />
-                      </motion.div>
-                    ))}
-                  </motion.div>
-                </div>
-              )}
-              
-              {/* Good Match with improved visual design */}
-              {recipeGroups.good && recipeGroups.good.length > 0 && (
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3 border-l-4 border-recipe-500 pl-4 py-2 bg-recipe-50 rounded-r-lg">
-                    <Badge className="bg-recipe-500 hover:bg-recipe-600 px-2.5 py-1 text-white">
-                      Good match
-                    </Badge>
-                    <h3 className="font-medium text-recipe-800">You have most ingredients</h3>
-                  </div>
-                  
-                  <motion.div 
-                    className={cn(
-                      viewMode === "grid" 
-                        ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5" 
-                        : "flex flex-col gap-4"
-                    )}
-                    variants={container}
-                    initial="hidden"
-                    animate="show"
-                  >
-                    {recipeGroups.good.map(({ recipe, matchingCount }) => (
-                      <motion.div 
-                        key={recipe.id} 
-                        variants={item}
-                        className={viewMode === "list" ? "w-full" : ""}
-                      >
-                        <RecipeCard
-                          id={recipe.id}
-                          title={recipe.title}
-                          image={recipe.image}
-                          cookTime={recipe.cookTime}
-                          matchingIngredients={matchingCount}
-                          totalIngredients={recipe.ingredients.length}
-                          listView={viewMode === "list"}
-                        />
-                      </motion.div>
-                    ))}
-                  </motion.div>
-                </div>
-              )}
-              
-              {/* Some Match with improved visual design */}
-              {recipeGroups.some && recipeGroups.some.length > 0 && (
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3 border-l-4 border-amber-500 pl-4 py-2 bg-amber-50 rounded-r-lg">
-                    <Badge className="bg-amber-500 hover:bg-amber-600 px-2.5 py-1">
-                      Some match
-                    </Badge>
-                    <h3 className="font-medium text-amber-800">You have some ingredients</h3>
-                  </div>
-                  
-                  <motion.div 
-                    className={cn(
-                      viewMode === "grid" 
-                        ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5" 
-                        : "flex flex-col gap-4"
-                    )}
-                    variants={container}
-                    initial="hidden"
-                    animate="show"
-                  >
-                    {recipeGroups.some.map(({ recipe, matchingCount }) => (
-                      <motion.div 
-                        key={recipe.id} 
-                        variants={item}
-                        className={viewMode === "list" ? "w-full" : ""}
-                      >
-                        <RecipeCard
-                          id={recipe.id}
-                          title={recipe.title}
-                          image={recipe.image}
-                          cookTime={recipe.cookTime}
-                          matchingIngredients={matchingCount}
-                          totalIngredients={recipe.ingredients.length}
-                          listView={viewMode === "list"}
-                        />
-                      </motion.div>
-                    ))}
-                  </motion.div>
-                </div>
-              )}
-              
-              {/* Few Match with improved visual design */}
-              {recipeGroups.few && recipeGroups.few.length > 0 && (
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3 border-l-4 border-gray-500 pl-4 py-2 bg-gray-50 rounded-r-lg">
-                    <Badge className="bg-gray-500 hover:bg-gray-600 px-2.5 py-1">
-                      Few match
-                    </Badge>
-                    <h3 className="font-medium text-gray-800">Missing most ingredients</h3>
-                  </div>
-                  
-                  <motion.div 
-                    className={cn(
-                      viewMode === "grid" 
-                        ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5" 
-                        : "flex flex-col gap-4"
-                    )}
-                    variants={container}
-                    initial="hidden"
-                    animate="show"
-                  >
-                    {recipeGroups.few.map(({ recipe, matchingCount }) => (
-                      <motion.div 
-                        key={recipe.id} 
-                        variants={item}
-                        className={viewMode === "list" ? "w-full" : ""}
-                      >
-                        <RecipeCard
-                          id={recipe.id}
-                          title={recipe.title}
-                          image={recipe.image}
-                          cookTime={recipe.cookTime}
-                          matchingIngredients={matchingCount}
-                          totalIngredients={recipe.ingredients.length}
-                          listView={viewMode === "list"}
-                        />
-                      </motion.div>
-                    ))}
-                  </motion.div>
-                </div>
-              )}
+                );
+              })}
               
               {/* No recipes found state */}
               {Object.values(recipeGroups).every(group => group.length === 0) && (
-                <div className="text-center py-12 bg-white/70 backdrop-blur-sm rounded-xl border border-gray-200 shadow-sm">
-                  <div className="bg-gray-100 inline-flex rounded-full p-3 mb-4">
-                    <Search className="h-6 w-6 text-gray-400" />
-                  </div>
-                  <h3 className="text-lg font-medium mb-2">No recipes found</h3>
-                  <p className="text-gray-500 max-w-xs mx-auto">
-                    Try adjusting your search or filters to find what you're looking for
-                  </p>
-                  <Button 
-                    variant="outline"
-                    className="mt-4 border-gray-200"
-                    onClick={clearFilters}
-                  >
-                    Clear Filters
-                  </Button>
-                </div>
+                <Card className="text-center py-10 border-gray-200">
+                  <CardContent className="pt-6">
+                    <div className="bg-gray-100 inline-flex rounded-full p-3 mb-4">
+                      <Search className="h-6 w-6 text-gray-400" />
+                    </div>
+                    <h3 className="text-lg font-medium mb-2">No matching recipes found</h3>
+                    <p className="text-gray-500 max-w-xs mx-auto">
+                      Try adding more ingredients to your inventory or adjusting your filters
+                    </p>
+                    <Button 
+                      variant="outline"
+                      className="mt-4 border-gray-200"
+                      onClick={clearFilters}
+                    >
+                      Clear Filters
+                    </Button>
+                  </CardContent>
+                </Card>
               )}
             </TabsContent>
           </Tabs>
