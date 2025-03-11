@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Clock, Utensils, ChevronRight, Heart, Star, CircleCheck, ArrowRight } from "lucide-react";
+import { Clock, Utensils, ChevronRight, Heart, Star, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "@/contexts/UserContext";
 import { Progress } from "@/components/ui/progress";
@@ -35,7 +35,6 @@ const RecipeCard = ({
   const matchPercentage = Math.round((matchingIngredients / totalIngredients) * 100);
   const favorite = isFavorite(id);
   
-  // Add a safety check to prevent accessing properties of undefined
   let rating = 0;
   try {
     rating = getRecipeRating ? getRecipeRating(id) || 0 : 0;
@@ -44,7 +43,7 @@ const RecipeCard = ({
     rating = 0;
   }
   
-  // Color for match percentage
+  // Color schemes for match percentage
   const getMatchColor = () => {
     if (matchPercentage === 100) return "from-blue-500 to-blue-600";
     if (matchPercentage >= 75) return "from-blue-400 to-blue-500";
@@ -52,7 +51,6 @@ const RecipeCard = ({
     return "from-gray-500 to-gray-600";
   };
 
-  // Badge for match percentage
   const getMatchBadge = () => {
     if (matchPercentage === 100) return "bg-blue-500 hover:bg-blue-600";
     if (matchPercentage >= 75) return "bg-blue-400 hover:bg-blue-500";
@@ -60,11 +58,11 @@ const RecipeCard = ({
     return "bg-gray-500 hover:bg-gray-600";
   };
   
-  // For list view
+  // List view layout
   if (listView) {
     return (
       <Card
-        className="overflow-hidden hover:shadow-md transition-all duration-300 cursor-pointer flex h-24"
+        className="overflow-hidden hover:shadow-md transition-all duration-300 cursor-pointer flex h-24 bg-white border border-gray-100"
         onClick={() => navigate(`/recipe/${id}`)}
       >
         <motion.div
@@ -144,9 +142,9 @@ const RecipeCard = ({
     );
   }
   
-  // Grid view card
+  // Grid view card with enhanced design
   return (
-    <Card className="overflow-hidden h-full flex flex-col cursor-pointer group">
+    <Card className="overflow-hidden h-full flex flex-col cursor-pointer group border border-gray-100 bg-white">
       <motion.div
         className="relative overflow-hidden"
         whileHover={{ 
@@ -170,8 +168,8 @@ const RecipeCard = ({
             onLoad={() => setImageLoaded(true)}
           />
           
-          {/* Dark overlay for better text visibility */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent opacity-80 group-hover:opacity-100 transition-opacity duration-300"></div>
+          {/* Dark overlay with gradient for better text visibility */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent opacity-80 group-hover:opacity-90 transition-opacity duration-300"></div>
           
           {/* Match percentage badge */}
           <Badge 
@@ -214,7 +212,7 @@ const RecipeCard = ({
         </div>
       </motion.div>
       
-      {/* Card footer */}
+      {/* Card footer with enhanced styling */}
       <div className="p-3 mt-auto border-t border-gray-100 flex items-center justify-between" onClick={() => navigate(`/recipe/${id}`)}>
         {/* Rating stars - only show if rating exists */}
         {rating > 0 ? (

@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -243,4 +242,115 @@ a, button {
 
 .match-few {
   @apply bg-gray-500 text-white;
+}
+/* Enhanced recipe UI elements */
+.recipe-card {
+  @apply bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden transition-all duration-300;
+}
+
+.recipe-card:hover {
+  @apply shadow-md -translate-y-1;
+}
+
+.recipe-card-image {
+  @apply aspect-video relative overflow-hidden;
+}
+
+.recipe-card-image img {
+  @apply w-full h-full object-cover transition-all duration-300;
+}
+
+.recipe-image-overlay {
+  @apply absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-70 transition-opacity duration-300;
+}
+
+.recipe-card:hover .recipe-image-overlay {
+  @apply opacity-80;
+}
+
+.recipe-card:hover .recipe-card-image img {
+  @apply scale-110;
+}
+
+.filter-chip {
+  @apply inline-flex items-center rounded-full px-2.5 py-1 text-sm bg-gray-50 border border-gray-200 text-gray-700;
+}
+
+.filter-chip.active {
+  @apply bg-blue-50 text-blue-700 border-blue-200;
+}
+
+.filter-chip:hover {
+  @apply bg-gray-100;
+}
+
+.filter-chip.active:hover {
+  @apply bg-blue-100;
+}
+
+.search-field {
+  @apply relative flex items-center;
+}
+
+.search-field-icon {
+  @apply absolute left-3 text-gray-400;
+}
+
+.search-field input {
+  @apply pl-9 pr-9 py-2 rounded-lg border border-gray-200 bg-white w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500;
+}
+
+.search-field-clear {
+  @apply absolute right-3 text-gray-400 hover:text-gray-600 cursor-pointer;
+}
+
+/* Match percentage colors */
+.match-perfect {
+  @apply bg-blue-500 text-white;
+}
+
+.match-good {
+  @apply bg-blue-400 text-white;
+}
+
+.match-some {
+  @apply bg-amber-500 text-white;
+}
+
+.match-few {
+  @apply bg-gray-500 text-white;
+}
+
+/* Improved view toggle */
+.view-toggle {
+  @apply flex border border-gray-200 rounded-lg overflow-hidden;
+}
+
+.view-toggle-button {
+  @apply px-3 py-2 flex items-center justify-center border-r border-gray-200 last:border-r-0;
+}
+
+.view-toggle-button.active {
+  @apply bg-blue-50 text-blue-600;
+}
+
+.view-toggle-button:hover:not(.active) {
+  @apply bg-gray-50;
+}
+
+/* Improved tabs */
+.recipe-tabs {
+  @apply flex border-b border-gray-200;
+}
+
+.recipe-tab {
+  @apply px-4 py-3 font-medium text-gray-600 border-b-2 border-transparent;
+}
+
+.recipe-tab.active {
+  @apply text-blue-600 border-blue-500;
+}
+
+.recipe-tab:hover:not(.active) {
+  @apply text-gray-800 border-gray-300;
 }
