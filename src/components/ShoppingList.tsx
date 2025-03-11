@@ -1,6 +1,6 @@
 
-import { useState } from "react";
-import { Plus, X, Check, ShoppingBag, Trash2, ListFilter, Search, ListChecks } from "lucide-react";
+import { useState, useCallback, useEffect } from "react";
+import { Plus, X, Check, ShoppingBag, Trash2, ListFilter, Search, ListChecks, SlidersHorizontal, CheckCircle2, Tag } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,22 +8,86 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { ShoppingItem, useUser } from "@/contexts/UserContext";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { Card } from "@/components/ui/card";
 
-type SortOption = "added" | "alphabetical" | "checked";
+type SortOption = "added" | "alphabetical" | "checked" | "category";
 
 interface ShoppingListProps {
   hideDeliveryButton?: boolean;
 }
 
+// Common categories for shopping items
+const CATEGORIES = [
+  { id: "produce", name: "Produce", emoji: "🥬" },
+  { id: "dairy", name: "Dairy", emoji: "🥛" },
+  { id: "meat", name: "Meat & Seafood", emoji: "🥩" },
+  { id: "bakery", name: "Bakery", emoji: "🍞" },
+  { id: "pantry", name: "Pantry", emoji: "🥫" },
+  { id: "frozen", name: "Frozen Foods", emoji: "❄️" },
+  { id: "beverages", name: "Beverages", emoji: "🥤" },
+  { id: "snacks", name: "Snacks", emoji: "🍿" },
+  { id: "other", name: "Other", emoji: "📦" }
+];
+
+// Helper to guess item category based on common items
+const guessCategory = (itemName: string): string => {
+  const lowerName = itemName.toLowerCase();
+  
+  const categoryMatches = {
+    produce: ["apple", "banana", "lettuce", "tomato", "pepper", "onion", "garlic", "potato", "carrot", "broccoli", "fruit", "vegetable"],
+    dairy: ["milk", "cheese", "yogurt", "butter", "cream", "egg"],
+    meat: ["chicken", "beef", "pork", "fish", "shrimp", "salmon", "steak", "ground", "meat", "sausage"],
+    bakery: ["bread", "bagel", "roll", "cake", "muffin", "pastry", "dough"],
+    pantry: ["pasta", "rice", "bean", "can", "sauce", "oil", "vinegar", "spice", "flour", "sugar", "cereal"],
+    frozen: ["frozen", "ice cream", "pizza", "fries"],
+    beverages: ["water", "juice", "soda", "coffee", "tea", "beer", "wine"],
+    snacks: ["chip", "cookie", "cracker", "popcorn", "pretzel", "nut", "chocolate", "candy"]
+  };
+
+  for (const [category, keywords] of Object.entries(categoryMatches)) {
+    if (keywords.some(keyword => lowerName.includes(keyword))) {
+      return category;
+    }
+  }
+  
+  return "other";
+};
+
 const ShoppingList = ({ hideDeliveryButton = false }: ShoppingListProps) => {
   const { user, addToShoppingList, removeFromShoppingList, toggleShoppingItem, clearShoppingList } = useUser();
   const [newItem, setNewItem] = useState("");
   const [newQuantity, setNewQuantity] = useState("");
-  const [sortOption, setSortOption] = useState<SortOption>("added");
+  const [newCategory, setNewCategory] = useState("other");
+  const [sortOption, setSortOption] = useState<SortOption>("category");
   const [searchQuery, setSearchQuery] = useState("");
   const [showForm, setShowForm] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
-  const handleAddItem = () => {
+  // Update isMobile state when window resizes
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+      if (window.innerWidth >= 768) {
+        setShowForm(true);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    handleResize(); // Initial check
+    
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
+  // Auto-detect category when item name changes
+  useEffect(() => {
+    if (newItem.trim()) {
+      setNewCategory(guessCategory(newItem));
+    }
+  }, [newItem]);
+
+  const handleAddItem = useCallback(() => {
     if (!newItem.trim()) {
       toast.error("Please enter an item name");
       return;
@@ -33,15 +97,16 @@ const ShoppingList = ({ hideDeliveryButton = false }: ShoppingListProps) => {
       name: newItem.trim(),
       quantity: newQuantity.trim() || "1",
       isChecked: false,
+      category: newCategory || "other",
     });
 
     setNewItem("");
     setNewQuantity("");
-    if (window.innerWidth < 768) {
+    if (isMobile) {
       setShowForm(false); // Hide form after adding on mobile
     }
     toast.success("Item added to shopping list");
-  };
+  }, [newItem, newQuantity, newCategory, addToShoppingList, isMobile]);
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
@@ -49,7 +114,7 @@ const ShoppingList = ({ hideDeliveryButton = false }: ShoppingListProps) => {
     }
   };
 
-  const sortItems = (items: ShoppingItem[]) => {
+  const sortItems = (items: ShoppingItem[]): ShoppingItem[] => {
     if (!items.length) return [];
     
     const itemsCopy = [...items];
@@ -62,6 +127,19 @@ const ShoppingList = ({ hideDeliveryButton = false }: ShoppingListProps) => {
           // Sort by checked status (unchecked first)
           if (a.isChecked !== b.isChecked) {
             return a.isChecked ? 1 : -1;
+          }
+          // Then by name
+          return a.name.localeCompare(b.name);
+        });
+      case "category":
+        return itemsCopy.sort((a, b) => {
+          // First by checked status
+          if (a.isChecked !== b.isChecked) {
+            return a.isChecked ? 1 : -1;
+          }
+          // Then by category
+          if ((a.category || "other") !== (b.category || "other")) {
+            return (a.category || "other").localeCompare(b.category || "other");
           }
           // Then by name
           return a.name.localeCompare(b.name);
@@ -87,30 +165,51 @@ const ShoppingList = ({ hideDeliveryButton = false }: ShoppingListProps) => {
   const itemsLeft = sortedItems.filter(item => !item.isChecked).length;
   const completedItems = sortedItems.filter(item => item.isChecked).length;
 
-  // Group items by categories
-  const groupedItems = {
-    unchecked: filteredItems.filter(item => !item.isChecked),
-    checked: filteredItems.filter(item => item.isChecked)
+  // Group items by checked status first, then by category
+  const groupedItems = filteredItems.reduce<Record<string, ShoppingItem[]>>((groups, item) => {
+    const statusKey = item.isChecked ? "checked" : "unchecked";
+    const categoryKey = item.category || "other";
+    
+    // Initialize category group if it doesn't exist
+    if (!groups[`${statusKey}-${categoryKey}`]) {
+      groups[`${statusKey}-${categoryKey}`] = [];
+    }
+    
+    groups[`${statusKey}-${categoryKey}`].push(item);
+    return groups;
+  }, {});
+
+  // Get category groups for unchecked and checked items
+  const uncheckedGroups = Object.entries(groupedItems)
+    .filter(([key]) => key.startsWith("unchecked-"))
+    .sort(([keyA], [keyB]) => keyA.localeCompare(keyB));
+  
+  const checkedGroups = Object.entries(groupedItems)
+    .filter(([key]) => key.startsWith("checked-"))
+    .sort(([keyA], [keyB]) => keyA.localeCompare(keyB));
+  
+  // Get category name and emoji
+  const getCategoryInfo = (categoryId: string) => {
+    const category = CATEGORIES.find(c => c.id === categoryId);
+    return category || { name: "Other", emoji: "📦" };
   };
 
   return (
     <div className="space-y-4">
       {/* Mobile add button - only visible on mobile when form is hidden */}
-      {!showForm && (
-        <div className="md:hidden">
-          <Button 
-            onClick={() => setShowForm(true)}
-            className="w-full rounded-xl bg-fridge-600 hover:bg-fridge-700 text-white transition-all duration-200 shadow-sm hover:shadow"
-          >
-            <Plus className="h-5 w-5 mr-1" />
-            <span>Add Item</span>
-          </Button>
-        </div>
+      {isMobile && !showForm && (
+        <Button 
+          onClick={() => setShowForm(true)}
+          className="w-full rounded-xl bg-fridge-600 hover:bg-fridge-700 text-white transition-all duration-200 shadow-sm hover:shadow-md"
+        >
+          <Plus className="h-5 w-5 mr-2" />
+          <span>Add Item to Shopping List</span>
+        </Button>
       )}
       
-      {/* Input area with improved styling - conditionally shown on mobile */}
+      {/* Input area with improved styling */}
       <AnimatePresence>
-        {(showForm || window.innerWidth >= 768) && (
+        {(showForm || !isMobile) && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
@@ -118,11 +217,14 @@ const ShoppingList = ({ hideDeliveryButton = false }: ShoppingListProps) => {
             transition={{ duration: 0.2 }}
             className="overflow-hidden"
           >
-            <div className="bg-white rounded-xl shadow-sm p-4 border border-fridge-100">
+            <Card className="p-4 border border-fridge-100">
               <div className="flex flex-col gap-3">
                 <div className="flex justify-between items-center mb-1">
-                  <h3 className="text-sm font-medium text-gray-700">Add Item</h3>
-                  {window.innerWidth < 768 && (
+                  <h3 className="text-sm font-medium text-gray-700 flex items-center">
+                    <Plus className="h-4 w-4 mr-1.5 text-fridge-600" />
+                    Add New Item
+                  </h3>
+                  {isMobile && (
                     <Button
                       variant="ghost"
                       size="sm"
@@ -133,6 +235,7 @@ const ShoppingList = ({ hideDeliveryButton = false }: ShoppingListProps) => {
                     </Button>
                   )}
                 </div>
+                
                 <div className="flex flex-col md:flex-row items-start md:items-center gap-2">
                   <div className="flex-1 w-full">
                     <Input
@@ -140,8 +243,8 @@ const ShoppingList = ({ hideDeliveryButton = false }: ShoppingListProps) => {
                       value={newItem}
                       onChange={(e) => setNewItem(e.target.value)}
                       onKeyDown={handleKeyPress}
-                      className="border-fridge-100 focus:border-fridge-400"
-                      placeholder="Add item to shopping list..."
+                      className="border-fridge-100 focus:border-fridge-400 focus-ring"
+                      placeholder="Enter item name..."
                     />
                   </div>
                   <div className="flex-initial w-full md:w-24">
@@ -150,20 +253,47 @@ const ShoppingList = ({ hideDeliveryButton = false }: ShoppingListProps) => {
                       value={newQuantity}
                       onChange={(e) => setNewQuantity(e.target.value)}
                       onKeyDown={handleKeyPress}
-                      className="border-fridge-100 focus:border-fridge-400"
+                      className="border-fridge-100 focus:border-fridge-400 focus-ring"
                       placeholder="Qty"
                     />
                   </div>
+                  
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" className="w-full md:w-auto border-fridge-100 text-gray-700">
+                        <Tag className="h-4 w-4 mr-2 text-fridge-600" />
+                        <span className="truncate">
+                          {getCategoryInfo(newCategory).emoji} {getCategoryInfo(newCategory).name}
+                        </span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="bg-white">
+                      {CATEGORIES.map((category) => (
+                        <DropdownMenuItem 
+                          key={category.id}
+                          onClick={() => setNewCategory(category.id)}
+                          className={cn(
+                            "hover:bg-fridge-50 cursor-pointer",
+                            newCategory === category.id && "bg-fridge-50 text-fridge-700"
+                          )}
+                        >
+                          <span className="mr-2">{category.emoji}</span>
+                          {category.name}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  
                   <Button 
                     onClick={handleAddItem}
-                    className="h-10 rounded-full bg-fridge-600 hover:bg-fridge-700 text-white w-full md:w-auto transition-all duration-200 shadow-sm hover:shadow"
+                    className="h-10 rounded-lg bg-fridge-600 hover:bg-fridge-700 text-white w-full md:w-auto transition-all duration-200 shadow-sm hover:shadow"
                   >
                     <Plus className="h-5 w-5 mr-1" />
                     <span>Add Item</span>
                   </Button>
                 </div>
               </div>
-            </div>
+            </Card>
           </motion.div>
         )}
       </AnimatePresence>
@@ -173,10 +303,10 @@ const ShoppingList = ({ hideDeliveryButton = false }: ShoppingListProps) => {
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-lg font-medium flex items-center">
             <ShoppingBag className="h-5 w-5 mr-2 text-fridge-600" />
-            Your Items 
+            Your Shopping List 
             {hasItems && (
-              <span className="ml-2 text-sm text-gray-500 font-normal">
-                ({itemsLeft} left, {completedItems} completed)
+              <span className="ml-2 px-2 py-0.5 text-sm bg-fridge-50 text-fridge-700 rounded-full font-normal">
+                {itemsLeft} left, {completedItems} purchased
               </span>
             )}
           </h3>
@@ -184,19 +314,34 @@ const ShoppingList = ({ hideDeliveryButton = false }: ShoppingListProps) => {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="text-gray-600 hover:bg-gray-50 border-fridge-100">
-                  <ListFilter className="h-4 w-4 mr-1" />
+                  <SlidersHorizontal className="h-4 w-4 mr-1" />
                   <span className="hidden sm:inline">Sort</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="bg-white">
-                <DropdownMenuItem onClick={() => setSortOption("added")} className="hover:bg-fridge-50">
-                  Most Recently Added
+                <DropdownMenuItem 
+                  onClick={() => setSortOption("category")} 
+                  className={cn("hover:bg-fridge-50", sortOption === "category" && "bg-fridge-50 text-fridge-700")}
+                >
+                  By Category
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setSortOption("alphabetical")} className="hover:bg-fridge-50">
+                <DropdownMenuItem 
+                  onClick={() => setSortOption("alphabetical")} 
+                  className={cn("hover:bg-fridge-50", sortOption === "alphabetical" && "bg-fridge-50 text-fridge-700")}
+                >
                   Alphabetical
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setSortOption("checked")} className="hover:bg-fridge-50">
+                <DropdownMenuItem 
+                  onClick={() => setSortOption("checked")} 
+                  className={cn("hover:bg-fridge-50", sortOption === "checked" && "bg-fridge-50 text-fridge-700")}
+                >
                   Unchecked First
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => setSortOption("added")} 
+                  className={cn("hover:bg-fridge-50", sortOption === "added" && "bg-fridge-50 text-fridge-700")}
+                >
+                  Most Recently Added
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -212,7 +357,7 @@ const ShoppingList = ({ hideDeliveryButton = false }: ShoppingListProps) => {
                 className="text-red-500 hover:text-red-700 hover:bg-red-50 border-fridge-100"
               >
                 <Trash2 className="h-4 w-4 mr-1" />
-                <span className="hidden sm:inline">Clear All</span>
+                <span className="hidden sm:inline">Clear</span>
               </Button>
             )}
           </div>
@@ -229,77 +374,127 @@ const ShoppingList = ({ hideDeliveryButton = false }: ShoppingListProps) => {
               placeholder="Search items..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 bg-gray-50 border-fridge-100"
+              className="pl-10 bg-gray-50 border-fridge-100 focus-ring"
             />
           </div>
         )}
         
         {!hasItems ? (
-          <div className="text-center py-12 bg-fridge-50/50 rounded-lg border border-fridge-100">
-            <ShoppingBag className="h-12 w-12 mx-auto text-fridge-300 mb-3" />
-            <p className="text-gray-600 mb-1">Your shopping list is empty</p>
-            <p className="text-sm text-gray-500">Add items to your shopping list</p>
-          </div>
+          <EmptyListState />
         ) : filteredItems.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground bg-fridge-50/50 rounded-lg border border-fridge-100">
-            <p>No items match your search</p>
-          </div>
+          <EmptySearchState />
         ) : (
-          <div className="space-y-6">
-            {/* Unchecked items */}
-            {groupedItems.unchecked.length > 0 && (
-              <div>
-                <h4 className="text-sm font-medium text-gray-500 mb-2 flex items-center">
-                  <ShoppingBag className="h-4 w-4 mr-1 text-fridge-500" />
-                  Items to Buy ({groupedItems.unchecked.length})
+          <motion.div 
+            className="space-y-6"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+          >
+            {/* Unchecked items by category */}
+            {uncheckedGroups.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <h4 className="text-sm font-medium text-gray-600 mb-2 flex items-center">
+                  <ShoppingBag className="h-4 w-4 mr-1.5 text-fridge-600" />
+                  Items to Purchase ({itemsLeft})
                 </h4>
-                <motion.ul 
-                  className="space-y-2.5"
-                  variants={containerVariants}
-                  initial="hidden"
-                  animate="visible"
-                >
-                  <AnimatePresence>
-                    {groupedItems.unchecked.map((item) => (
-                      <ShoppingListItem 
-                        key={item.id} 
-                        item={item} 
-                        onToggle={() => toggleShoppingItem(item.id)}
-                        onRemove={() => removeFromShoppingList(item.id)}
-                      />
-                    ))}
-                  </AnimatePresence>
-                </motion.ul>
-              </div>
+                
+                <div className="space-y-4">
+                  {uncheckedGroups.map(([key, items]) => {
+                    const categoryId = key.split('-')[1];
+                    const { name, emoji } = getCategoryInfo(categoryId);
+                    
+                    return (
+                      <div key={key} className="space-y-2">
+                        <div className="flex items-center text-sm font-medium text-gray-500 mb-1.5">
+                          <span className="mr-1.5">{emoji}</span>
+                          <span>{name}</span>
+                          <span className="ml-1.5 text-xs bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded-full">
+                            {items.length}
+                          </span>
+                        </div>
+                        
+                        <motion.ul 
+                          className="space-y-2"
+                          variants={containerVariants}
+                          initial="hidden"
+                          animate="visible"
+                        >
+                          <AnimatePresence>
+                            {items.map((item) => (
+                              <ShoppingListItem 
+                                key={item.id} 
+                                item={item} 
+                                onToggle={() => toggleShoppingItem(item.id)}
+                                onRemove={() => removeFromShoppingList(item.id)}
+                                categoryEmoji={emoji}
+                              />
+                            ))}
+                          </AnimatePresence>
+                        </motion.ul>
+                      </div>
+                    );
+                  })}
+                </div>
+              </motion.div>
             )}
             
-            {/* Checked items */}
-            {groupedItems.checked.length > 0 && (
-              <div>
-                <h4 className="text-sm font-medium text-gray-500 mb-2 flex items-center">
-                  <ListChecks className="h-4 w-4 mr-1 text-green-500" />
-                  Purchased Items ({groupedItems.checked.length})
+            {/* Checked items by category */}
+            {checkedGroups.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.1 }}
+                className="pt-2 border-t border-gray-100"
+              >
+                <h4 className="text-sm font-medium text-gray-600 mb-2 flex items-center">
+                  <CheckCircle2 className="h-4 w-4 mr-1.5 text-green-500" />
+                  Purchased Items ({completedItems})
                 </h4>
-                <motion.ul 
-                  className="space-y-2.5"
-                  variants={containerVariants}
-                  initial="hidden"
-                  animate="visible"
-                >
-                  <AnimatePresence>
-                    {groupedItems.checked.map((item) => (
-                      <ShoppingListItem 
-                        key={item.id} 
-                        item={item} 
-                        onToggle={() => toggleShoppingItem(item.id)}
-                        onRemove={() => removeFromShoppingList(item.id)}
-                      />
-                    ))}
-                  </AnimatePresence>
-                </motion.ul>
-              </div>
+                
+                <div className="space-y-4">
+                  {checkedGroups.map(([key, items]) => {
+                    const categoryId = key.split('-')[1];
+                    const { name, emoji } = getCategoryInfo(categoryId);
+                    
+                    return (
+                      <div key={key} className="space-y-2">
+                        <div className="flex items-center text-sm font-medium text-gray-400 mb-1.5">
+                          <span className="mr-1.5">{emoji}</span>
+                          <span>{name}</span>
+                          <span className="ml-1.5 text-xs bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-full">
+                            {items.length}
+                          </span>
+                        </div>
+                        
+                        <motion.ul 
+                          className="space-y-2"
+                          variants={containerVariants}
+                          initial="hidden"
+                          animate="visible"
+                        >
+                          <AnimatePresence>
+                            {items.map((item) => (
+                              <ShoppingListItem 
+                                key={item.id} 
+                                item={item} 
+                                onToggle={() => toggleShoppingItem(item.id)}
+                                onRemove={() => removeFromShoppingList(item.id)}
+                                categoryEmoji={emoji}
+                              />
+                            ))}
+                          </AnimatePresence>
+                        </motion.ul>
+                      </div>
+                    );
+                  })}
+                </div>
+              </motion.div>
             )}
-          </div>
+          </motion.div>
         )}
       </div>
     </div>
@@ -310,46 +505,60 @@ const ShoppingList = ({ hideDeliveryButton = false }: ShoppingListProps) => {
 const ShoppingListItem = ({ 
   item, 
   onToggle, 
-  onRemove 
+  onRemove,
+  categoryEmoji = "📦"
 }: { 
   item: ShoppingItem; 
   onToggle: () => void; 
   onRemove: () => void;
+  categoryEmoji?: string;
 }) => {
   return (
     <motion.li 
       variants={itemVariants}
       exit="exit"
       className={cn(
-        "flex items-center justify-between py-3 px-4 rounded-xl shadow-sm border transform transition-all duration-200 hover:shadow",
+        "flex items-center justify-between py-3 px-4 rounded-lg shadow-sm border transform transition-all duration-200 hover:shadow",
         item.isChecked 
           ? "border-green-200 bg-gradient-to-r from-green-50 to-green-50/60" 
           : "border-fridge-100 bg-white"
       )}
     >
-      <div className="flex items-center flex-1">
+      <div className="flex items-center flex-1 min-w-0">
         <button
           onClick={onToggle}
           className={cn(
-            "flex items-center justify-center h-6 w-6 rounded-full mr-3 transition-colors",
+            "flex items-center justify-center h-6 w-6 rounded-full mr-3 flex-shrink-0 transition-colors",
             item.isChecked 
               ? "bg-green-500 text-white" 
               : "border-2 border-fridge-300 hover:border-fridge-400"
           )}
+          aria-label={item.isChecked ? "Mark as not purchased" : "Mark as purchased"}
         >
           {item.isChecked && <Check className="h-4 w-4" />}
         </button>
-        <span className={`transition-all ${item.isChecked ? "line-through text-gray-500" : "text-gray-700"}`}>
-          {item.name}
-        </span>
+        <div className="flex flex-col min-w-0">
+          <span className={cn("truncate transition-all", 
+            item.isChecked ? "line-through text-gray-500" : "text-gray-700"
+          )}>
+            {item.name}
+          </span>
+          {item.category && (
+            <span className="text-xs text-gray-400 flex items-center mt-0.5">
+              <span className="mr-1">{categoryEmoji}</span>
+              <span className="truncate">{item.quantity}</span>
+            </span>
+          )}
+        </div>
       </div>
-      <div className="flex items-center">
-        <span className="text-sm bg-fridge-50 px-2.5 py-1 rounded-full text-fridge-600 mr-3 font-medium">{item.quantity}</span>
+      <div className="flex items-center ml-2">
+        <span className="text-sm bg-fridge-50 px-2 py-0.5 rounded-full text-fridge-600 mr-2 font-medium">{item.quantity}</span>
         <Button
           onClick={onRemove}
           variant="ghost"
           size="icon"
           className="h-8 w-8 rounded-full hover:bg-red-50 hover:text-red-500 transition-colors"
+          aria-label="Remove item"
         >
           <X className="h-4 w-4" />
         </Button>
@@ -357,6 +566,24 @@ const ShoppingListItem = ({
     </motion.li>
   );
 };
+
+// Empty state component
+const EmptyListState = () => (
+  <div className="text-center py-12 bg-fridge-50/50 rounded-lg border border-fridge-100">
+    <ShoppingBag className="h-12 w-12 mx-auto text-fridge-300 mb-3" />
+    <p className="text-gray-600 mb-1 font-medium">Your shopping list is empty</p>
+    <p className="text-sm text-gray-500">Add items above to start your shopping list</p>
+  </div>
+);
+
+// Empty search state component
+const EmptySearchState = () => (
+  <div className="text-center py-8 text-muted-foreground bg-fridge-50/50 rounded-lg border border-fridge-100">
+    <Search className="h-8 w-8 mx-auto text-gray-300 mb-2" />
+    <p className="text-gray-600">No items match your search</p>
+    <p className="text-sm text-gray-500 mt-1">Try a different search term</p>
+  </div>
+);
 
 // Animation variants
 const containerVariants = {
@@ -370,9 +597,21 @@ const containerVariants = {
 };
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 },
-  exit: { opacity: 0, x: -20 },
+  hidden: { opacity: 0, y: 10 },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    transition: {
+      type: "spring",
+      stiffness: 500,
+      damping: 24
+    }
+  },
+  exit: { 
+    opacity: 0, 
+    x: -20,
+    transition: { duration: 0.2 }
+  },
 };
 
 export default ShoppingList;

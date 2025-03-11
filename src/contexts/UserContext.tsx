@@ -26,6 +26,7 @@ export interface ShoppingItem {
   name: string;
   quantity: string;
   isChecked: boolean;
+  category?: string;
 }
 
 interface UserContextType {
