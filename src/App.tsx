@@ -27,6 +27,7 @@ const RecipeDetailView = lazy(() => import("./pages/RecipeDetailView"));
 const ProfileView = lazy(() => import("./pages/ProfileView"));
 const ShoppingListView = lazy(() => import("./pages/ShoppingListView"));
 const InventoryView = lazy(() => import("./pages/InventoryView"));
+const SearchView = lazy(() => import("./pages/SearchView"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Loading component for suspense
@@ -60,6 +61,7 @@ const AnimatedRoutes = () => {
         <Routes location={location} key={location.pathname}>
           <Route path="/" element={<Index />} />
           <Route path="/camera" element={<CameraView />} />
+          <Route path="/search" element={<SearchView />} />
           <Route path="/recipes" element={<RecipesView />} />
           <Route path="/recipe/:id" element={<RecipeDetailView />} />
           <Route path="/profile" element={<ProfileView />} />

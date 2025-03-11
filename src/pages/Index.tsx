@@ -45,6 +45,10 @@ const Index = () => {
     navigate("/camera");
   };
   
+  const handleSearchClick = () => {
+    navigate("/search");
+  };
+  
   const toggleIngredients = () => {
     setShowIngredients(prev => !prev);
   };
@@ -98,7 +102,7 @@ const Index = () => {
                       whileHover={{ scale: 0.98 }}
                       whileTap={{ scale: 0.95 }}
                       className="p-4 rounded-xl bg-gradient-to-r from-fridge-50 to-fridge-100 cursor-pointer border border-fridge-200 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col items-center text-center h-full"
-                      onClick={() => setShowIngredients(true)}
+                      onClick={handleSearchClick}
                     >
                       <div className="w-12 h-12 rounded-full bg-gradient-to-br from-fridge-500 to-fridge-600 flex items-center justify-center shadow-md mb-3">
                         <Search className="h-6 w-6 text-white" />
