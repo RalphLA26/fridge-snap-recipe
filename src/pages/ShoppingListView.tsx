@@ -165,7 +165,7 @@ const ShoppingListView = () => {
             </TabsTrigger>
             <TabsTrigger value="stores" className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:text-fridge-700 data-[state=active]:shadow-sm">
               <Store className="h-4 w-4" />
-              Nearby Stores
+              Local Grocers
             </TabsTrigger>
           </TabsList>
           
@@ -199,7 +199,7 @@ const ShoppingListView = () => {
                 <div className="bg-gradient-to-r from-fridge-50 to-white border-b border-fridge-100 px-5 py-4 flex items-center justify-between">
                   <h3 className="font-medium text-fridge-800 flex items-center">
                     <Store className="h-4 w-4 text-fridge-600 mr-2" />
-                    Nearby Grocery Stores
+                    Local Grocery Stores
                   </h3>
                   <div className="flex items-center">
                     <span className="text-xs text-gray-500">Updated just now</span>

@@ -54,7 +54,7 @@ const GroceryStoreLocator = ({ ingredient }: GroceryStoreLocatorProps) => {
       >
         <div className="flex items-center">
           <MapPin className="h-4 w-4 mr-2 text-fridge-600" />
-          <span className="text-sm">Find "{ingredient}" at local stores</span>
+          <span className="text-sm">Find "{ingredient}" at local grocers</span>
         </div>
         <span className="text-xs bg-fridge-50 px-2 py-0.5 rounded-full text-fridge-600">
           {expanded ? "Hide" : "Check"}
