@@ -15,6 +15,7 @@ interface UseCameraReturn {
   isLoading: boolean;
   switchCamera: () => void;
   takePhoto: () => Promise<string | null>;
+  setTorchMode: (on: boolean) => void;
 }
 
 export function useCamera({
@@ -46,6 +47,7 @@ export function useCamera({
         return {
           width: { ideal: 1920 },
           height: { ideal: 1080 },
+          frameRate: { ideal: 30 }
         };
     }
   };
@@ -111,6 +113,32 @@ export function useCamera({
     setCurrentFacingMode(prev => prev === "environment" ? "user" : "environment");
   };
 
+  // Set torch/flash mode
+  const setTorchMode = (on: boolean) => {
+    if (!stream) return;
+    
+    const videoTrack = stream.getVideoTracks()[0];
+    if (!videoTrack) return;
+    
+    // Check if torch is supported
+    const capabilities = videoTrack.getCapabilities();
+    if (!capabilities.torch) {
+      toast.error("Torch not supported on this device");
+      return;
+    }
+    
+    try {
+      videoTrack.applyConstraints({
+        advanced: [{ torch: on }],
+      });
+      
+      toast.success(on ? "Flash turned on" : "Flash turned off");
+    } catch (err) {
+      console.error("Error setting torch mode:", err);
+      toast.error("Could not control flash");
+    }
+  };
+
   const takePhoto = async (): Promise<string | null> => {
     if (!videoRef.current || !stream) {
       toast.error("Camera is not ready");
@@ -133,6 +161,16 @@ export function useCamera({
       // Draw the current video frame to the canvas
       context.drawImage(video, 0, 0, canvas.width, canvas.height);
       
+      // For selfie/user mode, flip the image horizontally
+      if (currentFacingMode === "user") {
+        context.scale(-1, 1);
+        context.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
+      }
+      
+      // Add a subtle vignette effect for aesthetic
+      context.fillStyle = 'radial-gradient(circle at center, transparent 65%, rgba(0,0,0,0.3) 100%)';
+      context.fillRect(0, 0, canvas.width, canvas.height);
+      
       // Get the image as a data URL (higher quality for better results)
       const dataUrl = canvas.toDataURL("image/jpeg", 0.95);
       
@@ -154,7 +192,7 @@ export function useCamera({
         stream.getTracks().forEach((track) => track.stop());
       }
     };
-  }, [currentFacingMode]);
+  }, [currentFacingMode, quality]);
 
   return {
     videoRef,
@@ -163,5 +201,6 @@ export function useCamera({
     isLoading,
     switchCamera,
     takePhoto,
+    setTorchMode,
   };
 }

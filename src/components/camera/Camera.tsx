@@ -1,7 +1,21 @@
 
 import { useState, useCallback, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Camera as CameraIcon, SwitchCamera, ChevronLeft, Barcode, Check, X, Circle } from "lucide-react";
+import { 
+  Camera as CameraIcon, 
+  SwitchCamera, 
+  ChevronLeft, 
+  Barcode, 
+  Check, 
+  X, 
+  Image as ImageIcon,
+  FlashIcon,
+  FlashOff,
+  Grid3x3,
+  GridIcon,
+  Scan,
+  Aperture
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import CameraError from "@/components/CameraError";
@@ -9,6 +23,10 @@ import { useCamera } from "@/hooks/useCamera";
 import { useBarcode } from "@/hooks/useBarcode";
 import { useInventory } from "@/hooks/useInventory";
 import { toast } from "sonner";
+import CameraControls from "./CameraControls";
+import CameraViewfinder from "./CameraViewfinder";
+import CaptureButton from "./CaptureButton";
+import ReviewControls from "./ReviewControls";
 
 interface CameraProps {
   onClose: () => void;
@@ -19,6 +37,9 @@ const Camera = ({ onClose }: CameraProps) => {
   const [productInfo, setProductInfo] = useState<string | null>(null);
   const [isBarcodeMode, setIsBarcodeMode] = useState(false);
   const [showFocusRing, setShowFocusRing] = useState(false);
+  const [showGrid, setShowGrid] = useState(false);
+  const [flashMode, setFlashMode] = useState<'off' | 'on'>('off');
+  const [quality, setQuality] = useState<'low' | 'medium' | 'high'>('high');
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { saveIngredientsToInventory } = useInventory();
   
@@ -29,9 +50,11 @@ const Camera = ({ onClose }: CameraProps) => {
     error, 
     isLoading,
     switchCamera,
-    takePhoto 
+    takePhoto,
+    setTorchMode
   } = useCamera({
-    onError: (err) => console.error("Camera error:", err)
+    onError: (err) => console.error("Camera error:", err),
+    quality: quality
   });
 
   // Barcode scanner hook
@@ -99,6 +122,11 @@ const Camera = ({ onClose }: CameraProps) => {
     // Show focus animation
     setShowFocusRing(true);
     
+    // Play shutter sound
+    const shutterSound = new Audio('/assets/sounds/camera-shutter.mp3');
+    shutterSound.volume = 0.5;
+    shutterSound.play().catch(e => console.log("Error playing sound:", e));
+    
     // Wait for animation to complete
     setTimeout(async () => {
       const photoData = await takePhoto();
@@ -131,6 +159,27 @@ const Camera = ({ onClose }: CameraProps) => {
     onClose();
   };
 
+  // Toggle flash/torch
+  const handleToggleFlash = useCallback(() => {
+    const newMode = flashMode === 'off' ? 'on' : 'off';
+    setFlashMode(newMode);
+    setTorchMode(newMode === 'on');
+  }, [flashMode, setTorchMode]);
+
+  // Toggle composition grid
+  const handleToggleGrid = useCallback(() => {
+    setShowGrid(prev => !prev);
+  }, []);
+
+  // Toggle quality
+  const handleToggleQuality = useCallback(() => {
+    setQuality(prev => {
+      if (prev === 'low') return 'medium';
+      if (prev === 'medium') return 'high';
+      return 'low';
+    });
+  }, []);
+
   // Retry camera access
   const handleRetry = useCallback(() => {
     window.location.reload();
@@ -160,68 +209,12 @@ const Camera = ({ onClose }: CameraProps) => {
         
         {/* Camera feed */}
         {!capturedImage ? (
-          <div className="relative h-full w-full">
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.3 }}
-              className="h-full w-full"
-            >
-              <video
-                ref={videoRef}
-                autoPlay
-                playsInline
-                muted
-                className="h-full w-full object-cover"
-              />
-            </motion.div>
-            
-            {/* Focus indicator */}
-            <AnimatePresence>
-              {showFocusRing && (
-                <motion.div 
-                  className="absolute inset-0 flex items-center justify-center pointer-events-none"
-                  initial={{ opacity: 0, scale: 1.2 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.8 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <div className="w-20 h-20 rounded-full border-2 border-white/80 flex items-center justify-center">
-                    <motion.div 
-                      className="w-16 h-16 rounded-full border-2 border-white/60"
-                      animate={{ scale: [1, 0.8, 1] }}
-                      transition={{ duration: 0.2 }}
-                    />
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-            
-            {/* Barcode scanning overlay */}
-            <AnimatePresence>
-              {isBarcodeMode && (
-                <motion.div 
-                  className="absolute inset-0 flex items-center justify-center"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                >
-                  <div className="relative w-4/5 max-w-xs aspect-[3/2] border-2 border-white/80 rounded-md">
-                    <motion.div 
-                      className="absolute w-full h-0.5 bg-fridge-500"
-                      initial={{ top: "20%" }}
-                      animate={{ top: "80%" }}
-                      transition={{ 
-                        duration: 1.5, 
-                        repeat: Infinity,
-                        repeatType: "reverse"
-                      }}
-                    />
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+          <CameraViewfinder 
+            videoRef={videoRef}
+            isBarcodeMode={isBarcodeMode}
+            showFocusRing={showFocusRing}
+            showGrid={showGrid}
+          />
         ) : (
           // Show captured image
           <motion.div 
@@ -258,7 +251,20 @@ const Camera = ({ onClose }: CameraProps) => {
           {isBarcodeMode ? "Scan Barcode" : capturedImage ? "Review" : "Camera"}
         </h2>
         
-        <div className="w-10" />
+        {!capturedImage && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleToggleFlash}
+            className="rounded-full text-white hover:bg-white/10"
+          >
+            {flashMode === 'on' ? (
+              <FlashIcon className="h-5 w-5" />
+            ) : (
+              <FlashOff className="h-5 w-5" />
+            )}
+          </Button>
+        )}
       </motion.div>
       
       {/* Bottom controls */}
@@ -278,28 +284,19 @@ const Camera = ({ onClose }: CameraProps) => {
               exit={{ opacity: 0 }}
               className="flex items-center justify-center gap-8"
             >
-              {/* Camera switch button */}
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={switchCamera}
-                disabled={isLoading}
-                className="rounded-full h-12 w-12 bg-black/50 text-white hover:bg-black/70 border border-white/20"
-              >
-                <SwitchCamera className="h-5 w-5" />
-              </Button>
+              {/* Camera settings button */}
+              <CameraControls 
+                onSwitchCamera={switchCamera}
+                onToggleGrid={handleToggleGrid}
+                onToggleQuality={handleToggleQuality}
+                currentQuality={quality}
+                showGrid={showGrid}
+                isLoading={isLoading}
+              />
               
               {/* Capture button (photo or barcode) */}
               {!isBarcodeMode ? (
-                <motion.button
-                  whileTap={{ scale: 0.9 }}
-                  whileHover={{ scale: 1.05 }}
-                  onClick={handleTakePhoto}
-                  disabled={isLoading}
-                  className="rounded-full h-16 w-16 bg-white disabled:bg-gray-400 flex items-center justify-center shadow-lg transition-transform duration-200"
-                >
-                  <div className="rounded-full h-14 w-14 border-2 border-gray-300" />
-                </motion.button>
+                <CaptureButton onCapture={handleTakePhoto} disabled={isLoading} />
               ) : (
                 <div className="rounded-full h-16 w-16 bg-white/20 border-2 border-white/40 flex items-center justify-center">
                   <motion.div
@@ -319,36 +316,16 @@ const Camera = ({ onClose }: CameraProps) => {
                 disabled={isLoading}
                 className={`rounded-full h-12 w-12 transition-colors duration-300 ${isBarcodeMode ? "" : "bg-black/50 text-white hover:bg-black/70 border border-white/20"}`}
               >
-                {isBarcodeMode ? <CameraIcon className="h-5 w-5" /> : <Barcode className="h-5 w-5" />}
+                {isBarcodeMode ? <CameraIcon className="h-5 w-5" /> : <Scan className="h-5 w-5" />}
               </Button>
             </motion.div>
           ) : (
             // Review controls
-            <motion.div 
-              key="review-controls"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="w-full flex justify-between gap-4"
-            >
-              <Button
-                variant="outline"
-                onClick={handleRetake}
-                className="flex-1 bg-black/50 text-white border-white/20 hover:bg-black/70"
-              >
-                <X className="mr-1 h-4 w-4" />
-                Retake
-              </Button>
-              
-              <Button
-                variant="fridge"
-                onClick={handleSave}
-                className="flex-1"
-              >
-                <Check className="mr-1 h-4 w-4" />
-                {productInfo ? "Add to Inventory" : "Save Photo"}
-              </Button>
-            </motion.div>
+            <ReviewControls 
+              onRetake={handleRetake} 
+              onSave={handleSave} 
+              hasProductInfo={!!productInfo}
+            />
           )}
         </AnimatePresence>
       </motion.div>
@@ -376,7 +353,7 @@ const Camera = ({ onClose }: CameraProps) => {
           transition={{ delay: 0.5 }}
           className={`absolute top-20 left-5 px-3 py-1.5 rounded-full ${isBarcodeMode ? 'bg-fridge-600' : 'bg-white/20'} text-white text-xs font-medium`}
         >
-          {isBarcodeMode ? 'Barcode Mode' : 'Photo Mode'}
+          {isBarcodeMode ? 'Barcode Mode' : `Photo Mode (${quality})`}
         </motion.div>
       )}
       
