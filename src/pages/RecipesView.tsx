@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -255,9 +254,18 @@ const RecipesView = () => {
             )}
           </div>
           
-          {/* Tabs for view selection placed above filters */}
-          <Tabs defaultValue="all" className="w-full mb-4">
+          {/* Tabs for view selection placed above filters - REVERSED ORDER TO PUT MATCH GROUPS FIRST */}
+          <Tabs defaultValue="matching" className="w-full mb-4">
             <TabsList className="w-full mb-4 bg-white border border-gray-200 rounded-xl p-1.5 shadow-sm">
+              <TabsTrigger 
+                value="matching" 
+                className="flex-1 py-3 data-[state=active]:bg-fridge-600 data-[state=active]:text-white rounded-lg"
+              >
+                <span className="flex items-center justify-center gap-2">
+                  <Flame className="h-4 w-4" />
+                  Ingredient Matches
+                </span>
+              </TabsTrigger>
               <TabsTrigger 
                 value="all" 
                 className="flex-1 py-3 data-[state=active]:bg-fridge-600 data-[state=active]:text-white rounded-lg"
@@ -265,15 +273,6 @@ const RecipesView = () => {
                 <span className="flex items-center justify-center gap-2">
                   <BookOpen className="h-4 w-4" />
                   All Recipes
-                </span>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="grouped" 
-                className="flex-1 py-3 data-[state=active]:bg-fridge-600 data-[state=active]:text-white rounded-lg"
-              >
-                <span className="flex items-center justify-center gap-2">
-                  <Flame className="h-4 w-4" />
-                  Match Groups
                 </span>
               </TabsTrigger>
             </TabsList>
@@ -507,7 +506,7 @@ const RecipesView = () => {
               </motion.div>
             </TabsContent>
             
-            <TabsContent value="grouped" className="mt-5 space-y-8">
+            <TabsContent value="matching" className="mt-5 space-y-8">
               {/* Perfect Match with improved visual design */}
               {recipeGroups.perfect && recipeGroups.perfect.length > 0 && (
                 <div className="space-y-4">
