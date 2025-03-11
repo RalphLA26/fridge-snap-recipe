@@ -46,7 +46,7 @@ const RecipeCard = ({
   // Color for match percentage
   const getMatchColor = () => {
     if (matchPercentage === 100) return "from-green-500 to-green-600";
-    if (matchPercentage >= 75) return "from-blue-500 to-blue-600";
+    if (matchPercentage >= 75) return "from-recipe-500 to-recipe-600";
     if (matchPercentage >= 50) return "from-amber-500 to-amber-600";
     return "from-gray-500 to-gray-600";
   };
@@ -54,7 +54,7 @@ const RecipeCard = ({
   // Badge for match percentage
   const getMatchBadge = () => {
     if (matchPercentage === 100) return "bg-green-500 hover:bg-green-600";
-    if (matchPercentage >= 75) return "bg-blue-500 hover:bg-blue-600";
+    if (matchPercentage >= 75) return "bg-recipe-500 hover:bg-recipe-600";
     if (matchPercentage >= 50) return "bg-amber-500 hover:bg-amber-600";
     return "bg-gray-500 hover:bg-gray-600";
   };
@@ -70,7 +70,7 @@ const RecipeCard = ({
         <div className="w-24 h-24 md:w-32 md:h-32 relative overflow-hidden bg-gray-100 flex-shrink-0">
           {!imageLoaded && (
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-6 h-6 border-2 border-fridge-500 border-t-transparent rounded-full animate-spin"></div>
+              <div className="w-6 h-6 border-2 border-recipe-500 border-t-transparent rounded-full animate-spin"></div>
             </div>
           )}
           <motion.img
@@ -138,14 +138,14 @@ const RecipeCard = ({
           {/* Cook time badge */}
           <div className="flex items-center justify-between mt-2">
             <div className="flex items-center text-xs text-gray-600 bg-gray-50 px-2 py-1 rounded-md">
-              <Clock className="h-3 w-3 mr-1 text-fridge-600" />
+              <Clock className="h-3 w-3 mr-1 text-recipe-600" />
               <span>{cookTime} min</span>
             </div>
             
             <motion.div 
               whileHover={{ x: 3 }}
               transition={{ type: "spring", stiffness: 400, damping: 10 }}
-              className="text-fridge-600"
+              className="text-recipe-600"
             >
               <ChevronRight className="h-4 w-4" />
             </motion.div>
@@ -169,7 +169,7 @@ const RecipeCard = ({
       <div className="aspect-video relative overflow-hidden bg-gray-100">
         {!imageLoaded && (
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-8 h-8 border-2 border-fridge-500 border-t-transparent rounded-full animate-spin"></div>
+            <div className="w-8 h-8 border-2 border-recipe-500 border-t-transparent rounded-full animate-spin"></div>
           </div>
         )}
         <motion.img
@@ -232,7 +232,7 @@ const RecipeCard = ({
       </div>
       
       <div className="p-4 flex flex-col flex-grow">
-        <h3 className="font-medium text-gray-900 mb-2 line-clamp-1 group-hover:text-fridge-700 transition-colors">{title}</h3>
+        <h3 className="font-medium text-gray-900 mb-2 line-clamp-1 group-hover:text-recipe-700 transition-colors">{title}</h3>
         
         {/* Rating stars - Only show if rating exists and is greater than 0 */}
         {rating > 0 && (
@@ -250,12 +250,12 @@ const RecipeCard = ({
         {/* Info badges with improved spacing and visual hierarchy */}
         <div className="flex items-center justify-between mt-2 text-sm gap-2">
           <div className="flex items-center text-gray-600 bg-gray-50 px-2.5 py-1.5 rounded-lg">
-            <Clock className="h-4 w-4 mr-1.5 text-fridge-600" />
+            <Clock className="h-4 w-4 mr-1.5 text-recipe-600" />
             <span>{cookTime} min</span>
           </div>
           
           <div className="flex items-center text-gray-600 bg-gray-50 px-2.5 py-1.5 rounded-lg">
-            <Utensils className="h-4 w-4 mr-1.5 text-fridge-600" />
+            <Utensils className="h-4 w-4 mr-1.5 text-recipe-600" />
             <span>
               {matchingIngredients}/{totalIngredients}
             </span>
@@ -274,11 +274,11 @@ const RecipeCard = ({
               : `Missing ${totalIngredients - matchingIngredients}`}
           </span>
           <motion.div 
-            className="bg-fridge-50 rounded-full p-1.5 group-hover:bg-fridge-100 transition-colors"
+            className="bg-recipe-50 rounded-full p-1.5 group-hover:bg-recipe-100 transition-colors"
             whileHover={{ x: 2 }}
             transition={{ type: "spring", stiffness: 400, damping: 10 }}
           >
-            <ChevronRight className="h-4 w-4 text-fridge-600" />
+            <ChevronRight className="h-4 w-4 text-recipe-600" />
           </motion.div>
         </div>
       </div>
