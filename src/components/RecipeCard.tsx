@@ -5,6 +5,8 @@ import { Clock, Utensils, ChevronRight, Heart, Star, Circle, CircleCheck, BookOp
 import { useNavigate } from "react-router-dom";
 import { useUser } from "@/contexts/UserContext";
 import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 interface RecipeCardProps {
   id: string;
@@ -48,6 +50,14 @@ const RecipeCard = ({
     if (matchPercentage >= 50) return "from-amber-400 to-amber-500";
     return "from-gray-400 to-gray-500";
   };
+
+  // Badge for match percentage
+  const getMatchBadge = () => {
+    if (matchPercentage === 100) return "bg-green-500 hover:bg-green-600";
+    if (matchPercentage >= 75) return "bg-blue-500 hover:bg-blue-600";
+    if (matchPercentage >= 50) return "bg-amber-500 hover:bg-amber-600";
+    return "bg-gray-500 hover:bg-gray-600";
+  };
   
   // For list view
   if (listView) {
@@ -57,7 +67,7 @@ const RecipeCard = ({
         whileHover={{ y: -2, boxShadow: "0 8px 20px -5px rgba(0, 0, 0, 0.1)" }}
         onClick={() => navigate(`/recipe/${id}`)}
       >
-        <div className="w-24 h-24 md:w-32 md:h-32 relative overflow-hidden bg-gray-100">
+        <div className="w-24 h-24 md:w-32 md:h-32 relative overflow-hidden bg-gray-100 flex-shrink-0">
           {!imageLoaded && (
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="w-6 h-6 border-2 border-fridge-500 border-t-transparent rounded-full animate-spin"></div>
@@ -116,9 +126,9 @@ const RecipeCard = ({
             </div>
             
             {/* Match percentage badge */}
-            <div className={`text-xs font-medium text-white px-2 py-0.5 rounded-full bg-gradient-to-r ${getMatchColor()}`}>
+            <Badge className={cn("text-xs font-medium text-white", getMatchBadge())}>
               {matchPercentage}% match
-            </div>
+            </Badge>
           </div>
         </div>
         
@@ -133,7 +143,11 @@ const RecipeCard = ({
   return (
     <motion.div
       className="rounded-xl overflow-hidden bg-white shadow hover:shadow-lg transition-all duration-300 border border-gray-100 h-full flex flex-col"
-      whileHover={{ y: -5, boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)" }}
+      whileHover={{ 
+        y: -5, 
+        boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)",
+        transition: { duration: 0.3, ease: "easeOut" },
+      }}
       onClick={() => navigate(`/recipe/${id}`)}
     >
       <div className="aspect-video relative overflow-hidden bg-gray-100">
@@ -157,31 +171,34 @@ const RecipeCard = ({
           transition={{ duration: 0.5 }}
         />
         
-        {/* Match percentage overlay */}
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-3">
+        {/* Match percentage overlay with nice gradient */}
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-3">
           <div className="flex justify-between items-center">
-            <div className="text-white text-xs font-semibold">
+            <Badge className={cn("text-white border-none", getMatchBadge())}>
               {matchPercentage}% match
-            </div>
+            </Badge>
             
             {/* Visualize matching ingredients */}
-            <div className="flex items-center">
-              {Array.from({ length: totalIngredients }, (_, i) => (
-                <div key={i} className="ml-1">
-                  {i < matchingIngredients ? (
+            <div className="flex items-center gap-0.5">
+              {Array.from({ length: Math.min(totalIngredients, 5) }, (_, i) => (
+                <div key={i} className="ml-0.5">
+                  {i < Math.min(matchingIngredients, 5) ? (
                     <CircleCheck className="h-3.5 w-3.5 text-green-400" />
                   ) : (
                     <Circle className="h-3 w-3 text-white/60" />
                   )}
                 </div>
               ))}
+              {totalIngredients > 5 && (
+                <span className="text-xs text-white/80 ml-1">+{totalIngredients - 5}</span>
+              )}
             </div>
           </div>
           
           <Progress 
             value={matchPercentage} 
-            className="h-1.5 mt-1 bg-white/30 rounded-full" 
-            indicatorClassName={`bg-gradient-to-r ${getMatchColor()}`} 
+            className="h-1.5 mt-1.5 bg-white/30 rounded-full" 
+            indicatorClassName={`bg-gradient-to-r ${getMatchColor()} rounded-full`} 
           />
         </div>
         
@@ -210,13 +227,13 @@ const RecipeCard = ({
         )}
         
         <div className="flex items-center justify-between mt-2 text-sm">
-          <div className="flex items-center text-gray-600">
-            <Clock className="h-4 w-4 mr-1" />
+          <div className="flex items-center text-gray-600 bg-gray-50 px-2 py-1 rounded-md">
+            <Clock className="h-4 w-4 mr-1 text-fridge-600" />
             <span>{cookTime}</span>
           </div>
           
-          <div className="flex items-center text-gray-600">
-            <Utensils className="h-4 w-4 mr-1" />
+          <div className="flex items-center text-gray-600 bg-gray-50 px-2 py-1 rounded-md">
+            <Utensils className="h-4 w-4 mr-1 text-fridge-600" />
             <span>
               {matchingIngredients}/{totalIngredients}
             </span>
@@ -224,12 +241,19 @@ const RecipeCard = ({
         </div>
         
         <div className="mt-auto pt-3 border-t border-gray-100 flex justify-between items-center mt-4">
-          <span className={`text-xs ${matchingIngredients === totalIngredients ? "text-green-600 font-medium" : "text-gray-500"}`}>
+          <span className={cn(
+            "text-xs font-medium px-2 py-1 rounded-full",
+            matchingIngredients === totalIngredients 
+              ? "bg-green-50 text-green-600" 
+              : "bg-gray-50 text-gray-500"
+          )}>
             {matchingIngredients === totalIngredients
-              ? "You have all ingredients!"
-              : `Missing ${totalIngredients - matchingIngredients} ingredients`}
+              ? "Have all ingredients!"
+              : `Missing ${totalIngredients - matchingIngredients}`}
           </span>
-          <ChevronRight className="h-4 w-4 text-fridge-600" />
+          <div className="bg-fridge-50 rounded-full p-1">
+            <ChevronRight className="h-4 w-4 text-fridge-600" />
+          </div>
         </div>
       </div>
     </motion.div>
