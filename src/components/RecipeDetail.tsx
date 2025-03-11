@@ -1,12 +1,14 @@
 
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import { Clock, Utensils, Check, X, Bookmark, Star, Heart, Printer, Share2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Clock, Utensils, Check, X, Heart, Printer, Share2, ChevronDown, Info, CircleAlert } from "lucide-react";
 import RecipeScaling from "./RecipeScaling";
 import GroceryStoreLocator from "./GroceryStoreLocator";
 import { useUser } from "@/contexts/UserContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 
 interface RecipeDetailProps {
@@ -33,6 +35,7 @@ const RecipeDetail = ({ recipe, availableIngredients }: RecipeDetailProps) => {
   const [currentIngredients, setCurrentIngredients] = useState<string[]>(recipe.ingredients);
   const [focusedIngredient, setFocusedIngredient] = useState<string | null>(null);
   const { isFavorite, addToFavorites, removeFromFavorites, addToShoppingList } = useUser();
+  const [activeSection, setActiveSection] = useState<string>("ingredients");
   
   const container = {
     hidden: { opacity: 0 },
@@ -124,8 +127,14 @@ const RecipeDetail = ({ recipe, availableIngredients }: RecipeDetailProps) => {
     }
   };
 
+  // Calculate missing ingredients count
+  const missingIngredientsCount = currentIngredients.filter(
+    ingredient => !hasIngredient(ingredient)
+  ).length;
+
   return (
     <div className="w-full max-w-xl mx-auto">
+      {/* Hero section with image */}
       <div className="mb-6 relative aspect-[4/3] overflow-hidden rounded-2xl bg-gray-100">
         {!imageLoaded && (
           <div className="absolute inset-0 flex items-center justify-center">
@@ -144,6 +153,18 @@ const RecipeDetail = ({ recipe, availableIngredients }: RecipeDetailProps) => {
           }}
           transition={{ duration: 0.5 }}
         />
+        
+        {/* Overlay gradient for better text contrast */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none"></div>
+        
+        {/* Recipe type badge */}
+        <div className="absolute top-4 left-4">
+          <Badge className="bg-white/80 backdrop-blur-sm text-gray-800 font-medium">
+            Homemade Recipe
+          </Badge>
+        </div>
+        
+        {/* Favorite button */}
         <Button 
           onClick={toggleFavorite}
           className="absolute top-4 right-4 bg-white/80 backdrop-blur-sm hover:bg-white/95 text-gray-800"
@@ -152,10 +173,26 @@ const RecipeDetail = ({ recipe, availableIngredients }: RecipeDetailProps) => {
         >
           <Heart className={`h-5 w-5 ${isFavorited ? 'fill-red-500 text-red-500' : ''}`} />
         </Button>
+        
+        {/* Title on image with gradient background for better readability */}
+        <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
+          <h1 className="text-2xl sm:text-3xl font-semibold text-shadow">{recipe.title}</h1>
+        </div>
       </div>
 
-      <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-semibold">{recipe.title}</h1>
+      {/* Recipe meta info - time and servings */}
+      <div className="flex items-center justify-between mb-6 px-1">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center bg-fridge-50 px-3 py-2 rounded-lg">
+            <Clock className="h-4 w-4 mr-2 text-fridge-600" />
+            <span className="text-sm font-medium">{recipe.cookTime}</span>
+          </div>
+          
+          <div className="flex items-center bg-fridge-50 px-3 py-2 rounded-lg">
+            <Utensils className="h-4 w-4 mr-2 text-fridge-600" />
+            <span className="text-sm font-medium">{recipe.servings}</span>
+          </div>
+        </div>
         
         <div className="flex space-x-2">
           <Button variant="ghost" size="icon" onClick={handlePrintRecipe} title="Print recipe">
@@ -167,131 +204,189 @@ const RecipeDetail = ({ recipe, availableIngredients }: RecipeDetailProps) => {
         </div>
       </div>
       
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center text-sm">
-          <Clock className="h-4 w-4 mr-1 text-gray-500" />
-          <span className="text-gray-700">{recipe.cookTime}</span>
-        </div>
-        
-        <div className="flex items-center text-sm">
-          <Utensils className="h-4 w-4 mr-1 text-gray-500" />
-          <span className="text-gray-700">{recipe.servings}</span>
-        </div>
-      </div>
+      {/* Action card: Missing ingredients */}
+      {missingIngredientsCount > 0 && (
+        <motion.div 
+          className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-xl"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <div className="flex items-start">
+            <CircleAlert className="h-5 w-5 text-amber-500 mt-0.5 mr-2 flex-shrink-0" />
+            <div>
+              <h3 className="font-medium text-amber-800">Missing ingredients</h3>
+              <p className="text-sm text-amber-700 mb-3">
+                You're missing {missingIngredientsCount} of {currentIngredients.length} ingredients for this recipe.
+              </p>
+              <Button 
+                onClick={handleAddAllToShoppingList}
+                variant="secondary" 
+                className="w-full bg-amber-500 hover:bg-amber-600 text-white border-none"
+                size="sm"
+              >
+                Add missing ingredients to shopping list
+              </Button>
+            </div>
+          </div>
+        </motion.div>
+      )}
       
       {/* Recipe Scaling */}
-      <RecipeScaling 
-        originalServings={recipe.servings} 
-        ingredients={recipe.ingredients}
-        onIngredientsScaled={handleIngredientsScaled}
-      />
-      
-      {/* Nutrition */}
-      <div className="grid grid-cols-4 gap-3 mb-6">
-        <div className="p-3 bg-fridge-50 rounded-lg text-center">
-          <span className="block text-xs text-gray-500 mb-1">Calories</span>
-          <span className="font-medium text-sm">{recipe.nutrition.calories}</span>
-        </div>
-        <div className="p-3 bg-fridge-50 rounded-lg text-center">
-          <span className="block text-xs text-gray-500 mb-1">Protein</span>
-          <span className="font-medium text-sm">{recipe.nutrition.protein}</span>
-        </div>
-        <div className="p-3 bg-fridge-50 rounded-lg text-center">
-          <span className="block text-xs text-gray-500 mb-1">Carbs</span>
-          <span className="font-medium text-sm">{recipe.nutrition.carbs}</span>
-        </div>
-        <div className="p-3 bg-fridge-50 rounded-lg text-center">
-          <span className="block text-xs text-gray-500 mb-1">Fat</span>
-          <span className="font-medium text-sm">{recipe.nutrition.fat}</span>
-        </div>
+      <div className="mb-6 bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+        <h3 className="text-sm font-medium mb-2 text-gray-700">Adjust servings</h3>
+        <RecipeScaling 
+          originalServings={recipe.servings} 
+          ingredients={recipe.ingredients}
+          onIngredientsScaled={handleIngredientsScaled}
+        />
       </div>
       
-      {/* Missing ingredients action button */}
-      <div className="mb-6">
-        <Button 
-          onClick={handleAddAllToShoppingList}
-          variant="outline" 
-          className="w-full"
-        >
-          Add missing ingredients to shopping list
-        </Button>
+      {/* Nutrition cards */}
+      <div className="mb-8">
+        <h3 className="text-sm font-medium mb-3 text-gray-700">Nutrition per serving</h3>
+        <div className="grid grid-cols-4 gap-3">
+          <div className="p-3 bg-gradient-to-br from-fridge-50 to-fridge-100 rounded-lg text-center shadow-sm">
+            <span className="block text-xs text-gray-500 mb-1">Calories</span>
+            <span className="font-medium text-fridge-800">{recipe.nutrition.calories}</span>
+          </div>
+          <div className="p-3 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg text-center shadow-sm">
+            <span className="block text-xs text-gray-500 mb-1">Protein</span>
+            <span className="font-medium text-blue-800">{recipe.nutrition.protein}</span>
+          </div>
+          <div className="p-3 bg-gradient-to-br from-green-50 to-green-100 rounded-lg text-center shadow-sm">
+            <span className="block text-xs text-gray-500 mb-1">Carbs</span>
+            <span className="font-medium text-green-800">{recipe.nutrition.carbs}</span>
+          </div>
+          <div className="p-3 bg-gradient-to-br from-amber-50 to-amber-100 rounded-lg text-center shadow-sm">
+            <span className="block text-xs text-gray-500 mb-1">Fat</span>
+            <span className="font-medium text-amber-800">{recipe.nutrition.fat}</span>
+          </div>
+        </div>
       </div>
       
       {/* Tabs */}
-      <Tabs defaultValue="ingredients" className="mb-6">
-        <TabsList className="w-full grid grid-cols-2">
-          <TabsTrigger value="ingredients">Ingredients</TabsTrigger>
-          <TabsTrigger value="instructions">Instructions</TabsTrigger>
+      <Tabs 
+        defaultValue="ingredients" 
+        className="mb-6"
+        value={activeSection}
+        onValueChange={setActiveSection}
+      >
+        <TabsList className="w-full grid grid-cols-2 rounded-xl bg-gray-100 p-1">
+          <TabsTrigger 
+            value="ingredients" 
+            className="rounded-lg data-[state=active]:bg-white data-[state=active]:text-fridge-700 data-[state=active]:shadow-sm"
+          >
+            Ingredients
+          </TabsTrigger>
+          <TabsTrigger 
+            value="instructions" 
+            className="rounded-lg data-[state=active]:bg-white data-[state=active]:text-fridge-700 data-[state=active]:shadow-sm"
+          >
+            Instructions
+          </TabsTrigger>
         </TabsList>
         
         {/* Ingredients tab */}
-        <TabsContent value="ingredients">
-          <motion.ul 
-            className="space-y-2 mb-8"
-            variants={container}
-            initial="hidden"
-            animate="show"
-          >
-            {currentIngredients.map((ingredient, index) => (
-              <motion.li 
-                key={index} 
-                variants={item}
-              >
-                <div 
-                  className="flex items-center justify-between py-3 px-4 bg-white rounded-lg shadow-sm border border-gray-100"
-                  onClick={() => handleIngredientClick(ingredient)}
+        <TabsContent value="ingredients" className="mt-4">
+          <AnimatePresence mode="wait">
+            <motion.ul 
+              className="space-y-2 mb-8"
+              variants={container}
+              initial="hidden"
+              animate="show"
+              key="ingredients-list"
+            >
+              {currentIngredients.map((ingredient, index) => (
+                <motion.li 
+                  key={`${ingredient}-${index}`} 
+                  variants={item}
+                  layout
                 >
-                  <div className="flex items-center">
-                    <span className="text-sm">{ingredient}</span>
+                  <div 
+                    className={`flex items-center justify-between py-3 px-4 rounded-lg shadow-sm border transition-colors duration-150 ${
+                      hasIngredient(ingredient) 
+                        ? 'bg-white border-green-100' 
+                        : 'bg-white border-gray-100'
+                    }`}
+                    onClick={() => handleIngredientClick(ingredient)}
+                  >
+                    <div className="flex items-center">
+                      {hasIngredient(ingredient) ? (
+                        <Check className="h-4 w-4 text-green-500 mr-3 flex-shrink-0" />
+                      ) : (
+                        <X className="h-4 w-4 text-gray-300 mr-3 flex-shrink-0" />
+                      )}
+                      <span className="text-sm">{ingredient}</span>
+                    </div>
+                    
+                    {hasIngredient(ingredient) ? (
+                      <Badge variant="outline" className="bg-green-50 text-green-600 border-green-200">
+                        In fridge
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="bg-gray-50 text-gray-600 border-gray-200">
+                        Missing
+                      </Badge>
+                    )}
                   </div>
                   
-                  {hasIngredient(ingredient) ? (
-                    <div className="flex items-center text-green-600 bg-green-50 px-2 py-1 rounded-full text-xs">
-                      <Check className="h-3 w-3 mr-1" />
-                      <span>In fridge</span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center text-gray-500 bg-gray-100 px-2 py-1 rounded-full text-xs">
-                      <X className="h-3 w-3 mr-1" />
-                      <span>Not available</span>
-                    </div>
-                  )}
-                </div>
-                
-                {/* Store locator for focused ingredient */}
-                {focusedIngredient === ingredient && !hasIngredient(ingredient) && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="mt-2 overflow-hidden"
-                  >
-                    <GroceryStoreLocator ingredient={ingredient} />
-                  </motion.div>
-                )}
-              </motion.li>
-            ))}
-          </motion.ul>
+                  {/* Store locator for focused ingredient */}
+                  <AnimatePresence>
+                    {focusedIngredient === ingredient && !hasIngredient(ingredient) && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="mt-2 overflow-hidden rounded-lg border border-gray-100"
+                      >
+                        <GroceryStoreLocator ingredient={ingredient} />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.li>
+              ))}
+            </motion.ul>
+          </AnimatePresence>
         </TabsContent>
         
         {/* Instructions tab */}
-        <TabsContent value="instructions">
-          <motion.ol 
-            className="space-y-6 mb-8 list-decimal pl-4"
-            variants={container}
-            initial="hidden"
-            animate="show"
-          >
-            {recipe.instructions.map((instruction, index) => (
-              <motion.li 
-                key={index}
-                variants={item}
-                className="text-sm leading-relaxed pl-2"
+        <TabsContent value="instructions" className="mt-4">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key="instructions-list"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              <motion.ol 
+                className="space-y-4 mb-8 relative"
+                variants={container}
+                initial="hidden"
+                animate="show"
               >
-                {instruction}
-              </motion.li>
-            ))}
-          </motion.ol>
+                {/* Timeline connector */}
+                <div className="absolute left-[18px] top-8 bottom-0 w-[2px] bg-gray-200"></div>
+                
+                {recipe.instructions.map((instruction, index) => (
+                  <motion.li 
+                    key={index}
+                    variants={item}
+                    className="pl-12 pb-4 relative"
+                  >
+                    {/* Step number indicator */}
+                    <div className="absolute left-0 top-0 flex items-center justify-center w-9 h-9 rounded-full bg-fridge-100 text-fridge-700 font-semibold text-sm border border-fridge-200 z-10">
+                      {index + 1}
+                    </div>
+                    
+                    <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
+                      <p className="text-sm leading-relaxed text-gray-700">{instruction}</p>
+                    </div>
+                  </motion.li>
+                ))}
+              </motion.ol>
+            </motion.div>
+          </AnimatePresence>
         </TabsContent>
       </Tabs>
     </div>
