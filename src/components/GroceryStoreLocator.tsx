@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { MapPin, ExternalLink, ShoppingCart } from "lucide-react";
+import { MapPin, ExternalLink, ShoppingCart, Store } from "lucide-react";
 import { checkItemAvailability, GroceryStore } from "@/lib/groceryStoreLocator";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -53,8 +53,8 @@ const GroceryStoreLocator = ({ ingredient }: GroceryStoreLocatorProps) => {
         onClick={expanded ? () => setExpanded(false) : checkAvailability}
       >
         <div className="flex items-center">
-          <MapPin className="h-4 w-4 mr-2 text-fridge-600" />
-          <span className="text-sm">Find "{ingredient}" at local grocers</span>
+          <Store className="h-4 w-4 mr-2 text-fridge-600" />
+          <span className="text-sm">Find "{ingredient}" at nearby stores</span>
         </div>
         <span className="text-xs bg-fridge-50 px-2 py-0.5 rounded-full text-fridge-600 font-medium">
           {expanded ? "Hide" : "Check"}
@@ -70,7 +70,7 @@ const GroceryStoreLocator = ({ ingredient }: GroceryStoreLocatorProps) => {
             transition={{ duration: 0.2 }}
             className="p-4 pt-1 bg-gradient-to-b from-fridge-50/50 to-white border-t border-fridge-100"
           >
-            <div className="space-y-2.5 mt-2">
+            <div className="space-y-3 mt-2">
               {storeResults.map((result) => (
                 <motion.div 
                   key={result.store.id}
@@ -82,7 +82,7 @@ const GroceryStoreLocator = ({ ingredient }: GroceryStoreLocatorProps) => {
                   <div>
                     <div className="flex items-center">
                       <div className="w-9 h-9 rounded-full bg-fridge-50 flex items-center justify-center flex-shrink-0 mr-3 shadow-sm">
-                        <MapPin className="h-4 w-4 text-fridge-600" />
+                        <Store className="h-4 w-4 text-fridge-600" />
                       </div>
                       <div>
                         <p className="font-medium text-sm">{result.store.name}</p>
