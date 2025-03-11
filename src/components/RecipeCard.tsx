@@ -63,7 +63,7 @@ const RecipeCard = ({
   if (listView) {
     return (
       <motion.div
-        className="rounded-xl overflow-hidden bg-white shadow hover:shadow-md transition-all duration-300 border border-gray-100 flex"
+        className="rounded-xl overflow-hidden bg-white shadow hover:shadow-md transition-all duration-300 border border-gray-200 flex cursor-pointer"
         whileHover={{ y: -2, boxShadow: "0 8px 20px -5px rgba(0, 0, 0, 0.1)" }}
         onClick={() => navigate(`/recipe/${id}`)}
       >
@@ -117,7 +117,7 @@ const RecipeCard = ({
           <div className="flex flex-wrap justify-between gap-2 mt-2">
             <div className="flex items-center text-xs text-gray-600">
               <Clock className="h-3 w-3 mr-1" />
-              <span>{cookTime}</span>
+              <span>{cookTime} min</span>
             </div>
             
             <div className="flex items-center text-xs text-gray-600">
@@ -142,10 +142,10 @@ const RecipeCard = ({
   // Default grid view
   return (
     <motion.div
-      className="rounded-xl overflow-hidden bg-white shadow hover:shadow-lg transition-all duration-300 border border-gray-100 h-full flex flex-col"
+      className="rounded-xl overflow-hidden bg-white shadow hover:shadow-lg transition-all duration-300 border border-gray-100 h-full flex flex-col cursor-pointer group"
       whileHover={{ 
         y: -5, 
-        boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)",
+        boxShadow: "0 15px 30px -5px rgba(0, 0, 0, 0.1)",
         transition: { duration: 0.3, ease: "easeOut" },
       }}
       onClick={() => navigate(`/recipe/${id}`)}
@@ -159,9 +159,9 @@ const RecipeCard = ({
         <motion.img
           src={image}
           alt={title}
-          className={`w-full h-full object-cover transition-opacity duration-300 ${
+          className={`w-full h-full object-cover transition-all duration-500 ${
             imageLoaded ? "opacity-100" : "opacity-0"
-          }`}
+          } group-hover:scale-105`}
           onLoad={() => setImageLoaded(true)}
           initial={{ opacity: 0, scale: 1.05 }}
           animate={{ 
@@ -211,7 +211,7 @@ const RecipeCard = ({
       </div>
       
       <div className="p-4 flex flex-col flex-grow">
-        <h3 className="font-semibold text-gray-900 mb-2 line-clamp-1">{title}</h3>
+        <h3 className="font-semibold text-gray-900 mb-2 line-clamp-1 group-hover:text-fridge-700 transition-colors">{title}</h3>
         
         {/* Rating stars - Only show if rating exists and is greater than 0 */}
         {rating > 0 && (
@@ -229,7 +229,7 @@ const RecipeCard = ({
         <div className="flex items-center justify-between mt-2 text-sm">
           <div className="flex items-center text-gray-600 bg-gray-50 px-2 py-1 rounded-md">
             <Clock className="h-4 w-4 mr-1 text-fridge-600" />
-            <span>{cookTime}</span>
+            <span>{cookTime} min</span>
           </div>
           
           <div className="flex items-center text-gray-600 bg-gray-50 px-2 py-1 rounded-md">
@@ -251,7 +251,7 @@ const RecipeCard = ({
               ? "Have all ingredients!"
               : `Missing ${totalIngredients - matchingIngredients}`}
           </span>
-          <div className="bg-fridge-50 rounded-full p-1">
+          <div className="bg-fridge-50 rounded-full p-1 group-hover:bg-fridge-100 transition-colors">
             <ChevronRight className="h-4 w-4 text-fridge-600" />
           </div>
         </div>
