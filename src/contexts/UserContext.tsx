@@ -48,6 +48,30 @@ interface UserContextType {
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
+// Helper to guess item category based on common items
+const guessCategory = (itemName: string): string => {
+  const lowerName = itemName.toLowerCase();
+  
+  const categoryMatches = {
+    produce: ["apple", "banana", "lettuce", "tomato", "pepper", "onion", "garlic", "potato", "carrot", "broccoli", "fruit", "vegetable"],
+    dairy: ["milk", "cheese", "yogurt", "butter", "cream", "egg"],
+    meat: ["chicken", "beef", "pork", "fish", "shrimp", "salmon", "steak", "ground", "meat", "sausage"],
+    bakery: ["bread", "bagel", "roll", "cake", "muffin", "pastry", "dough"],
+    pantry: ["pasta", "rice", "bean", "can", "sauce", "oil", "vinegar", "spice", "flour", "sugar", "cereal"],
+    frozen: ["frozen", "ice cream", "pizza", "fries"],
+    beverages: ["water", "juice", "soda", "coffee", "tea", "beer", "wine"],
+    snacks: ["chip", "cookie", "cracker", "popcorn", "pretzel", "nut", "chocolate", "candy"]
+  };
+
+  for (const [category, keywords] of Object.entries(categoryMatches)) {
+    if (keywords.some(keyword => lowerName.includes(keyword))) {
+      return category;
+    }
+  }
+  
+  return "other";
+};
+
 export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -117,9 +141,14 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const addToShoppingList = (item: Omit<ShoppingItem, "id">) => {
     setUser((prev) => {
       if (!prev) return null;
+      
+      // Ensure category is set - if not provided, guess it
+      const category = item.category || guessCategory(item.name);
+      
       const newItem: ShoppingItem = {
         ...item,
         id: Date.now().toString(),
+        category
       };
       return { ...prev, shoppingList: [...prev.shoppingList, newItem] };
     });

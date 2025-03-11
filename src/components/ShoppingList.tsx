@@ -56,7 +56,6 @@ const ShoppingList = ({ hideDeliveryButton = false }: ShoppingListProps) => {
   const { user, addToShoppingList, removeFromShoppingList, toggleShoppingItem, clearShoppingList } = useUser();
   const [newItem, setNewItem] = useState("");
   const [newQuantity, setNewQuantity] = useState("");
-  const [newCategory, setNewCategory] = useState("other");
   const [sortOption, setSortOption] = useState<SortOption>("category");
   const [searchQuery, setSearchQuery] = useState("");
   const [showForm, setShowForm] = useState(false);
@@ -79,24 +78,20 @@ const ShoppingList = ({ hideDeliveryButton = false }: ShoppingListProps) => {
     };
   }, []);
 
-  // Auto-detect category when item name changes
-  useEffect(() => {
-    if (newItem.trim()) {
-      setNewCategory(guessCategory(newItem));
-    }
-  }, [newItem]);
-
   const handleAddItem = useCallback(() => {
     if (!newItem.trim()) {
       toast.error("Please enter an item name");
       return;
     }
 
+    // Automatically determine category from the item name
+    const autoCategory = guessCategory(newItem);
+
     addToShoppingList({
       name: newItem.trim(),
       quantity: newQuantity.trim() || "1",
       isChecked: false,
-      category: newCategory || "other",
+      category: autoCategory,
     });
 
     setNewItem("");
@@ -104,8 +99,18 @@ const ShoppingList = ({ hideDeliveryButton = false }: ShoppingListProps) => {
     if (isMobile) {
       setShowForm(false); // Hide form after adding on mobile
     }
-    toast.success("Item added to shopping list");
-  }, [newItem, newQuantity, newCategory, addToShoppingList, isMobile]);
+    
+    // Provide feedback about the auto-categorization
+    const categoryInfo = CATEGORIES.find(c => c.id === autoCategory);
+    toast.success(
+      <div className="flex items-center gap-2">
+        <span>{newItem} added to shopping list</span>
+        <span className="bg-fridge-100 text-fridge-700 px-2 py-0.5 rounded-full text-xs font-medium">
+          {categoryInfo?.emoji} {categoryInfo?.name}
+        </span>
+      </div>
+    );
+  }, [newItem, newQuantity, addToShoppingList, isMobile]);
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
@@ -206,7 +211,7 @@ const ShoppingList = ({ hideDeliveryButton = false }: ShoppingListProps) => {
         </Button>
       )}
       
-      {/* Input area with improved styling */}
+      {/* Input area with improved styling - removed category dropdown */}
       <AnimatePresence>
         {(showForm || !isMobile) && (
           <motion.div
@@ -256,32 +261,6 @@ const ShoppingList = ({ hideDeliveryButton = false }: ShoppingListProps) => {
                       placeholder="Qty"
                     />
                   </div>
-                  
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" className="w-full md:w-auto border-fridge-100 text-gray-700 hover:bg-fridge-50 shadow-sm">
-                        <Tag className="h-4 w-4 mr-2 text-fridge-600" />
-                        <span className="truncate">
-                          {getCategoryInfo(newCategory).emoji} {getCategoryInfo(newCategory).name}
-                        </span>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="bg-white shadow-md border border-fridge-100">
-                      {CATEGORIES.map((category) => (
-                        <DropdownMenuItem 
-                          key={category.id}
-                          onClick={() => setNewCategory(category.id)}
-                          className={cn(
-                            "hover:bg-fridge-50 cursor-pointer",
-                            newCategory === category.id && "bg-fridge-50 text-fridge-700"
-                          )}
-                        >
-                          <span className="mr-2">{category.emoji}</span>
-                          {category.name}
-                        </DropdownMenuItem>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
                   
                   <Button 
                     onClick={handleAddItem}
