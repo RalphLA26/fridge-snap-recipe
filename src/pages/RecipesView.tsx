@@ -2,9 +2,10 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-  ArrowLeft, Search, SlidersHorizontal, Clock, 
-  ListFilter, Grid3X3, List, ChevronDown, Heart,
-  ArrowUpDown, X, BookOpen, Flame, Filter
+  ArrowLeft, Search, Clock, 
+  ListFilter, Grid3X3, List, Heart,
+  ArrowUpDown, X, BookOpen, Flame, Filter,
+  ChevronDown, SlidersHorizontal
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -231,30 +232,9 @@ const RecipesView = () => {
       </header>
       
       <div className="container max-w-5xl mx-auto px-4 py-6">
-        {/* Completely redesigned search and filter section */}
+        {/* Redesigned search section with integrated filters */}
         <div className="mb-8 space-y-5">
-          {/* Modern search input with improved visual hierarchy */}
-          <div className="relative">
-            <Input
-              className="pl-11 pr-11 py-6 bg-white border border-gray-200 shadow-sm rounded-xl focus-visible:ring-fridge-400 placeholder:text-gray-400 text-base"
-              placeholder="Search recipes..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">
-              <Search className="h-5 w-5" />
-            </div>
-            {searchQuery && (
-              <button 
-                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 bg-gray-100 p-1 rounded-full"
-                onClick={() => setSearchQuery("")}
-              >
-                <X className="h-4 w-4" />
-              </button>
-            )}
-          </div>
-          
-          {/* Tabs for view selection placed above filters - REVERSED ORDER TO PUT MATCH GROUPS FIRST */}
+          {/* Tabs for view selection placed above search */}
           <Tabs defaultValue="matching" className="w-full mb-4">
             <TabsList className="w-full mb-4 bg-white border border-gray-200 rounded-xl p-1.5 shadow-sm">
               <TabsTrigger 
@@ -276,162 +256,253 @@ const RecipesView = () => {
                 </span>
               </TabsTrigger>
             </TabsList>
-          
-            {/* Clean filter bar with improved spacing */}
-            <div className="flex flex-wrap gap-3 items-center">
-              {/* Simplified filter button with clear indication of active state */}
-              <Popover open={filtersVisible} onOpenChange={setFiltersVisible}>
-                <PopoverTrigger asChild>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
+            
+            {/* Integrated search bar with filter options */}
+            <div className="bg-white border border-gray-200 shadow-sm rounded-xl overflow-hidden">
+              {/* Search input row */}
+              <div className="relative flex items-center p-2">
+                <div className="absolute left-4 text-gray-400">
+                  <Search className="h-5 w-5" />
+                </div>
+                <Input
+                  className="pl-10 py-6 border-0 shadow-none focus-visible:ring-0 bg-transparent placeholder:text-gray-400 text-base"
+                  placeholder="Search recipes..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                {searchQuery && (
+                  <button 
+                    className="absolute right-4 text-gray-400 hover:text-gray-600 bg-gray-100 p-1 rounded-full"
+                    onClick={() => setSearchQuery("")}
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+              
+              {/* Filter options row */}
+              <div className="flex items-center gap-2 px-4 py-3 border-t border-gray-100 bg-gray-50 overflow-x-auto custom-scrollbar">
+                {/* Filter popover */}
+                <Popover open={filtersVisible} onOpenChange={setFiltersVisible}>
+                  <PopoverTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className={cn(
+                        "flex items-center gap-2 border-gray-200 shadow-sm h-9 px-4 rounded-full whitespace-nowrap",
+                        activeFilterCount > 0 ? "bg-fridge-50 text-fridge-600 border-fridge-200" : ""
+                      )}
+                    >
+                      <SlidersHorizontal className="h-3.5 w-3.5" />
+                      <span>Filters</span>
+                      {activeFilterCount > 0 && (
+                        <Badge className="h-5 w-5 p-0 flex items-center justify-center bg-fridge-100 text-fridge-700">
+                          {activeFilterCount}
+                        </Badge>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-80 p-5 shadow-lg border-gray-200 rounded-xl">
+                    <div className="space-y-5">
+                      <div className="flex items-center justify-between">
+                        <h3 className="font-medium text-lg text-gray-900">Filters</h3>
+                        {activeFilterCount > 0 && (
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-auto px-2 py-1 text-sm text-fridge-600 hover:text-fridge-800 hover:bg-fridge-50"
+                            onClick={clearFilters}
+                          >
+                            Clear all
+                          </Button>
+                        )}
+                      </div>
+                      
+                      <div className="space-y-4">
+                        <h4 className="text-sm font-medium text-gray-700">Cook Time</h4>
+                        <div className="grid grid-cols-1 gap-3">
+                          {/* Redesigned filter checkboxes with consistent styling */}
+                          <label className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-100 transition-colors">
+                            <Checkbox 
+                              id="quick" 
+                              checked={cookTimeFilter.includes("quick")}
+                              onCheckedChange={() => handleCookTimeFilterChange("quick")}
+                              className="text-fridge-600 border-gray-300 data-[state=checked]:bg-fridge-600"
+                            />
+                            <div className="flex items-center gap-2">
+                              <Clock className="h-4 w-4 text-fridge-600" />
+                              <span>Quick (under 20 mins)</span>
+                            </div>
+                          </label>
+                          
+                          <label className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-100 transition-colors">
+                            <Checkbox 
+                              id="medium" 
+                              checked={cookTimeFilter.includes("medium")}
+                              onCheckedChange={() => handleCookTimeFilterChange("medium")}
+                              className="text-fridge-600 border-gray-300 data-[state=checked]:bg-fridge-600"
+                            />
+                            <div className="flex items-center gap-2">
+                              <Clock className="h-4 w-4 text-fridge-600" />
+                              <span>Medium (20-40 mins)</span>
+                            </div>
+                          </label>
+                          
+                          <label className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-100 transition-colors">
+                            <Checkbox 
+                              id="long" 
+                              checked={cookTimeFilter.includes("long")}
+                              onCheckedChange={() => handleCookTimeFilterChange("long")}
+                              className="text-fridge-600 border-gray-300 data-[state=checked]:bg-fridge-600"
+                            />
+                            <div className="flex items-center gap-2">
+                              <Clock className="h-4 w-4 text-fridge-600" />
+                              <span>Long (over 40 mins)</span>
+                            </div>
+                          </label>
+                        </div>
+                      </div>
+                      
+                      <Separator className="bg-gray-200" />
+                      
+                      {/* Favorites filter with improved visual design */}
+                      <label className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-100 transition-colors">
+                        <Checkbox 
+                          id="favorites" 
+                          checked={showFavoritesOnly}
+                          onCheckedChange={(checked) => setShowFavoritesOnly(checked === true)}
+                          className="text-fridge-600 border-gray-300 data-[state=checked]:bg-fridge-600"
+                        />
+                        <div className="flex items-center gap-2">
+                          <Heart className="h-4 w-4 text-red-500" />
+                          <span>Favorites only</span>
+                        </div>
+                      </label>
+                      
+                      <Button 
+                        className="w-full bg-fridge-600 hover:bg-fridge-700 text-white"
+                        onClick={() => setFiltersVisible(false)}
+                      >
+                        Apply Filters
+                      </Button>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+                
+                {/* Cook time filter chips */}
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleCookTimeFilterChange("quick")}
                     className={cn(
-                      "flex items-center gap-2 border-gray-200 shadow-sm h-10 px-4 rounded-lg",
-                      activeFilterCount > 0 ? "bg-fridge-50 text-fridge-600 border-fridge-200" : ""
+                      "h-9 rounded-full whitespace-nowrap",
+                      cookTimeFilter.includes("quick")
+                        ? "bg-fridge-50 text-fridge-600 border-fridge-200"
+                        : "border-gray-200"
                     )}
                   >
-                    <Filter className="h-4 w-4" />
-                    <span>Filters</span>
-                    {activeFilterCount > 0 && (
-                      <Badge className="h-5 w-5 p-0 flex items-center justify-center bg-fridge-100 text-fridge-700">
-                        {activeFilterCount}
-                      </Badge>
-                    )}
+                    <Clock className="h-3.5 w-3.5 mr-1.5" />
+                    Quick
                   </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-80 p-5 shadow-lg border-gray-200 rounded-xl">
-                  <div className="space-y-5">
-                    <div className="flex items-center justify-between">
-                      <h3 className="font-medium text-lg text-gray-900">Filters</h3>
-                      {activeFilterCount > 0 && (
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="h-auto px-2 py-1 text-sm text-fridge-600 hover:text-fridge-800 hover:bg-fridge-50"
-                          onClick={clearFilters}
-                        >
-                          Clear all
-                        </Button>
-                      )}
-                    </div>
-                    
-                    <div className="space-y-4">
-                      <h4 className="text-sm font-medium text-gray-700">Cook Time</h4>
-                      <div className="grid grid-cols-1 gap-3">
-                        {/* Redesigned filter checkboxes with consistent styling */}
-                        <label className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-100 transition-colors">
-                          <Checkbox 
-                            id="quick" 
-                            checked={cookTimeFilter.includes("quick")}
-                            onCheckedChange={() => handleCookTimeFilterChange("quick")}
-                            className="text-fridge-600 border-gray-300 data-[state=checked]:bg-fridge-600"
-                          />
-                          <div className="flex items-center gap-2">
-                            <Clock className="h-4 w-4 text-fridge-600" />
-                            <span>Quick (under 20 mins)</span>
-                          </div>
-                        </label>
-                        
-                        <label className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-100 transition-colors">
-                          <Checkbox 
-                            id="medium" 
-                            checked={cookTimeFilter.includes("medium")}
-                            onCheckedChange={() => handleCookTimeFilterChange("medium")}
-                            className="text-fridge-600 border-gray-300 data-[state=checked]:bg-fridge-600"
-                          />
-                          <div className="flex items-center gap-2">
-                            <Clock className="h-4 w-4 text-fridge-600" />
-                            <span>Medium (20-40 mins)</span>
-                          </div>
-                        </label>
-                        
-                        <label className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-100 transition-colors">
-                          <Checkbox 
-                            id="long" 
-                            checked={cookTimeFilter.includes("long")}
-                            onCheckedChange={() => handleCookTimeFilterChange("long")}
-                            className="text-fridge-600 border-gray-300 data-[state=checked]:bg-fridge-600"
-                          />
-                          <div className="flex items-center gap-2">
-                            <Clock className="h-4 w-4 text-fridge-600" />
-                            <span>Long (over 40 mins)</span>
-                          </div>
-                        </label>
-                      </div>
-                    </div>
-                    
-                    <Separator className="bg-gray-200" />
-                    
-                    {/* Favorites filter with improved visual design */}
-                    <label className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-100 transition-colors">
-                      <Checkbox 
-                        id="favorites" 
-                        checked={showFavoritesOnly}
-                        onCheckedChange={(checked) => setShowFavoritesOnly(checked === true)}
-                        className="text-fridge-600 border-gray-300 data-[state=checked]:bg-fridge-600"
-                      />
-                      <div className="flex items-center gap-2">
-                        <Heart className="h-4 w-4 text-red-500" />
-                        <span>Favorites only</span>
-                      </div>
-                    </label>
-                    
-                    <Button 
-                      className="w-full bg-fridge-600 hover:bg-fridge-700 text-white"
-                      onClick={() => setFiltersVisible(false)}
-                    >
-                      Apply Filters
-                    </Button>
-                  </div>
-                </PopoverContent>
-              </Popover>
-              
-              {/* Improved sort dropdown with better visual hierarchy */}
-              <Select
-                value={sortOrder}
-                onValueChange={(value) => setSortOrder(value as any)}
-              >
-                <SelectTrigger className="w-auto min-w-[180px] border-gray-200 shadow-sm focus:ring-fridge-400 h-10 rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <ArrowUpDown className="h-3.5 w-3.5 text-gray-500 flex-shrink-0" />
-                    <SelectValue placeholder="Sort by" />
-                  </div>
-                </SelectTrigger>
-                <SelectContent className="rounded-lg border-gray-200">
-                  <SelectItem value="matching">Matching Ingredients</SelectItem>
-                  <SelectItem value="cookTime">Cook Time</SelectItem>
-                  <SelectItem value="alphabetical">Alphabetical</SelectItem>
-                </SelectContent>
-              </Select>
-              
-              {/* Cleaner view toggle design */}
-              <div className="ml-auto flex bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+                  
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleCookTimeFilterChange("medium")}
+                    className={cn(
+                      "h-9 rounded-full whitespace-nowrap",
+                      cookTimeFilter.includes("medium")
+                        ? "bg-fridge-50 text-fridge-600 border-fridge-200"
+                        : "border-gray-200"
+                    )}
+                  >
+                    <Clock className="h-3.5 w-3.5 mr-1.5" />
+                    Medium
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleCookTimeFilterChange("long")}
+                    className={cn(
+                      "h-9 rounded-full whitespace-nowrap",
+                      cookTimeFilter.includes("long")
+                        ? "bg-fridge-50 text-fridge-600 border-fridge-200"
+                        : "border-gray-200"
+                    )}
+                  >
+                    <Clock className="h-3.5 w-3.5 mr-1.5" />
+                    Long
+                  </Button>
+                </div>
+                
+                {/* Favorites filter chip */}
                 <Button
-                  variant="ghost"
+                  variant="outline"
                   size="sm"
+                  onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
                   className={cn(
-                    "rounded-none border-r border-gray-200 px-3 h-10", 
-                    viewMode === "grid" 
-                      ? "bg-fridge-50 text-fridge-700 hover:bg-fridge-100" 
-                      : "hover:bg-gray-50"
+                    "h-9 rounded-full whitespace-nowrap",
+                    showFavoritesOnly
+                      ? "bg-red-50 text-red-600 border-red-200"
+                      : "border-gray-200"
                   )}
-                  onClick={() => setViewMode("grid")}
                 >
-                  <Grid3X3 className="h-4 w-4" />
+                  <Heart className={cn(
+                    "h-3.5 w-3.5 mr-1.5",
+                    showFavoritesOnly ? "fill-red-500" : ""
+                  )} />
+                  Favorites
                 </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className={cn(
-                    "rounded-none px-3 h-10", 
-                    viewMode === "list" 
-                      ? "bg-fridge-50 text-fridge-700 hover:bg-fridge-100" 
-                      : "hover:bg-gray-50"
-                  )}
-                  onClick={() => setViewMode("list")}
+                
+                {/* Sort by dropdown */}
+                <Select
+                  value={sortOrder}
+                  onValueChange={(value) => setSortOrder(value as any)}
                 >
-                  <List className="h-4 w-4" />
-                </Button>
+                  <SelectTrigger className="w-auto h-9 min-w-[160px] border-gray-200 shadow-sm focus:ring-fridge-400 rounded-full">
+                    <div className="flex items-center gap-2">
+                      <ArrowUpDown className="h-3.5 w-3.5 text-gray-500 flex-shrink-0" />
+                      <SelectValue placeholder="Sort by" />
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent className="rounded-lg border-gray-200">
+                    <SelectItem value="matching">Matching Ingredients</SelectItem>
+                    <SelectItem value="cookTime">Cook Time</SelectItem>
+                    <SelectItem value="alphabetical">Alphabetical</SelectItem>
+                  </SelectContent>
+                </Select>
+                
+                {/* View toggle */}
+                <div className="ml-auto flex bg-white rounded-full border border-gray-200 shadow-sm overflow-hidden">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className={cn(
+                      "rounded-none border-r border-gray-200 px-3 h-9", 
+                      viewMode === "grid" 
+                        ? "bg-fridge-50 text-fridge-700 hover:bg-fridge-100" 
+                        : "hover:bg-gray-50"
+                    )}
+                    onClick={() => setViewMode("grid")}
+                  >
+                    <Grid3X3 className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className={cn(
+                      "rounded-none px-3 h-9", 
+                      viewMode === "list" 
+                        ? "bg-fridge-50 text-fridge-700 hover:bg-fridge-100" 
+                        : "hover:bg-gray-50"
+                    )}
+                    onClick={() => setViewMode("list")}
+                  >
+                    <List className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             </div>
           
@@ -452,6 +523,18 @@ const RecipesView = () => {
                     </span>
                   )}
                 </p>
+                
+                {/* Clear filters button - only show if filters are active */}
+                {(activeFilterCount > 0 || searchQuery) && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={clearFilters}
+                    className="ml-auto h-7 px-2 text-xs text-fridge-600 hover:text-fridge-800 hover:bg-fridge-50"
+                  >
+                    Clear filters
+                  </Button>
+                )}
               </div>
             </motion.div>
             
