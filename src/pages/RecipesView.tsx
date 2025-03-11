@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Plus, Search, Filter, Clock, Filter as FilterIcon } from "lucide-react";
+import { ArrowLeft, Plus, Search, Filter, Clock, Filter as FilterIcon, Grid, List, BookOpen, Flame } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -10,10 +10,13 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent } from "@/components/ui/card";
 import RecipeCard from "@/components/RecipeCard";
 import { findRecipesByIngredients } from "@/lib/recipeData";
 import { useUser } from "@/contexts/UserContext";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 const RecipesView = () => {
   const navigate = useNavigate();
@@ -25,6 +28,7 @@ const RecipesView = () => {
   const [cookTimeFilter, setCookTimeFilter] = useState<string[]>([]);
   const [sortOrder, setSortOrder] = useState<"matching" | "cookTime" | "alphabetical">("matching");
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   
   // Load saved ingredients from localStorage on initial render
   useEffect(() => {
@@ -101,13 +105,13 @@ const RecipesView = () => {
     show: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.1
+        staggerChildren: 0.05
       }
     }
   };
   
   const item = {
-    hidden: { opacity: 0, y: 20 },
+    hidden: { opacity: 0, y: 10 },
     show: { opacity: 1, y: 0 }
   };
 
@@ -128,6 +132,36 @@ const RecipesView = () => {
     setSortOrder("matching");
     toast.info("Filters cleared");
   };
+
+  // Group recipes by matching percentage
+  const getRecipeGroups = () => {
+    if (filteredRecipes.length === 0) return {};
+    
+    const groups: {[key: string]: any[]} = {
+      "perfect": [],
+      "good": [],
+      "some": [],
+      "few": []
+    };
+    
+    filteredRecipes.forEach(item => {
+      const matchPercentage = (item.matchingCount / item.recipe.ingredients.length) * 100;
+      
+      if (matchPercentage === 100) {
+        groups.perfect.push(item);
+      } else if (matchPercentage >= 75) {
+        groups.good.push(item);
+      } else if (matchPercentage >= 50) {
+        groups.some.push(item);
+      } else {
+        groups.few.push(item);
+      }
+    });
+    
+    return groups;
+  };
+
+  const recipeGroups = getRecipeGroups();
   
   return (
     <motion.div 
@@ -138,7 +172,7 @@ const RecipesView = () => {
       transition={{ duration: 0.3 }}
     >
       <header className="p-4 bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
-        <div className="container max-w-xl mx-auto flex items-center justify-between">
+        <div className="container max-w-5xl mx-auto flex items-center justify-between">
           <Button 
             variant="ghost" 
             size="icon" 
@@ -155,7 +189,7 @@ const RecipesView = () => {
         </div>
       </header>
       
-      <main className="container max-w-xl mx-auto p-4">
+      <div className="container max-w-5xl mx-auto p-4">
         {/* Search and Filter */}
         <div className="mb-6 space-y-4">
           <div className="relative">
@@ -168,14 +202,14 @@ const RecipesView = () => {
             />
           </div>
           
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
+          <div className="flex flex-wrap gap-2 justify-between items-center">
+            <div className="flex items-center gap-2">
               <Popover>
                 <PopoverTrigger asChild>
                   <Button 
                     variant="outline" 
                     size="sm" 
-                    className={`flex items-center ${cookTimeFilter.length > 0 ? 'bg-gray-100' : ''}`}
+                    className={`flex items-center ${cookTimeFilter.length > 0 || showFavoritesOnly ? 'bg-gray-100' : ''}`}
                   >
                     <FilterIcon className="h-4 w-4 mr-2" />
                     Filter
@@ -257,6 +291,32 @@ const RecipesView = () => {
                 </SelectContent>
               </Select>
             </div>
+
+            {/* View toggle */}
+            <div className="flex bg-gray-100 p-1 rounded-md">
+              <Button
+                variant="ghost"
+                size="icon"
+                className={cn(
+                  "rounded-md h-8 w-8", 
+                  viewMode === "grid" ? "bg-white shadow-sm" : "bg-transparent"
+                )}
+                onClick={() => setViewMode("grid")}
+              >
+                <Grid className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className={cn(
+                  "rounded-md h-8 w-8", 
+                  viewMode === "list" ? "bg-white shadow-sm" : "bg-transparent"
+                )}
+                onClick={() => setViewMode("list")}
+              >
+                <List className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </div>
         
@@ -270,25 +330,202 @@ const RecipesView = () => {
         
         {/* Recipe cards */}
         {filteredRecipes.length > 0 ? (
-          <motion.div 
-            className="grid grid-cols-1 gap-4"
-            variants={container}
-            initial="hidden"
-            animate="show"
-          >
-            {filteredRecipes.map(({ recipe, matchingCount }) => (
-              <motion.div key={recipe.id} variants={item}>
-                <RecipeCard
-                  id={recipe.id}
-                  title={recipe.title}
-                  image={recipe.image}
-                  cookTime={recipe.cookTime}
-                  matchingIngredients={matchingCount}
-                  totalIngredients={recipe.ingredients.length}
-                />
+          <Tabs defaultValue="all" className="w-full">
+            <TabsList className="w-full mb-4 bg-white/80 backdrop-blur-sm border">
+              <TabsTrigger value="all" className="flex-1">All Recipes</TabsTrigger>
+              <TabsTrigger value="grouped" className="flex-1">By Match %</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="all" className="mt-0">
+              <motion.div 
+                className={cn(
+                  "w-full",
+                  viewMode === "grid" 
+                    ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" 
+                    : "flex flex-col gap-4"
+                )}
+                variants={container}
+                initial="hidden"
+                animate="show"
+              >
+                {filteredRecipes.map(({ recipe, matchingCount }) => (
+                  <motion.div 
+                    key={recipe.id} 
+                    variants={item}
+                    className={viewMode === "list" ? "w-full" : ""}
+                  >
+                    <RecipeCard
+                      id={recipe.id}
+                      title={recipe.title}
+                      image={recipe.image}
+                      cookTime={recipe.cookTime}
+                      matchingIngredients={matchingCount}
+                      totalIngredients={recipe.ingredients.length}
+                      listView={viewMode === "list"}
+                    />
+                  </motion.div>
+                ))}
               </motion.div>
-            ))}
-          </motion.div>
+            </TabsContent>
+            
+            <TabsContent value="grouped" className="mt-0 space-y-6">
+              {/* Perfect Match */}
+              {recipeGroups.perfect && recipeGroups.perfect.length > 0 && (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Badge className="bg-green-500 hover:bg-green-600 px-2">Perfect match</Badge>
+                    <h3 className="text-sm font-medium text-gray-700">You have all ingredients</h3>
+                  </div>
+                  
+                  <motion.div 
+                    className={cn(
+                      viewMode === "grid" 
+                        ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" 
+                        : "flex flex-col gap-4"
+                    )}
+                    variants={container}
+                    initial="hidden"
+                    animate="show"
+                  >
+                    {recipeGroups.perfect.map(({ recipe, matchingCount }) => (
+                      <motion.div 
+                        key={recipe.id} 
+                        variants={item}
+                        className={viewMode === "list" ? "w-full" : ""}
+                      >
+                        <RecipeCard
+                          id={recipe.id}
+                          title={recipe.title}
+                          image={recipe.image}
+                          cookTime={recipe.cookTime}
+                          matchingIngredients={matchingCount}
+                          totalIngredients={recipe.ingredients.length}
+                          listView={viewMode === "list"}
+                        />
+                      </motion.div>
+                    ))}
+                  </motion.div>
+                </div>
+              )}
+              
+              {/* Good Match */}
+              {recipeGroups.good && recipeGroups.good.length > 0 && (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Badge className="bg-blue-500 hover:bg-blue-600 px-2">Good match</Badge>
+                    <h3 className="text-sm font-medium text-gray-700">You have most ingredients</h3>
+                  </div>
+                  
+                  <motion.div 
+                    className={cn(
+                      viewMode === "grid" 
+                        ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" 
+                        : "flex flex-col gap-4"
+                    )}
+                    variants={container}
+                    initial="hidden"
+                    animate="show"
+                  >
+                    {recipeGroups.good.map(({ recipe, matchingCount }) => (
+                      <motion.div 
+                        key={recipe.id} 
+                        variants={item}
+                        className={viewMode === "list" ? "w-full" : ""}
+                      >
+                        <RecipeCard
+                          id={recipe.id}
+                          title={recipe.title}
+                          image={recipe.image}
+                          cookTime={recipe.cookTime}
+                          matchingIngredients={matchingCount}
+                          totalIngredients={recipe.ingredients.length}
+                          listView={viewMode === "list"}
+                        />
+                      </motion.div>
+                    ))}
+                  </motion.div>
+                </div>
+              )}
+              
+              {/* Some Match */}
+              {recipeGroups.some && recipeGroups.some.length > 0 && (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Badge className="bg-amber-500 hover:bg-amber-600 px-2">Some match</Badge>
+                    <h3 className="text-sm font-medium text-gray-700">You have some ingredients</h3>
+                  </div>
+                  
+                  <motion.div 
+                    className={cn(
+                      viewMode === "grid" 
+                        ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" 
+                        : "flex flex-col gap-4"
+                    )}
+                    variants={container}
+                    initial="hidden"
+                    animate="show"
+                  >
+                    {recipeGroups.some.map(({ recipe, matchingCount }) => (
+                      <motion.div 
+                        key={recipe.id} 
+                        variants={item}
+                        className={viewMode === "list" ? "w-full" : ""}
+                      >
+                        <RecipeCard
+                          id={recipe.id}
+                          title={recipe.title}
+                          image={recipe.image}
+                          cookTime={recipe.cookTime}
+                          matchingIngredients={matchingCount}
+                          totalIngredients={recipe.ingredients.length}
+                          listView={viewMode === "list"}
+                        />
+                      </motion.div>
+                    ))}
+                  </motion.div>
+                </div>
+              )}
+              
+              {/* Few Match */}
+              {recipeGroups.few && recipeGroups.few.length > 0 && (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Badge className="bg-gray-500 hover:bg-gray-600 px-2">Few match</Badge>
+                    <h3 className="text-sm font-medium text-gray-700">Missing most ingredients</h3>
+                  </div>
+                  
+                  <motion.div 
+                    className={cn(
+                      viewMode === "grid" 
+                        ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" 
+                        : "flex flex-col gap-4"
+                    )}
+                    variants={container}
+                    initial="hidden"
+                    animate="show"
+                  >
+                    {recipeGroups.few.map(({ recipe, matchingCount }) => (
+                      <motion.div 
+                        key={recipe.id} 
+                        variants={item}
+                        className={viewMode === "list" ? "w-full" : ""}
+                      >
+                        <RecipeCard
+                          id={recipe.id}
+                          title={recipe.title}
+                          image={recipe.image}
+                          cookTime={recipe.cookTime}
+                          matchingIngredients={matchingCount}
+                          totalIngredients={recipe.ingredients.length}
+                          listView={viewMode === "list"}
+                        />
+                      </motion.div>
+                    ))}
+                  </motion.div>
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
         ) : (
           <div className="text-center py-12">
             <div className="bg-gray-100 inline-flex rounded-full p-3 mb-4">
@@ -307,7 +544,7 @@ const RecipesView = () => {
             </Button>
           </div>
         )}
-      </main>
+      </div>
     </motion.div>
   );
 };

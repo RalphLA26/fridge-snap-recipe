@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 
@@ -124,14 +125,18 @@ export function useCamera({
       const capabilities = videoTrack.getCapabilities();
       
       try {
-        // Fix the type error by using a direct constraint approach
-        // This is more widely supported across browsers
-        videoTrack.applyConstraints({
-          // Use 'torch' directly as a constraint
-          // TypeScript doesn't recognize 'torch' as a standard constraint,
-          // but it's supported by many mobile browsers
-          torch: on
-        } as MediaTrackConstraints);
+        // Use a custom constraint object with type assertion for the torch property
+        // This approach works on many mobile browsers even when standard APIs don't recognize torch
+        const constraints = {};
+        
+        // Add the torch constraint in a way that won't trigger TypeScript errors
+        // but will still work at runtime for browsers that support it
+        Object.defineProperty(constraints, 'torch', {
+          enumerable: true,
+          value: on
+        });
+        
+        videoTrack.applyConstraints(constraints as MediaTrackConstraints);
         
         toast.success(on ? "Flash turned on" : "Flash turned off");
       } catch (constraintErr) {
