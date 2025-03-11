@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Clock, Utensils, ChevronRight, Heart, Star, Circle, CircleCheck } from "lucide-react";
+import { Clock, Utensils, ChevronRight, Heart, Star, CircleCheck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "@/contexts/UserContext";
 import { Progress } from "@/components/ui/progress";
@@ -45,16 +45,16 @@ const RecipeCard = ({
   
   // Color for match percentage
   const getMatchColor = () => {
-    if (matchPercentage === 100) return "from-green-500 to-green-600";
-    if (matchPercentage >= 75) return "from-fridge-500 to-fridge-600";
+    if (matchPercentage === 100) return "from-blue-500 to-blue-600";
+    if (matchPercentage >= 75) return "from-blue-400 to-blue-500";
     if (matchPercentage >= 50) return "from-amber-500 to-amber-600";
     return "from-gray-500 to-gray-600";
   };
 
   // Badge for match percentage
   const getMatchBadge = () => {
-    if (matchPercentage === 100) return "bg-green-500 hover:bg-green-600";
-    if (matchPercentage >= 75) return "bg-fridge-500 hover:bg-fridge-600";
+    if (matchPercentage === 100) return "bg-blue-500 hover:bg-blue-600";
+    if (matchPercentage >= 75) return "bg-blue-400 hover:bg-blue-500";
     if (matchPercentage >= 50) return "bg-amber-500 hover:bg-amber-600";
     return "bg-gray-500 hover:bg-gray-600";
   };
@@ -70,7 +70,7 @@ const RecipeCard = ({
         <div className="w-24 h-24 md:w-28 md:h-28 relative flex-shrink-0 bg-gray-100">
           {!imageLoaded && (
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-6 h-6 border-2 border-fridge-500 border-t-transparent rounded-full animate-spin"></div>
+              <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
             </div>
           )}
           <img
@@ -131,11 +131,11 @@ const RecipeCard = ({
           {/* Cook time and action indicator */}
           <div className="flex items-center justify-between mt-2">
             <div className="flex items-center text-xs text-gray-600 bg-gray-50 px-2 py-1 rounded">
-              <Clock className="h-3 w-3 mr-1 text-fridge-600" />
+              <Clock className="h-3 w-3 mr-1 text-blue-600" />
               <span>{cookTime} min</span>
             </div>
             
-            <ChevronRight className="h-4 w-4 text-fridge-600" />
+            <ChevronRight className="h-4 w-4 text-blue-600" />
           </div>
         </div>
       </motion.div>
@@ -156,7 +156,7 @@ const RecipeCard = ({
       <div className="aspect-video relative overflow-hidden bg-gray-100">
         {!imageLoaded && (
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-8 h-8 border-2 border-fridge-500 border-t-transparent rounded-full animate-spin"></div>
+            <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
           </div>
         )}
         <img
@@ -182,7 +182,7 @@ const RecipeCard = ({
                   {i < matchingIngredients ? (
                     <CircleCheck className="h-3.5 w-3.5 text-green-400" />
                   ) : (
-                    <Circle className="h-3 w-3 text-white/70" />
+                    <div className="h-3 w-3 rounded-full border border-white/70"></div>
                   )}
                 </div>
               ))}
@@ -225,12 +225,12 @@ const RecipeCard = ({
         {/* Info badges */}
         <div className="flex items-center justify-between mt-1 text-sm gap-2">
           <div className="flex items-center text-gray-600 bg-gray-50 px-2 py-1 rounded">
-            <Clock className="h-3.5 w-3.5 mr-1 text-fridge-600" />
+            <Clock className="h-3.5 w-3.5 mr-1 text-blue-600" />
             <span>{cookTime} min</span>
           </div>
           
           <div className="flex items-center text-gray-600 bg-gray-50 px-2 py-1 rounded">
-            <Utensils className="h-3.5 w-3.5 mr-1 text-fridge-600" />
+            <Utensils className="h-3.5 w-3.5 mr-1 text-blue-600" />
             <span>
               {matchingIngredients}/{totalIngredients}
             </span>
@@ -241,15 +241,15 @@ const RecipeCard = ({
           <span className={cn(
             "text-xs font-medium px-2 py-1 rounded",
             matchingIngredients === totalIngredients 
-              ? "bg-green-50 text-green-600" 
+              ? "bg-blue-50 text-blue-600" 
               : "bg-gray-50 text-gray-600"
           )}>
             {matchingIngredients === totalIngredients
               ? "Have all ingredients"
               : `Missing ${totalIngredients - matchingIngredients}`}
           </span>
-          <div className="bg-fridge-50 rounded-full p-1">
-            <ChevronRight className="h-4 w-4 text-fridge-600" />
+          <div className="bg-blue-50 rounded-full p-1">
+            <ChevronRight className="h-4 w-4 text-blue-600" />
           </div>
         </div>
       </div>
