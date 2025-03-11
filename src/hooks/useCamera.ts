@@ -5,6 +5,7 @@ import { toast } from "sonner";
 interface UseCameraOptions {
   onError?: (error: Error) => void;
   facingMode?: "user" | "environment";
+  quality?: "low" | "medium" | "high";
 }
 
 interface UseCameraReturn {
@@ -19,6 +20,7 @@ interface UseCameraReturn {
 export function useCamera({
   onError,
   facingMode = "environment",
+  quality = "high",
 }: UseCameraOptions = {}): UseCameraReturn {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
@@ -26,15 +28,37 @@ export function useCamera({
   const [isLoading, setIsLoading] = useState(true);
   const [currentFacingMode, setCurrentFacingMode] = useState<"user" | "environment">(facingMode);
 
+  // Define camera quality constraints based on quality setting
+  const getQualityConstraints = () => {
+    switch (quality) {
+      case "low":
+        return {
+          width: { ideal: 640 },
+          height: { ideal: 480 },
+        };
+      case "medium":
+        return {
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+        };
+      case "high":
+      default:
+        return {
+          width: { ideal: 1920 },
+          height: { ideal: 1080 },
+        };
+    }
+  };
+
   const requestCameraPermission = async () => {
     setIsLoading(true);
     try {
+      const qualityConstraints = getQualityConstraints();
+      
       const constraints = {
         video: {
           facingMode: currentFacingMode,
-          // Request high quality for better results
-          width: { ideal: 1920 },
-          height: { ideal: 1080 },
+          ...qualityConstraints,
         },
       };
 
@@ -43,8 +67,16 @@ export function useCamera({
         stream.getTracks().forEach((track) => track.stop());
       }
 
+      console.log("Requesting camera with constraints:", constraints);
       const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
       setStream(mediaStream);
+      
+      // Get actual camera track settings
+      const videoTrack = mediaStream.getVideoTracks()[0];
+      if (videoTrack) {
+        console.log("Camera capabilities:", videoTrack.getCapabilities());
+        console.log("Camera settings:", videoTrack.getSettings());
+      }
       
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
@@ -101,8 +133,8 @@ export function useCamera({
       // Draw the current video frame to the canvas
       context.drawImage(video, 0, 0, canvas.width, canvas.height);
       
-      // Get the image as a data URL
-      const dataUrl = canvas.toDataURL("image/jpeg", 0.85); // Good quality but not too large
+      // Get the image as a data URL (higher quality for better results)
+      const dataUrl = canvas.toDataURL("image/jpeg", 0.95);
       
       return dataUrl;
     } catch (err) {
