@@ -196,20 +196,21 @@ const ShoppingListView = () => {
           <TabsContent value="stores" className="mt-0 space-y-4">
             {hasUncheckedItems && (
               <Card className="overflow-hidden shadow-md border border-fridge-100/80">
-                <div className="p-4 border-b border-fridge-100 bg-gradient-to-r from-fridge-50 to-white">
+                <div className="bg-gradient-to-r from-fridge-50 to-white border-b border-fridge-100 px-5 py-4 flex items-center justify-between">
                   <h3 className="font-medium text-fridge-800 flex items-center">
-                    <div className="bg-fridge-100 p-1 rounded-full mr-2 shadow-sm">
-                      <MapPin className="h-4 w-4 text-fridge-700" />
-                    </div>
+                    <Store className="h-4 w-4 text-fridge-600 mr-2" />
                     Nearby Grocery Stores
                   </h3>
+                  <div className="flex items-center">
+                    <span className="text-xs text-gray-500">Updated just now</span>
+                  </div>
                 </div>
                 
-                <div className="p-4">
+                <div className="p-3">
                   {isLoadingStores ? (
                     <StoresLoadingState />
                   ) : nearbyStores.length > 0 ? (
-                    <div className="space-y-3">
+                    <div className="space-y-2">
                       {nearbyStores.map(store => (
                         <StoreCard key={store.id} store={store} />
                       ))}
@@ -336,21 +337,45 @@ const EmptyStoresState = () => (
 // Store card component
 const StoreCard = ({ store }: { store: GroceryStore }) => (
   <motion.div
-    initial={{ opacity: 0, y: 10 }}
+    initial={{ opacity: 0, y: 5 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.2 }}
-    className="bg-gradient-to-r from-white to-fridge-50/30 rounded-lg p-3.5 border border-fridge-100 shadow-sm hover:shadow-md transition-all cursor-pointer"
+    whileHover={{ scale: 1.01, boxShadow: "0 4px 12px rgba(0, 0, 0, 0.05)" }}
+    className="bg-white rounded-xl p-3.5 border border-fridge-100 shadow-sm cursor-pointer overflow-hidden relative"
   >
     <div className="flex justify-between items-center">
-      <div>
-        <h4 className="font-medium text-gray-800">{store.name}</h4>
-        <p className="text-xs text-gray-500 mt-0.5">{store.address}</p>
+      <div className="flex items-center">
+        <div className="w-10 h-10 rounded-full bg-fridge-50 flex items-center justify-center flex-shrink-0 mr-3">
+          <Store className="h-5 w-5 text-fridge-600" />
+        </div>
+        <div>
+          <h4 className="font-medium text-gray-800">{store.name}</h4>
+          <p className="text-xs text-gray-500 mt-0.5">{store.address}</p>
+        </div>
       </div>
       <div className="flex flex-col items-end">
         <span className="text-sm bg-fridge-100 px-2.5 py-0.5 rounded-full text-fridge-700 font-medium shadow-sm">
           {store.distance} mi
         </span>
-        <span className="text-xs text-gray-400 mt-1">Open now</span>
+        <span className="text-xs text-green-600 mt-1 font-medium">Open now</span>
+      </div>
+    </div>
+    
+    {/* Progress bar showing inventory availability */}
+    <div className="mt-3 pt-2 border-t border-gray-100">
+      <div className="flex justify-between items-center mb-1.5">
+        <span className="text-xs text-gray-500">Inventory availability</span>
+        <span className="text-xs font-medium text-fridge-700">
+          {Object.values(store.inventory).filter(item => item.inStock).length}/{Object.keys(store.inventory).length} items
+        </span>
+      </div>
+      <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+        <div 
+          className="h-full bg-gradient-to-r from-fridge-400 to-fridge-500 rounded-full"
+          style={{ 
+            width: `${(Object.values(store.inventory).filter(item => item.inStock).length / Object.keys(store.inventory).length) * 100}%` 
+          }}
+        ></div>
       </div>
     </div>
   </motion.div>
