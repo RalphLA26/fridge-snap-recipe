@@ -64,15 +64,17 @@ export default {
 					ring: 'hsl(var(--sidebar-ring))'
 				},
 				fridge: {
-					100: '#f0f9ff',
-					200: '#e0f2fe',
-					300: '#bae6fd',
-					400: '#7dd3fc',
-					500: '#38bdf8',
-					600: '#0284c7',
-					700: '#0369a1',
-					800: '#075985',
-					900: '#0c4a6e',
+					50: 'hsl(var(--fridge-50))',
+					100: 'hsl(var(--fridge-100))',
+					200: 'hsl(var(--fridge-200))',
+					300: 'hsl(var(--fridge-300))',
+					400: 'hsl(var(--fridge-400))',
+					500: 'hsl(var(--fridge-500))',
+					600: 'hsl(var(--fridge-600))',
+					700: 'hsl(var(--fridge-700))',
+					800: 'hsl(var(--fridge-800))',
+					900: 'hsl(var(--fridge-900))',
+					950: 'hsl(var(--fridge-950))',
 				},
 				recipe: {
 					100: '#f8fafc',
@@ -123,7 +125,15 @@ export default {
 				'pulse-subtle': {
 					'0%, 100%': { opacity: '1' },
 					'50%': { opacity: '0.8' }
-				}
+				},
+        'bounce-subtle': {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-3px)' }
+        },
+        'shimmer': {
+          '0%': { backgroundPosition: '-200% 0' },
+          '100%': { backgroundPosition: '200% 0' }
+        }
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
@@ -133,8 +143,13 @@ export default {
 				'slide-up': 'slide-up 0.4s ease-out',
 				'slide-down': 'slide-down 0.4s ease-out',
         'scale-in': 'scale-in 0.3s ease-out',
-				'pulse-subtle': 'pulse-subtle 2s ease-in-out infinite'
-			}
+				'pulse-subtle': 'pulse-subtle 2s ease-in-out infinite',
+        'bounce-subtle': 'bounce-subtle 2s ease-in-out infinite',
+        'shimmer': 'shimmer 2s infinite linear'
+			},
+      backgroundImage: {
+        'gradient-shimmer': 'linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.2) 20%, rgba(255,255,255,0.5) 60%, rgba(255,255,255,0) 100%)',
+      }
 		}
 	},
 	plugins: [require("tailwindcss-animate")],

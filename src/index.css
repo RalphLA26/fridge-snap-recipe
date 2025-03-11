@@ -33,7 +33,7 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 222.2 84% 4.9%;
  
-    --radius: 0.5rem;
+    --radius: 0.75rem;
 
     --fridge-50: 86 67% 98%;
     --fridge-100: 85 73% 94%;
@@ -182,4 +182,65 @@ a, button {
 /* Improved input styles */
 .input-focus {
   @apply focus:border-fridge-500 focus:ring-1 focus:ring-fridge-500;
+}
+
+/* Filter chip styles */
+.filter-chip {
+  @apply inline-flex items-center rounded-full px-2.5 py-1 text-sm bg-gray-100 text-gray-800 border border-gray-200;
+}
+
+.filter-chip.active {
+  @apply bg-fridge-100 text-fridge-700 border-fridge-200;
+}
+
+/* Improved scroll behavior */
+.smooth-scroll {
+  scroll-behavior: smooth;
+}
+
+/* Better scrollbars for desktop */
+@media (min-width: 768px) {
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 20px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(0, 0, 0, 0.3);
+  }
+}
+
+/* Recipe cards */
+.recipe-card {
+  @apply bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden transition-all duration-300;
+}
+
+.recipe-card:hover {
+  @apply shadow-md -translate-y-1;
+}
+
+/* Match percentage colors */
+.match-perfect {
+  @apply bg-green-500 text-white;
+}
+
+.match-good {
+  @apply bg-blue-500 text-white;
+}
+
+.match-some {
+  @apply bg-amber-500 text-white;
+}
+
+.match-few {
+  @apply bg-gray-500 text-white;
 }
