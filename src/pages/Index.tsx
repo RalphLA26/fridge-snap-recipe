@@ -8,7 +8,7 @@ import IngredientManager from "@/components/IngredientManager";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronDown, ChevronUp, Camera, Plus, UtensilsCrossed } from "lucide-react";
+import { ChevronDown, ChevronUp, Camera, Plus, UtensilsCrossed, Search } from "lucide-react";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -93,7 +93,7 @@ const Index = () => {
                       <p className="text-sm text-fridge-700 mt-1">Use camera to identify</p>
                     </motion.div>
                     
-                    {/* Add Manually Option */}
+                    {/* Search Ingredients Option */}
                     <motion.div
                       whileHover={{ scale: 0.98 }}
                       whileTap={{ scale: 0.95 }}
@@ -101,10 +101,10 @@ const Index = () => {
                       onClick={() => setShowIngredients(true)}
                     >
                       <div className="w-12 h-12 rounded-full bg-gradient-to-br from-fridge-500 to-fridge-600 flex items-center justify-center shadow-md mb-3">
-                        <Plus className="h-6 w-6 text-white" />
+                        <Search className="h-6 w-6 text-white" />
                       </div>
-                      <h3 className="font-semibold text-fridge-900">Add Manually</h3>
-                      <p className="text-sm text-fridge-700 mt-1">Type in your ingredients</p>
+                      <h3 className="font-semibold text-fridge-900">Search Items</h3>
+                      <p className="text-sm text-fridge-700 mt-1">Find & add ingredients</p>
                     </motion.div>
                   </div>
                 </div>
